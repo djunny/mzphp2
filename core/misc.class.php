@@ -475,6 +475,12 @@ class misc {
 		//headers
 		$HTTP_USER_AGENT = core::gpc('$HTTP_USER_AGENT', 'S');
 		empty($HTTP_USER_AGENT) && $HTTP_USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)';
+		
+		$matches = parse_url($url);
+		$host = $matches['host'];
+		$path = $matches['path'] ? $matches['path'].(!empty($matches['query']) ? '?'.$matches['query'] : '') : '/';
+		$port = !empty($matches['port']) ? $matches['port'] : 80;
+		
 		$defheaders = array(
 			'Accept' => '*/*',
 			'User-Agent' => $HTTP_USER_AGENT,
@@ -488,30 +494,27 @@ class misc {
 			$defheaders['Cache-Control'] = 'no-cache';
 			$defheaders['Content-Type'] = 'application/x-www-form-urlencoded';
 			$defheaders['Content-Length'] = strlen($post);
-			$out = "POST $path HTTP/1.0\r\n";
+			$out = "POST {$path} HTTP/1.0\r\n";
 		}else{
-			$out = "GET $path HTTP/1.0\r\n";
+			$out = "GET {$path} HTTP/1.0\r\n";
 		}
 		//merge headers
 		$defheaders = array_merge($defheaders, $headers);
 		foreach($defheaders as $hkey=>$hval){
-			$out .= $hkey.': '.$hval;
+			$out .= $hkey.': '.$hval."\r\n";
 		}
 		
 		if( function_exists('fsockopen')) {
 			$limit = 500000;
 			$ip = '';
 			$return = '';
-			$matches = parse_url($url);
-			$host = $matches['host'];
-			$path = $matches['path'] ? $matches['path'].(!empty($matches['query']) ? '?'.$matches['query'] : '') : '/';
-			$port = !empty($matches['port']) ? $matches['port'] : 80;
-		
 			
+			$out .= "\r\n";
 			//append post body
 			if(!empty($post)) {
 				$out .= $post;
 			}
+			
 
 			$host == 'localhost' && $ip = '127.0.0.1';
 			$fp = @fsockopen(($ip ? $ip : $host), $port, $errno, $errstr, $timeout);
@@ -541,7 +544,6 @@ class misc {
 							}
 						}
 					}
-		
 					$stop = false;
 					while(!feof($fp) && !$stop) {
 						$data = fread($fp, ($limit == 0 || $limit > 8192 ? 8192 : $limit));

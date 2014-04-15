@@ -86,6 +86,8 @@ if(DEBUG > 0) {
 	
 	// 模板
 	include FRAMEWORK_PATH.'lib/template.class.php';
+	// seo
+	include FRAMEWORK_PATH.'lib/seo.class.php';
 	
 	// db
 	include FRAMEWORK_PATH.'db/db.interface.php';
@@ -112,6 +114,7 @@ if(DEBUG > 0) {
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'lib/xn_exception.class.php');
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'lib/encrypt.func.php');
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'lib/template.class.php');
+		$content .= php_strip_whitespace(FRAMEWORK_PATH.'lib/seo.class.php');
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'db/db.interface.php');
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'db/db_mysql.class.php');
 		$content .= php_strip_whitespace(FRAMEWORK_PATH.'cache/cache.interface.php');
