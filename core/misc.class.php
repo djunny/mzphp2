@@ -16,6 +16,74 @@ class misc {
 		return max(1, intval(core::gpc($key, 'R')));
 	}
 	
+	
+	public static function cut_str($html, $start='', $end=''){
+		if($start){
+			$html = strstr($html, $start, false);
+			$html = substr($html, strlen($start));
+		}
+		if($end){
+			$html = strstr($html, $end, true);
+		}
+		return $html;
+	}
+	
+	
+	public static function mask_match($html, $pattern, $returnfull = false){
+		$part = explode('(*)', $pattern);
+		if(count($part)==1){
+			return '';
+		}else{
+			if($part[0] && $part[1]){
+				$res = self::cut_str($html, $part[0], $part[1]);
+				if($res){
+					return $returnfull ? $part[0].$res.$part[1] : $res;
+				}
+			}else{
+				//pattern=xxx(*)
+				if($part[0]){
+					$html = explode($part[0], $html);
+					if($html[1]){
+						return $returnfull ? $part[0].$html[1] : $html[1];
+					}
+				}else if ($part[1]){
+					//pattern=(*)xxx
+					$html = explode($part[1], $html);
+					if($html[0]){
+						return $returnfull ? $html[0].$part[1] : $html[0];
+					}
+				}
+			}
+			return '';
+		}
+	}
+	
+	
+	//replace by array key => value, support reg & str & mask
+	public static function reg_replace($html, $patterns){
+		foreach($patterns as $search=>$replace){
+			// mask mastch replace
+			if(strpos($search, '(*)')!== false){
+				$i = 0;
+				while($searchhtml = self::mask_match($html, $search, true)){
+					if($searchhtml){
+						$html = str_replace($searchhtml, $replace, $html);
+						continue;
+					}
+					break;
+				}
+			}else if(preg_match('/^([\#\/\|\!\@]).+\\1[ismSMI]?$/is', $search)){
+				//regexp replace
+				$html = preg_replace($search, $replace, $html);
+			}else{
+				//str replace
+				$html = str_replace($search, $replace, $html);
+			}
+		}
+		return $html;
+	}
+	
+	
 	/*
 		misc::pages('?thread-index.htm', 100, 1, 20);
 		misc::pages('thread-index.htm', 100, 1, 20);
@@ -399,13 +467,9 @@ class misc {
 
 	// https request
 	public static function https_fetch_url($url, $timeout=30, $header=array()) {
-		if(substr($url, 0, 5) == 'http:') {
-			return self::fetch_url($url, $timeout);
-		}
-		$w = stream_get_wrappers();
 		$allow_url_fopen = strtolower(ini_get('allow_url_fopen'));
 		$allow_url_fopen = (empty($allow_url_fopen) || $allow_url_fopen == 'off') ? 0 : 1;
-		if(extension_loaded('openssl') && in_array('https', $w) && $allow_url_fopen) {
+		if(extension_loaded('openssl') && in_array('https', stream_get_wrappers()) && $allow_url_fopen) {
 			return file_get_contents($url);
 		} elseif (!function_exists('curl_init')) {
 			throw new Exception('server not installed curl.');
@@ -414,9 +478,8 @@ class misc {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 1);
 		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
 		curl_setopt($ch, CURLOPT_USERAGENT, core::gpc('HTTP_USER_AGENT', 'S'));
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1); // 从证书中检查SSL加密算法是否存在
 		//curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // 使用自动跳转, 安全模式不允许
 		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 		if(!empty($header)) {
@@ -464,23 +527,27 @@ class misc {
     }//gzdecode end
 
 	// SAE 重载了 file_get_contents()
-	public static function fetch_url($url, $timeout = 5, $post = '', $headers = array(), $deep = 0) {
+	public static function fetch_url($url, $post = '', $headers = array(), $timeout = 5, $deep = 0) {
 		if($deep > 5) throw new Exception('超出 fetch_url() 最大递归深度！');
-		if(substr($url, 0, 5) == 'https') {
-			return self::https_fetch_url($url, $timeout);
+		static $stream_wraps = null;
+		if($stream_wraps == null){
+			$stream_wraps = stream_get_wrappers();
 		}
-		$w = stream_get_wrappers();
-		$allow_url_fopen = strtolower(ini_get('allow_url_fopen'));
-		$allow_url_fopen = (empty($allow_url_fopen) || $allow_url_fopen == 'off') ? 0 : 1;
+		static $allow_url_fopen = null;
+		if($allow_url_fopen == null){
+			$allow_url_fopen = strtolower(ini_get('allow_url_fopen'));
+			$allow_url_fopen = (empty($allow_url_fopen) || $allow_url_fopen == 'off') ? 0 : 1;
+		}
 		//headers
 		$HTTP_USER_AGENT = core::gpc('$HTTP_USER_AGENT', 'S');
 		empty($HTTP_USER_AGENT) && $HTTP_USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)';
 		
 		$matches = parse_url($url);
 		$host = $matches['host'];
-		$path = $matches['path'] ? $matches['path'].(!empty($matches['query']) ? '?'.$matches['query'] : '') : '/';
+		$path = isset($matches['path']) ? $matches['path'].(!empty($matches['query']) ? '?'.$matches['query'] : '') : '/';
 		$port = !empty($matches['port']) ? $matches['port'] : 80;
-		
+		$https = $matches['scheme'] == 'https' ? true : false;
+		$charset = '';
 		$defheaders = array(
 			'Accept' => '*/*',
 			'User-Agent' => $HTTP_USER_AGENT,
@@ -500,21 +567,19 @@ class misc {
 		}
 		//merge headers
 		$defheaders = array_merge($defheaders, $headers);
+		
 		foreach($defheaders as $hkey=>$hval){
 			$out .= $hkey.': '.$hval."\r\n";
 		}
-		
-		if( function_exists('fsockopen')) {
-			$limit = 500000;
+		if(false &&!$https && function_exists('fsockopen')) {
+			$limit = 8192;
 			$ip = '';
 			$return = '';
-			
 			$out .= "\r\n";
 			//append post body
 			if(!empty($post)) {
 				$out .= $post;
 			}
-			
 
 			$host == 'localhost' && $ip = '127.0.0.1';
 			$fp = @fsockopen(($ip ? $ip : $host), $port, $errno, $errstr, $timeout);
@@ -541,6 +606,11 @@ class misc {
 								&& strpos($header, 'gzip') !==  false) {
 								//is gzip
 								$gzip = true;
+							}else if(strpos($header, 'content-type:') !== false){
+								preg_match( '@Content-Type:\s+([\w/+]+)(;\s+charset=([\w-]+))?@i', $header, $charsetmatch);
+								if (isset($charsetmatch[3])){
+									$charset = $charsetmatch[3];
+								}
 							}
 						}
 					}
@@ -559,7 +629,7 @@ class misc {
 					}
 				}
 				@fclose($fp);
-				return $return;
+				return self::convert_html_charset($return, $charset);
 			}
 		} elseif(function_exists('curl_init')) {
 			$ch = curl_init();
@@ -567,8 +637,18 @@ class misc {
 			curl_setopt($ch, CURLOPT_ENCODING, ''); 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($ch, CURLOPT_HEADER, 1);
+			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 			curl_setopt($ch, CURLOPT_MAXREDIRS , $deep);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+			//must use curlopt_cookie param to set 
+			if(isset($defheaders['Cookie'])){
+				curl_setopt($ch, CURLOPT_COOKIE, $defheaders['Cookie']);
+			}
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $defheaders);
+			if($https){
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 从证书中检查SSL加密算法是否存在
+			}
 			if($post) {
 				curl_setopt($ch, CURLOPT_POST, 1);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
@@ -592,18 +672,84 @@ class misc {
 				curl_close($ch);
 				return self::fetch_url($url, $timeout, $post, $headers, $deep + 1);
 			}
-			return $data;  
-		} elseif($allow_url_fopen && empty($post) && empty($cookie) && in_array('http', $w)) {
+			//match charset
+			preg_match('@Content-Type:\s+([\w/+]+)(;\s+charset=([\w-]+))?@is', $header, $charsetmatch);
+			if (isset($charsetmatch[3])){
+				$charset = $charsetmatch[3];
+			}
+			return self::convert_html_charset($data, $charset);
+		} elseif($https && $allow_url_fopen && in_array('https', $stream_wraps)) {
+			if(extension_loaded('openssl')){
+				return file_get_contents($url);
+			}else{
+				 throw new Exception('unopen openssl extension');
+			}
+		} elseif($allow_url_fopen && empty($post) && empty($cookie) 
+				&& in_array('http', $stream_wraps)) {
 			// 尝试连接
 			$opts = array ('http'=>array('method'=>'GET', 'timeout'=>$timeout)); 
 			$context = stream_context_create($opts);  
 			$html = file_get_contents($url, false, $context);  
-			return $html;
+			return convert_html_charset($html, $charset);
 		} else {
 			log::write('fetch_url() failed: '.$url);
 			return FALSE;
 		}
 	}
+	
+	//detect html coding
+	public static function convert_html_charset($html, $charset, $tocharset ='utf-8'){
+		//取html中的charset
+		$detect_charset = '';
+		//html file
+		if(stripos($html, '<html')!==false){
+			if(stripos($html, 'charset=') !==false){
+				$head = self::mask_match($html, '(*)</head>');
+				if($head){
+					$head = strtolower($head);
+					$head = self::reg_replace($head, array(
+									'<script(*)/script>' => '',
+									'<style(*)/style>' => '',
+									'<link(*)>' => '',
+									"\r" => '',
+									"\n" => '',
+									"\t" => '',
+									" " => '',
+									//"'" => '',
+									//"\"" => '',
+								));
+					preg_match_all('/charset=([-\w]+)/', $head, $matches);
+					if(isset($matches[1][0]) && !empty($matches[1][0])){
+						$detect_charset = $matches[1][0];
+					}
+				}
+			}
+		}
+		//xml file
+		if(stripos($html, '<xml')!==false ){
+			//<?xml version="1.0" encoding="UTF-8"
+			if(stripos($html, 'encoding=') !==false){
+				$head = self::mask_match($html, '<'.'?xml(*)?'.'>');
+				preg_match_all('/encoding=([-\w]+)/is', $head, $matches);
+				if(isset($matches[1][0]) && !empty($matches[1][0])){
+					$detect_charset = $matches[1][0];
+				}
+			}
+		}
+		//取 http header中的charset
+		if(!$detect_charset && $charset){
+			if(strtolower($charset) =='iso-8859-1'){
+				$charset = 'gbk';
+			}
+			$detect_charset = $charset;
+		}
+		
+		if($detect_charset){
+			return iconv($detect_charset, $tocharset, $html);
+		}else{
+			return $html;
+		}
+	} 
 	
 	
 	// 多线程抓取数据，需要CURL支持，一般在命令行下执行，此函数收集互联网，由 xiuno 整理。
@@ -675,6 +821,43 @@ class misc {
 		}
 		try {if(!$keepdir) rmdir($dir);} catch (Exception $e) {}
 		return TRUE;
+	}
+	
+	//convert url
+	public static function format_url($baseurl, $srcurl) {
+		$srcinfo = parse_url($srcurl);
+		if (isset($srcinfo['scheme'])) {
+			return $srcurl;
+		}
+		$baseinfo = parse_url($baseurl);
+		$url      = $baseinfo['scheme'] . '://' . $baseinfo['host'].
+					($basinfo['port'] != 80 ? ':'.$basinfo['port'] : '');
+		if (substr($srcinfo['path'], 0, 1) == '/') {
+			$path = $srcinfo['path'];
+		} else {
+			$path = dirname($baseinfo['path']) . '/' . $srcinfo['path'];
+		}
+		$rst        = array();
+		$path_array = explode('/', $path);
+		if (!$path_array[0]) {
+			$rst[] = '';
+		}
+		foreach ($path_array as $key => $dir) {
+			if ($dir == '..') {
+				if (end($rst) == '..') {
+					$rst[] = '..';
+				} elseif (!array_pop($rst)) {
+					$rst[] = '..';
+				}
+			} elseif ($dir && $dir != '.') {
+				$rst[] = $dir;
+			}
+		}
+		if (!end($path_array)) {
+			$rst[] = '';
+		}
+		$url .= implode('/', $rst);
+		return str_replace('\\', '/', $url) . ($srcinfo['query'] ? '?' . $srcinfo['query'] : '');
 	}
 	
 	
