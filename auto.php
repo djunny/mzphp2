@@ -38,7 +38,7 @@ if(is_file(PATH.'core.php')) {
 
 $appname = strrchr(substr(PATH, 0, -1), '/');
 $appname = str_replace('.', '_', substr($appname, 1));
-$APP_PATH = strtoupper($appname.'_PATH');
+$APP_PATH = strtoupper('ROOT_PATH');
 $app_url = get_url_path();
 
 

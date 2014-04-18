@@ -15,7 +15,19 @@ class misc {
 	public static function page($key = 'page') {
 		return max(1, intval(core::gpc($key, 'R')));
 	}
+
+	//跳转
+	public static function redirect($url, $code=301){
+		//runlog(date('d').$_GET['do'].'_', $_SERVER['HTTP_REFERER'].'||'.$url)
+		ob_end_clean();
+		header('Location: '.$url, true, $code);
+		exit;
+	}
 	
+	//跳转
+	public static function nohtml($html){
+		return self::reg_replace($html, array('<(*)>' => ''));
+	}
 	
 	public static function cut_str($html, $start='', $end=''){
 		if($start){
@@ -72,7 +84,7 @@ class misc {
 					}
 					break;
 				}
-			}else if(preg_match('/^([\#\/\|\!\@]).+\\1[ismSMI]?$/is', $search)){
+			}else if(preg_match('/^([\#\/\|\!\@]).+\\1([ismSMI]+)?$/is', $search)){
 				//regexp replace
 				$html = preg_replace($search, $replace, $html);
 			}else{
@@ -464,49 +476,6 @@ class misc {
 			return false;
 		}
 	}
-
-	// https request
-	public static function https_fetch_url($url, $timeout=30, $header=array()) {
-		$allow_url_fopen = strtolower(ini_get('allow_url_fopen'));
-		$allow_url_fopen = (empty($allow_url_fopen) || $allow_url_fopen == 'off') ? 0 : 1;
-		if(extension_loaded('openssl') && in_array('https', stream_get_wrappers()) && $allow_url_fopen) {
-			return file_get_contents($url);
-		} elseif (!function_exists('curl_init')) {
-			throw new Exception('server not installed curl.');
-		}
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HEADER, 1);
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-		curl_setopt($ch, CURLOPT_USERAGENT, core::gpc('HTTP_USER_AGENT', 'S'));
-		//curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // 使用自动跳转, 安全模式不允许
-		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-		if(!empty($header)) {
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-		}
-		$data = curl_exec($ch);
-		if(curl_errno($ch)) {
-			throw new Exception('Errno'.curl_error($ch));//捕抓异常
-		}
-		if(!$data) {
-			curl_close($ch);
-			return '';
-		}
-		
-		list($header, $data) = explode("\r\n\r\n", $data);
-		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-		if($http_code == 301 || $http_code == 302) {
-			$matches = array();
-			preg_match('/Location:(.*?)\n/', $header, $matches);
-			$url = trim(array_pop($matches));
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_HEADER, false);
-			$data = curl_exec($ch);
-		}
-		curl_close($ch);
-		return $data;  
-	}
 	
 	public static function gzdecode($data){
         $flags = ord(substr($data, 3, 1));
@@ -726,7 +695,7 @@ class misc {
 			}
 		}
 		//xml file
-		if(stripos($html, '<xml')!==false ){
+		if(stripos($html, '<xml')!==false){
 			//<?xml version="1.0" encoding="UTF-8"
 			if(stripos($html, 'encoding=') !==false){
 				$head = self::mask_match($html, '<'.'?xml(*)?'.'>');
@@ -791,14 +760,27 @@ class misc {
 		return $data;
 	}
 	
+	public static function ext($filename) {
+		return strtolower(substr(strrchr($filename, '.'), 1));
+	}
+	
+	
 	// 替代 scandir, safe_mode
-	public static function scandir($dir) {
-		if(function_exists('scan_dir')) return scandir($dir);
+	public static function scandir($dir, $exts=array()) {
+		//if(function_exists('scan_dir')) return scandir($dir);
 		$df = opendir($dir);
 		$arr = array();
 		while($file = readdir($df)) {
 			if($file == '.' || $file == '..') continue;
-			$arr[] = $file;
+			$find = false;
+			if(!empty($exts) && is_array($exts)){
+				//check
+				if(in_array(self::ext($file), $exts)){
+					$arr[] = $file;
+				}
+			}else{
+				$arr[] = $file;
+			}
 		}
 		closedir($df);
 		return $arr;
