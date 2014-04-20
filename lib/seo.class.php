@@ -67,6 +67,19 @@ class seo {
 		$data = mb_convert_encoding($data,$to,$encoded);
 		return $data;
 	}
+	
+	public static function top_domain($domain){
+		$urlMap = array('com', 'gl', 'cn.hk', 'co.uk', 'com.cn','net','org','com.hk');
+		$hostData = explode('.', $domain);
+		$hostData = array_reverse($hostData);
+		
+		if(array_search($hostData[1] . '.' . $hostData[0], $urlMap) !== FALSE) {
+		  $host = $hostData[2] . '.' . $hostData[1] . '.' . $hostData[0];
+		} elseif(array_search($hostData[0], $urlMap) !== FALSE) {
+		  $host = $hostData[1] . '.' . $hostData[0];
+		}
+		return $host;
+	}
 	 
 	//
 	private static function parse_keyword($url, $kw_start){

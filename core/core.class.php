@@ -442,7 +442,6 @@ class core {
 		$tmpval = isset($get['a']) ? $get['a'] : (isset($argv[2]) ? $argv[2] : '');
 		$get['a'] = $tmpval && preg_match("/^\w+$/", $tmpval) ? $tmpval : 'index';
 		
-		
 	}
 	
 	public static function process_hook(&$conf, $hookfile) {
@@ -775,7 +774,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		$objfile = $conf['tmp_path'].$conf['app_id']."_control_{$control}_control.class.php";
 		
 		// 如果缓存文件不存在，则搜索目录
-		if(!is_file($objfile) || (DEBUG > 0 && !IN_SAE)) {
+		if(!is_file($objfile) || (DEBUG > 0/* && !IN_SAE*/)) {
 			$controlfile = '';
 			if(empty($conf['plugin_disable'])) {
 				$plugins = core::get_enable_plugins($conf);

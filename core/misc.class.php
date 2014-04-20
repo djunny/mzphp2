@@ -71,6 +71,24 @@ class misc {
 	}
 	
 	
+	public static function rnd_str($length = 5, $type = 2) {
+		$arr = array(1 => "0123456789", 2 => "abcdefghijklmnopqrstuvwxyz", 3 => "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4 => "~@#$%^&*(){}[]|");
+		if ($type == 0) {
+			array_pop($arr);
+			$string = implode("", $arr);
+		} elseif ($type == "-1") {
+			$string = implode("", $arr);
+		} else {
+			$string = $arr[$type];
+		}
+		$count = strlen($string) - 1;
+		$code = '';
+		for ($i = 0; $i < $length; $i++) {
+			$code .= $string[rand(0, $count)];
+		}
+		return $code;
+	 }
+	
 	//replace by array key => value, support reg & str & mask
 	public static function reg_replace($html, $patterns){
 		foreach($patterns as $search=>$replace){
@@ -93,6 +111,28 @@ class misc {
 			}
 		}
 		return $html;
+	}
+	
+	
+	public static function array_eval($array, $level = 0) {
+		$space = '';
+		for($i = 0; $i <= $level; $i++) {
+			$space .= "\t";
+		}
+		$evaluate = "Array\n$space(\n";
+		$comma = $space;
+		foreach($array as $key => $val) {
+			$key = is_string($key) ? '\''.addcslashes($key, '\'\\').'\'' : $key;
+			$val = !is_array($val) && (!preg_match("/^\-?\d+$/", $val) || strlen($val) > 12 || substr($val, 0, 1)=='0') ? '\''.addcslashes($val, '\'\\').'\'' : $val;
+			if(is_array($val)) {
+				$evaluate .= "$comma$key => ".self::array_eval($val, $level + 1);
+			} else {
+				$evaluate .= "$comma$key => $val";
+			}
+			$comma = ",\n$space";
+		}
+		$evaluate .= "\n$space)";
+		return $evaluate;
 	}
 	
 	
@@ -540,8 +580,8 @@ class misc {
 		foreach($defheaders as $hkey=>$hval){
 			$out .= $hkey.': '.$hval."\r\n";
 		}
-		if(false &&!$https && function_exists('fsockopen')) {
-			$limit = 8192;
+		if(!$https && function_exists('fsockopen')) {
+			$limit = 1024000000;
 			$ip = '';
 			$return = '';
 			$out .= "\r\n";
@@ -607,6 +647,9 @@ class misc {
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($ch, CURLOPT_HEADER, 1);
 			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+			if(!$deep){
+				$deep = 5;
+			}
 			curl_setopt($ch, CURLOPT_MAXREDIRS , $deep);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 			//must use curlopt_cookie param to set 
@@ -625,7 +668,7 @@ class misc {
 			$data = curl_exec($ch);
 			
 			if(curl_errno($ch)) {
-				throw new Exception('Errno'.curl_error($ch));//捕抓异常
+				//throw new Exception('Errno'.curl_error($ch));//捕抓异常
 			}
 			if(!$data) {
 				curl_close($ch);

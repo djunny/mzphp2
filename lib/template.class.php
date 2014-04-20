@@ -50,27 +50,33 @@ class template {
 	}
 
 	// 约定必须主模板调用其他应用模板，不能反其道而行之
-	public function display($file, $json = array()) {
+	public function display($file, $json = array(), $makefile='', $charset ='') {
 		if(!core::gpc('ajax', 'R')) {
 			extract($this->vars, EXTR_SKIP);
-			
 			ob_start();
 			include $this->gettpl($file);
 			$body = ob_get_contents();
 			ob_end_clean();
 			core::process_urlrewrite($this->conf, $body);
-			echo $body;
-			//debug
-			debug::process();
+			if($charset != 'utf-8'){
+				header('Content-Type: text/html; charset='.$charset);
+				$body = iconv('utf-8', $charset, $body);
+			}
+			if(!$makefile){
+				echo $body;
+				//debug
+				debug::process();
+			}else{
+				return file_put_contents($makefile, $body);
+			}
 		// json 格式，约定为格式。
-		} else {	
-			
+		} else {
 			ob_start();
 			extract($this->vars, EXTR_SKIP);
 			include $this->gettpl($file);
 			$body = ob_get_contents();
 			ob_end_clean();
-			
+
 			$json = array('servererror'=>'', 'status'=>1, 'message'=>array('width'=>400, 'height'=>300, 'pos'=>'center', 'title'=>'默认窗口标题', 'body'=>''));
 			$json['message'] = array_merge($json['message'], $this->json);
 			$this->fetch_json_header($body, $json['message']);
