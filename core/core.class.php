@@ -259,11 +259,11 @@ class core {
 		spl_autoload_register(array('core', 'autoload_handle'));
 		
 		// 异常处理类
-		set_exception_handler(array('core', 'exception_handle'));
+		//set_exception_handler(array('core', 'exception_handle'));
 		
 		// 自定义错误处理函数，设置后 error_reporting 将失效。因为要保证 ajax 输出格式，所以必须触发 error_handle
 		//if(DEBUG || core::gpc('ajax', 'R')) {
-			set_error_handler(array('core', 'error_handle'));
+		//	set_error_handler(array('core', 'error_handle'));
 		//}
 		
 	}

@@ -53,6 +53,8 @@ class template {
 	public function display($file, $json = array(), $makefile='', $charset ='') {
 		if(!core::gpc('ajax', 'R')) {
 			extract($this->vars, EXTR_SKIP);
+			$warninfo = ob_get_contents();
+			//ob_end_clean();
 			ob_start();
 			include $this->gettpl($file);
 			$body = ob_get_contents();
