@@ -94,60 +94,64 @@ class template {
 		$objfile = $this->conf['tmp_path'].$this->conf['app_id'].'_view_'.$filename.'.php';
 		if(!$this->force) return $objfile;
 		
-		// 此处可能会影响效率，如果确认所有模板的已经缓存，可以跳过此步。
-		if(!is_file($objfile) || DEBUG > 0 && !IN_SAE) {
-			
-			// empty($_SERVER['lang']) && $_SERVER['lang'] = include $this->conf['lang_path'].'lang.php';
-			
-			// 模板目录搜索顺序：view_xxx/, view/, plugin/*/
-			$file = '';
-			if(!empty($this->conf['first_view_path'])) {
-				foreach($this->conf['first_view_path'] as $path) {
-					if(is_file($path.$filename)) {
-						$file = $path.$filename;
-						break;
-					}
+		
+		// empty($_SERVER['lang']) && $_SERVER['lang'] = include $this->conf['lang_path'].'lang.php';
+		$existsfile = is_file($objfile);
+		// 模板目录搜索顺序：view_xxx/, view/, plugin/*/
+		$file = '';
+		if(!empty($this->conf['first_view_path'])) {
+			foreach($this->conf['first_view_path'] as $path) {
+				if(is_file($path.$filename)) {
+					$file = $path.$filename;
+					break;
 				}
 			}
-			if(empty($file) && empty($this->conf['plugin_disable'])) {
-				$plugins = core::get_enable_plugins($this->conf);
-				$pluginnames = array_keys($plugins);
-				foreach($pluginnames as $v) {
-					$path = $this->conf['plugin_path'].$v.'/';
-					// 如果有相关的 app path, 这只读取该目录
-					if(is_file($path.$this->conf['app_id'].'/'.$filename)) {
-						$file = $path.$this->conf['app_id'].'/'.$filename;
-						break;
-					}
-					if(is_file($path.$filename)) {
-						$file = $path.$filename;
-						break;
-					}
+		}
+		if(empty($file) && empty($this->conf['plugin_disable'])) {
+			$plugins = core::get_enable_plugins($this->conf);
+			$pluginnames = array_keys($plugins);
+			foreach($pluginnames as $v) {
+				$path = $this->conf['plugin_path'].$v.'/';
+				// 如果有相关的 app path, 这只读取该目录
+				if(is_file($path.$this->conf['app_id'].'/'.$filename)) {
+					$file = $path.$this->conf['app_id'].'/'.$filename;
+					break;
+				}
+				if(is_file($path.$filename)) {
+					$file = $path.$filename;
+					break;
 				}
 			}
-			if(empty($file)) {
-				foreach($this->conf['view_path'] as $path) {
-					if(is_file($path.$filename)) {
-						$file = $path.$filename;
-						break;
-					}
+		}
+		if(empty($file)) {
+			foreach($this->conf['view_path'] as $path) {
+				if(is_file($path.$filename)) {
+					$file = $path.$filename;
+					break;
 				}
 			}
-			if(empty($file)) {
-				throw new Exception("模板文件 $filename 不存在。");
-			}
+		}
+		if(empty($file)) {
+			throw new Exception("模板文件 $filename 不存在。");
+		}
+		
+		if($existsfile){
+			//存在，对比文件时间
 			$filemtime = filemtime($file);
 			if(!$filemtime) {
 				throw new Exception("模板文件 $filename 最后更新时间读取失败。");
 			}
-			$filemtimeold = is_file($objfile) ? filemtime($objfile) : 0;
-			
+			$filemtimeold = $existsfile ? filemtime($objfile) : 0;
+		}
+		
+		// 此处可能会影响效率，如果确认所有模板的已经缓存，可以跳过此步。
+		if(!$existsfile || $filemtimeold < $filemtime || DEBUG > 0 && !IN_SAE) {
 			//判断是否比较过期
-			if($filemtimeold < $filemtime || DEBUG > 1) {
+			//if($filemtimeold < $filemtime || DEBUG > 1) {
 				$s = $this->complie($file);
 				// 此处不锁，多个进程并发写入可能会有问题。// PHP 5.1 以后加入了 LOCK_EX 参数
 				file_put_contents($objfile, $s);
-			}
+			//}
 		}
 		return $objfile;
 	}
