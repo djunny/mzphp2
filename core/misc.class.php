@@ -220,6 +220,11 @@ class misc {
 		}
 	}
 	
+	public static function getcookie($key) {
+		// 计算时差，服务器时间和客户端时间不一致的时候，最好由客户端写入。
+		return core::gpc($key, 'C');
+	}
+	
 	public static function form_hash($auth_key) {
 		return substr(md5(substr($_SERVER['time'], 0, -5).$auth_key), 16);
 	}

@@ -24,9 +24,10 @@ EOF;
 			echo core::usedtime();
 			echo 'ms</b></td></tr></table>';
 			$class = 'tclass';
+			/*
 			foreach ($_SERVER['sqls'] as $dkey => $debug) {
 				($class == 'tclass')?$class = 'tclass2':$class = 'tclass';
-				echo '<table cellspacing="0" class="'.$class.'"><tr><th rowspan="2" width="20">'.($dkey+1).'</th><td width="60">'.$debug['time'].' ms</td><td class="bold">'.shtmlspecialchars($debug['sql']).'</td></tr>';
+				echo '<table cellspacing="0" class="'.$class.'"><tr><th rowspan="2" width="20">'.($dkey+1).'</th><td width="60">'.$debug['time'].' ms</td><td class="bold">'.htmlspecialchars($debug['sql']).'</td></tr>';
 				if(!empty($debug['info'])) {
 					echo '<tr><td>Info</th><td>'.$debug['info'].'</td></tr>';
 				}
@@ -41,6 +42,7 @@ EOF;
 				}
 				echo '</table>';
 			}
+			*/
 			if($files = get_included_files()) {
 				($class == 'tclass')?$class = 'tclass2':$class = 'tclass';
 				echo '<table class="'.$class.'">';

@@ -60,7 +60,7 @@ class template {
 			$body = ob_get_contents();
 			ob_end_clean();
 			core::process_urlrewrite($this->conf, $body);
-			if($charset != 'utf-8'){
+			if($charset && $charset != 'utf-8'){
 				header('Content-Type: text/html; charset='.$charset);
 				$body = iconv('utf-8', $charset, $body);
 			}
