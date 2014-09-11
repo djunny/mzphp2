@@ -332,7 +332,7 @@ class core {
 	}
 	
 	public static function console_log($msg){
-		trigger_error ('['.date('h:i:a').'] - '.print_r($msg), E_USER_NOTICE );
+		trigger_error ('['.date('h:i:a').'] - '.print_r($msg, 1), E_USER_NOTICE );
 	}
 	
 	public static function error_handle($errno, $errstr, $errfile, $errline) {

@@ -404,8 +404,8 @@ class db_mysql implements db_interface {
 			// character_set_connection: sql 语句的编码，写入中文字符的时候必须设置正确
 			// character_set_results: mysqld 返回的数据编码
 			// character_set_client: 客户端编码, binary 不转换 mysqld 会将 character_set_client -> character_set_connection.
-			$this->query("SET names utf8, sql_mode=''", $link);
-			//$this->query("SET names $charset /* $host $user */", $link);
+			//$this->query("SET names utf8, sql_mode=''", $link);
+			@$this->query("SET names $charset", $link);
 			//$this->query("SET sql_mode=''", $link);
 		}
 		return $link;
@@ -435,8 +435,12 @@ class db_mysql implements db_interface {
 	private function arr_to_sqladd($arr) {
 		$s = '';
 		foreach($arr as $k=>$v) {
-			$v = addslashes($v);
-			$s .= (empty($s) ? '' : ',')."$k='$v'";
+			if($v === NULL){
+				$s .= (empty($s) ? '' : ',')."$k=NULL";
+			}else{
+				$v = addslashes($v);
+				$s .= (empty($s) ? '' : ',')."$k='$v'";
+			}
 		}
 		return $s;
 	}

@@ -3,6 +3,7 @@
 class debug {
 	public static function process(){
 		if(core::is_cmd())return;	
+		if(defined('NO_DEBUG_INFO'))return;
 		if(DEBUG || DEBUG_INFO) {
 			print<<<EOF
 <style>

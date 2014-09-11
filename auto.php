@@ -78,8 +78,8 @@ if(!is_file($conffile)) {
 function get_url_abpath(){
 	return substr(\$_SERVER['PHP_SELF'], 0, strrpos(\$_SERVER['PHP_SELF'], '/'));
 }
-$app_dir = get_url_abpath().'/';
-$app_dir_reg = preg_quote($app_dir);
+\$app_dir = get_url_abpath().'/';
+\$app_dir_reg = preg_quote(\$app_dir);
 return array(
 
 	// ------------------> 以下为框架依赖:
@@ -176,7 +176,7 @@ define('DEBUG_INFO', strstr(\$_SERVER['REQUEST_URI'], 'dinfo')?1:0);
 // 有些环境关闭了错误显示
 DEBUG && function_exists('ini_set') && @ini_set('display_errors', 'On');
 // 站点根目录，在单元测试时候，此文件可能被包含
-define('\$APP_PATH', str_replace('\\', '/', dirname(__FILE__)).'/');
+define('{$APP_PATH}', str_replace('\\\\', '/', dirname(__FILE__)).'/');
 
 if(!($conf = include './conf/conf.php')) {
 	exit('config file not exists');
