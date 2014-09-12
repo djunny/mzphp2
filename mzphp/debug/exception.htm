@@ -1,0 +1,96 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style type="text/css">
+body {font-family:"微软雅黑"}
+body, td{font-size: 11px;}
+dt {font-weight: 800;}
+#backtrace td {font-size: 11px;}
+</style>
+</head>
+<body>
+
+<dl>
+	<dt>【错误信息】</dt>
+	<dd><b>#Error:</b> <font color="red"> <?php echo $message; ?> </font></dd>
+	<dd><b>#File:</b> <?php echo $file; ?> </dd>
+	<dd style="background: #eee; border: 1px solid #888; width: 98%">
+		<table cellspacing="0" width="100%">
+		<?php foreach($codelist as $_line=>$code) {?>
+			<tr <?php if($_line + 1 == $line) echo 'style="background: #fbb;"'; ?>>
+				<td width="40" valign=""><?php echo $_line + 1;?>:</td> 
+				<td><?php echo $code;?></td>
+			</tr>
+			<tr>
+				<td colspan="2"><div style="height: 1px; background: #bbb; overflow: hidden;"></div></td>
+			</tr>
+		<?php }	?>
+		</table>
+	</dd>
+</dl>
+
+<dl>
+	<dt>【BackTrace】</dt>
+	<dd style="background: #eee; border: 1px solid #888; width: 98%">
+		<table cellspacing="3" width="100%" id="backtrace">
+			<tr style="text-align: left;">
+				<th width="40">ID</th> 
+				<th>File</th> 
+				<th>Line</th>
+				<th>Function</th>
+			</tr>
+			<tr>
+				<td colspan="4"><div style="height: 1px; background: #bbb; overflow: hidden;"></div></td>
+			</tr>
+		<?php foreach($backtracelist as $k=>$backtrace) {?>
+			<tr valign="top">
+				<td><?php echo $k;?></td> 
+				<td><?php echo $backtrace['file'];?></td> 
+				<td><?php echo $backtrace['line'];?></td> 
+				<td><?php if(!empty($backtrace['class'])) {?><?php echo $backtrace['class'];?><?php echo $backtrace['type'];?><?php echo $backtrace['function'];?>(<?php echo nl2br(htmlspecialchars($backtrace['args']));?>)<?php }?></td> 
+			</tr>
+			<tr>
+				<td colspan="4"><div style="height: 1px; background: #bbb; overflow: hidden;"></div></td>
+			</tr>
+		<?php }	?>
+		</table>
+		
+	</dd>
+</dl>
+
+<dl>
+	<dt>【环境变量】</dt>
+	<dd><b>#URL:</b> <?php echo $_SERVER['REQUEST_URI'];?></dd>
+	<dd><b>#IP:</b> <?php echo $_SERVER['ip'];?></dd>
+	<dd><b>#Time:</b> <?php echo date('Y/n/j H:i');?></dd>
+	<dd><b>#Cookie:</b> <?php echo isset($_SERVER['HTTP_COOKIE']) ? $_SERVER['HTTP_COOKIE'] : '';?></dd>
+</dl>
+
+<dl>
+	<dt>【SQL】</dt>
+<?php foreach($_SERVER['sqls'] as $sql) {?>	
+	<dd><?php echo $sql;?></dd>
+<?php }	?>
+</dl>
+
+<dl>
+	<dt>【INCLUDE】</dt>
+<?php foreach(get_included_files() as $file) {?>	
+	<dd><?php echo $file;?></dd>
+<?php }	?>
+</dl>
+
+<?php
+	if(DEBUG) {
+		echo '<pre>$_GET = '.print_r($_GET, 1).'</pre>';
+		echo '<pre>$_POST = '.print_r($_POST, 1).'</pre>';
+		echo '<pre>$_COOKIE = '.print_r($_COOKIE, 1).'</pre>';
+		echo '<pre>include = '.print_r(get_included_files(), 1).'</pre>';
+		//echo '<pre>user = '.isset($this) && print_r($this->user, 1).'</pre>';
+		echo '<pre>memory = '.memory_get_usage().'</pre>';
+		echo '<pre>processtime = '.number_format(microtime(1) - $_SERVER['starttime'], 4).'</pre>';
+	}
+?>
+
+</body>
+</html>
