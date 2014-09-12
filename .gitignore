@@ -1,1 +1,2 @@
-/data/tmp/*
+/data/tmp/*.php
+/data/tmp/*.dat
