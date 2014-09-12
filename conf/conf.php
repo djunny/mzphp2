@@ -3,7 +3,7 @@ function get_url_abpath(){
 	return substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/'));
 }
 $app_dir = get_url_abpath().'/';
-$app_dir_reg = preg_quote($app_dir);
+$app_dir_regexp = preg_quote($app_dir);
 
 return array(
 	'db' => array(
@@ -54,6 +54,7 @@ return array(
 	
 	//是否开启 gzip
 	'gzip' => 0,
+	
 	// 数据模块的路径，按照数组顺序搜索目录
 	'model_path' => array(ROOT_PATH.'model/'),
 	
@@ -77,10 +78,16 @@ return array(
 	
 	'plugin_disable'=>0,// 禁止掉所有插件
 	
-	'urlrewrite' => 0,// 手工开启 URL-Rewrite 后，需要清空下 tmp 目录！
+	'url_rewrite' => 1,// 开启rewrite
 	
+	//url rewrite params
+	'rewrite_info' => array(
+		'comma' => '/', // options: / \ - _  | . , 
+		'ext' => '.html',// for example : .htm
+	),
 	'str_replace' => array(),
 	
-	'reg_replace' => array(),
+	'reg_replace' => array(
+	),
 );
 	

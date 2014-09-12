@@ -8,6 +8,12 @@ class core {
 		HTML|SAFE
 	*/
 	public static function gpc($k, $var = 'G') {
+		// get param type
+		$type = 'str';
+		if(strpos($key, ':') !== false){
+			list($key, $type) = explode(':', $key);
+		}
+		
 		switch($var) {
 			case 'G': $var = &$_GET; break;
 			case 'P': $var = &$_POST; break;
@@ -19,27 +25,73 @@ class core {
 			case 'R': $var = isset($_GET[$k]) ? $_GET : (isset($_POST[$k]) ? $_POST : array()); break;
 			case 'S': $var = &$_SERVER; break;
 		}
-		return isset($var[$k]) ? $var[$k] : NULL;
+		if(isset($var[$k])){
+			return $type == 'str' ? $var[$k] : self::get_gpc_value(strtolower($type), $var[$k]);
+		}else{
+			return NULL;
+		}
 	}
 	
-	public static function G($key){
-		return self::gpc($key, 'G');
+	// get gpc value
+	private static function get_gpc_value($type, $value){
+		switch($type){
+			case 'int':
+				return (int)$value;
+			case 'email':
+				return preg_match("/^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/", $value) ? $value : '';
+			case 'url':
+				return preg_match('#^(https?://[^\'"\\\\<>:\s]+(:\d+)?)?([^\'"\\\\<>:\s]+?)*$#is', $value) ? $value : '';
+			case 'qq':
+				$value = trim($value);
+				return preg_match('#^\d+{5,18}$#', $value) ? $value : '';
+			case 'tel':
+				$value = trim($value);
+				return preg_match('#^[\d-]+$#', $value) ? $value : '';
+			case 'mobile':
+				$value = trim($value);
+				return preg_match('#^\d{13}$#', $value) ? $value : '';
+			case 'version':
+				$value = trim($value);
+				return preg_match('#^\d(\.\d+)+$#', $value) ? $value : '';
+			default:
+				return $value;
+		}
 	}
 	
-	public static function P($key){
-		return self::gpc($key, 'P');
+	public static function G($key, $default = ''){
+		$val = self::gpc($key, 'G');
+		return $val ? $val : $default;
 	}
 	
-	public static function C($key){
-		return self::gpc($key, 'C');
+	public static function P($key, $default = ''){
+		$val = self::gpc($key, 'P');
+		return $val ? $val : $default;
 	}
 	
-	public static function R($key){
-		return self::gpc($key, 'R');
+	//set cookie or get cookie
+	public static function C($key, $value=NULL, $time = -1, $path = '', $domain = '', $httponly = FALSE){
+		if($value == NULL){
+			return self::gpc($key, 'C');
+		}else{
+			$key = $_SERVER['cookiepre'].$key;
+			$_COOKIE[$key] = $value;
+			
+			if(version_compare(PHP_VERSION, '5.2.0') >= 0) {
+				setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
+			} else {
+				setcookie($key, $value, $time, $path, $domain, FALSE);
+			}
+		}
 	}
 	
-	public static function S($key){
-		return self::gpc($key, 'S');
+	public static function R($key, $default = ''){
+		$val = self::gpc($key, 'R');
+		return $val ? $val : $default;
+	}
+	
+	public static function S($key, $default = ''){
+		$val = self::gpc($key, 'S');
+		return $val ? $val : $default;
 	}
 
 	
@@ -265,14 +317,15 @@ class core {
 	public static function init_supevar(&$conf) {
 		// 将更多有用的信息放入 $_SERVER 变量
 		$_SERVER['starttime'] = microtime(1);
-		$_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : time();
+		$starttime = explode(' ', $_SERVER['starttime']);
+		$_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
 		$_SERVER['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 		$_SERVER['sqls'] = array();// debug
 		$_SERVER['cookiepre'] = $conf['cookie_pre'];
 		// 兼容IIS $_SERVER['REQUEST_URI']
 		(!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 		
-		self::init_get();
+		self::init_get($conf);
 	}
 	
 	public static function init_handle() {
@@ -434,7 +487,7 @@ class core {
 	/**
 	 * URL 隐射，结果保存到 $_GET
 	 */
-	private static function init_get() {
+	private static function init_get(&$conf) {
 		global $argv, $argc;
 		$get = &$_GET;
 		//parse query string
@@ -443,8 +496,12 @@ class core {
 			parse_str($query[1], $queryget);
 			$get = array_merge($get, $queryget);
 		}
-		//write rewrite 
-		if(isset($get['rewrite'])) {
+		// rewrite varialbles
+		if($conf['url_rewrite'] && isset($get['rewrite'])) {
+			//replace last ext 
+			if($conf['rewrite_info']['ext']) {
+				$get['rewrite'] = preg_replace('#'.preg_quote($conf['rewrite_info']['ext']).'$#i', '', $get['rewrite']);
+			}
 			$get['rewrite'] = str_replace(array('\\', '//', '_'), '/', $get['rewrite']);
 			$get['rewrite'] = preg_replace('/^\//is', '', $get['rewrite']);
 			$rws = explode('/', $get['rewrite']);
@@ -478,19 +535,13 @@ class core {
 		$get['a'] = $tmpact && preg_match("/^\w+$/", $tmpact) ? $tmpact : 'index';
 	}
 	
-	private static function init_action(){
-		
-	}
-	
-	
-	
 	public static function process_urlrewrite(&$conf, &$s) {
-		if($conf['urlrewrite']) {
+		if($conf['url_rewrite']) {
 			static $init_replace = 0;
 			static $reg_search  = array();
 			static $reg_replace = array();
 			static $str_search = array();
-			static $str_replace = array();	
+			static $str_replace = array();
 			if(!$init_replace){
 			 	if(isset($conf['str_replace'])){
 					foreach($conf['str_replace'] as $k=>$v){
@@ -504,11 +555,21 @@ class core {
 						$reg_replace[] = $v;
 					}
 				}
+				$app_dir_regex = preg_quote($conf['app_dir']);
 				$init_replace = 1;
 			}
+			$comma = $conf['rewrite_info']['comma'];
+			
+			$reg_search[] = '#\<a href=\"('.$app_dir_regex.')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
+			$reg_replace[] = 'core::rewrite("'.$conf['app_dir'].'", "\\2'.$comma.'\\3", "\\4", "'.$comma.'", "'.$conf['rewrite_info']['ext'].'")';
+			
+			$reg_search[] = '#\<a href=\"('.$app_dir_regex.')?(?:index\.php)?\?c=(\w+)([^"]+?)\"#ie';
+			$reg_replace[] = 'core::rewrite("'.$conf['app_dir'].'", "\\2", "\\3", "'.$comma.'", "'.$conf['rewrite_info']['ext'].'")';
+			
 			if($str_search){
 				$s = str_replace($str_search, $str_replace, $s);
 			}
+			
 			if($reg_search){
 				$s = preg_replace($reg_search, $reg_replace, $s);
 			}
@@ -531,7 +592,20 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		if($pre){
 			$pre .= $ds;
 		}
-		$para = str_replace(array('&','='), array($ds, '_'), $para);
+		if(substr($para, 0, 1) == '&'){
+			$para = substr($para, 1);
+		}
+		//a=
+		if(substr($para, 0, 2) == 'a='){
+			$para = substr($para, 2);
+		}
+		
+		$para = str_replace(array('&','='), $ds, $para);
+		
+		if(!$para){
+			// delete last comma
+			$pre = substr($pre, 0, -1);
+		}
 		return '<a href="'.$path.$pre.$para.$ext.'"';
 	}
 
@@ -721,101 +795,6 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	}
 }
 
-
-class DB {
-	private static $db_type;
-	private static $db_conf;
-	private static $db_table_pre;
-	
-	private static $instance = NULL;
-	
-	public static function init_db_config(&$conf){
-		self::$db_conf = $conf;
-	}
-	
-    public static function instance(){
-		if (is_null(self::$instance)){
-			//find db engine
-			foreach(self::$db_conf as $type=>$conf){	
-				$db_enigne = $type.'_db';
-				self::$db_type = $type;
-				self::$db_table_pre = isset($conf['tablepre']) ? $conf['tablepre'] : '';
-				self::$instance = new $db_enigne($conf);
-				break;
-			}
-		}
-		return self::$instance;
-    }
-	
-	public static function table($table){
-		return (self::$db_table_pre).$table;
-	}
-	
-	public static function query($sql, $fetch = 0){
-		$query = call_user_func(array(self::instance(), 'query'), $sql);
-		if($fetch){
-			return self::fetch($query);
-		}else{
-			return $query;
-		}
-	}
-	
-	public static function fetch($query){
-		return call_user_func(array(self::instance(), 'fetch_array'), $query);
-	}
-	
-	public static function fetch_all($query){
-		return call_user_func(array(self::instance(), 'fetch_all'), $query);
-	}
-	
-	public static function fetch_array($query){
-		return fetch($query);
-	}
-	
-	public static function select($table, $where, $perpage=20, $page=1, $fields = '*'){
-		return call_user_func(array(self::instance(), 'select'), self::table($table), $where, $perpage, $page, $fields);		
-	}
-	
-	public static function insert($table, $data, $return_id){
-		return call_user_func(array(self::instance(), 'insert'), self::table($table), $data, $return_id);
-	}
-	
-	public static function replace($table, $data){
-		return call_user_func(array(self::instance(), 'replace'), self::table($table), $data);
-	}
-	
-	
-	public static function update($table, $data, $where){
-		return call_user_func(array(self::instance(), 'update'), self::table($table), $data, $where);
-	}
-	
-	public static function delete($table, $where){
-		return call_user_func(array(self::instance(), 'delete'), self::table($table), $where);
-	}
-	
-}
-
-class V {
-	private static $instance = NULL;
-    public static function instance(){
-		if (is_null(self::$instance)){
-			self::$instance = new template();
-		}
-		return self::$instance;
-    }
-	public static function reset(){
-		self::$instance = new template();
-	}
-	public static function assign($var, &$val){
-		self::instance()->assign($var, $val);
-	}
-	public static function assign_value($var, $val){
-		self::instance()->assign_value($var, $val);
-	}
-	public static function display($control, $template, $makefile = '', $charset = ''){
-		self::instance()->show($control->conf, $template, $makefile, $charset);
-	}
-}
-
 class C extends core{};
+
 ?>

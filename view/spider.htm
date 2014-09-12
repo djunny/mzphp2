@@ -1,0 +1,23 @@
+<!--
+	<!--{eval
+		// dump result 
+		print_r($result);
+	}-->
+-->
+<p>first_link:
+<p>
+<a href="{$result['first_link']}" target="_blank">{$result['first_title']}</a> 
+<p><font style="color:gray">
+	$result['first_summary']
+</font>
+<p>keyword(rewrite):
+<!--{loop $result['keys'] $index $val}-->
+	<p><!--{eval
+		echo $index+1;
+	}-->、
+	<!--{if $index % 2 == 0}-->
+		<a href="?c=index-spider&key={$val['key']}">{$val['key']}</a>
+	<!--{else}-->
+		<a href="?c=index&a=spider&key={$val['key']}">{$val['key']}</a>
+	<!--{/if}-->
+<!--{/loop}-->

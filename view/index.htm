@@ -1,4 +1,9 @@
 <!--{template header}-->
 
-123123 {$a}
+<!--{if $_GET['a'] == 'spider'}-->
+	<!--{template spider}-->
+<!--{else}-->
+	<!--{template home}-->
+<!--{/if}-->
+
 <!--{template footer}-->
