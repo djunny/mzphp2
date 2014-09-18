@@ -47,11 +47,19 @@ class DB {
 	}
 	
 	public static function fetch_array($query){
-		return fetch($query);
+		return self::fetch($query);
 	}
 	
-	public static function select($table, $where, $perpage=20, $page=1, $fields = '*'){
-		return call_user_func(array(self::instance(), 'select'), self::table($table), $where, $perpage, $page, $fields);		
+	
+	//$table = table:field
+	//example : 'table_name:*'
+	public static function select($table, $where, $order, $perpage=20, $page=1){
+		if(strpos($table, ':')===false){
+			$fields = '*';
+		}else{
+			list($table, $fields) = explode(':', $table);
+		}
+		return call_user_func(array(self::instance(), 'select'), self::table($table), $where, $order, $perpage, $page, $fields);		
 	}
 	
 	public static function insert($table, $data, $return_id){

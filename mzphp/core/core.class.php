@@ -10,8 +10,8 @@ class core {
 	public static function gpc($k, $var = 'G') {
 		// get param type
 		$type = 'str';
-		if(strpos($key, ':') !== false){
-			list($key, $type) = explode(':', $key);
+		if(strpos($k, ':') !== false){
+			list($k, $type) = explode(':', $k);
 		}
 		
 		switch($var) {

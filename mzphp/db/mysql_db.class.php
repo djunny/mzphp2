@@ -144,7 +144,7 @@ class mysql_db {
 	
 	
 	//simple select
-	function select($table, $where, $perpage = 20, $page = 1, $fields = array()){
+	function select($table, $where, $order=array(), $perpage = 20, $page = 1, $fields = array()){
 		$where_sql = $this->build_where_sql($where);
 		$selectsql = '*';
 		if(is_array($fields)){
@@ -160,7 +160,12 @@ class mysql_db {
 			$limit_sql = ' LIMIT '.$start.','.$perpage;
 		}
 		
-		$sql = 'SELECT '.$selectsql.' FROM '.$table.' '.$where_sql.$limit_sql;
+		$order_sql = '';
+		if($order){
+			$order_sql = $this->build_order_sql($order);
+		}
+		
+		$sql = 'SELECT '.$selectsql.' FROM '.$table.$where_sql.$order_sql.$limit_sql;
 		$query = $this->query($sql);;
 		if($fetch_first){
 			return $this->fetch_array($query);
@@ -213,23 +218,54 @@ class mysql_db {
 		}
 	}
 
+	//build order sql
+	function build_order_sql($order){
+		$order_sql = '';
+		if(is_array($order)){
+			$order_sql .= implode(', ', $order);
+		}
+		if($order_sql){
+			$order_sql .= ' ORDER BY '.$order_sql. ' ';
+		}
+		return $order_sql;
+	}
+	
+	
 	// build where sql
 	function build_where_sql($where){
 		$where_sql = '';
 		if(is_array($where)){
 			foreach($where as $key=>$value){
 				if(is_array($value)){
+            		$value = array_map('addslashes', $value);
 					$where_sql .= ' AND '.$key.' IN (\''.implode("', '", $value).'\')';
-				}else{
-					$where_sql .= ' AND '.$key.' = \''.$value.'\'';
+				}elseif(strlen($value)>0){
+					switch(substr($value, 0, 1)){
+						case '>':
+						case '<':
+						case '=':
+							$where_sql .= ' AND '.$key.$this->fix_where_sql($value).'';
+						break;
+						default:
+							$where_sql .= ' AND '.$key.' = \''.addslashes($value).'\'';
+						break;
+					}
+				}elseif($key){
+					$where_sql .= ' AND '.$key;
 				}
 			}
 		}else if($where){
 			$where_sql = ' AND '.$where;
 		}
-		return $where_sql ? ' WHERE 1 '.$where_sql : '';
+		return $where_sql ? ' WHERE 1 '.$where_sql .' ': '';
 	}
-	// build where sql
+	
+	function fix_where_sql($value){
+		$value = preg_replace('/^((?:[><]=?)|=)?\s*(.+)\s*/is', '$1\'$2\'', $value);
+		return $value;
+	}
+	
+	// build set sql
 	function build_set_sql($data){
 		$setkeysql = $comma = '';
 		foreach ($data as $set_key => $set_value) {
