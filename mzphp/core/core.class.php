@@ -187,7 +187,6 @@ class core {
 		return $json;
 	}
 	
-	
 	public static function ip($format = 0){
 		static $ip = '';	
 		if(empty($ip)) {
@@ -730,7 +729,9 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		self::init_set();
 		self::init_handle();
 		DB::init_db_config($conf['db']);
-		
+		if(isset($conf['cache']) && $conf['cache']){
+			CACHE::init_cache_config($conf['cache']);
+		}
 		// GPC 安全过滤，关闭，数据的正确性可能会受到影响。
 		if(get_magic_quotes_gpc()) {
 			self::stripslashes($_GET);
@@ -745,7 +746,6 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 			//	header('Content-Type: text/html; charset=UTF-8');	
 			self::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
 		}
-			
 	}
 	
 	//debug 
@@ -753,7 +753,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		if(self::is_cmd())return;
 		if(defined('NO_DEBUG_INFO'))return;
 		//debug
-		if(DEBUG || DEBUG_INFO){
+		if(DEBUG || (defined('DEBUG_INFO') && DEBUG_INFO)){
 			debug::process();
 		}
 	}

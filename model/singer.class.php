@@ -1,7 +1,6 @@
 <?php
 !defined('ROOT_PATH') && exit('ROOT_PATH not defined.');
 class singer {
-	
 	var $table = 'stat';
 	// 
 	//DB::select('stat', array('posts'=> '<=0'), array('year DESC'));

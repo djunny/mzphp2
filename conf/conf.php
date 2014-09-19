@@ -33,7 +33,18 @@ return array(
 			'tablepre' => 'bbs_',	
 		),
 	),
-	
+	'cache' => array(
+		/*
+		'memcache' => array(
+			'host' => '127.0.0.1:11211',
+			'pre' => 'bbs_',
+		),
+		*/
+		'file' => array(
+			'dir' => ROOT_PATH.'data/cache/',
+			'pre' => 'bbs_',
+		),
+	),
 	// 唯一识别ID
 	'app_id' => 'wdj_music',
 	

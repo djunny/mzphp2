@@ -50,10 +50,9 @@ class DB {
 		return self::fetch($query);
 	}
 	
-	
 	//$table = table:field
 	//example : 'table_name:*'
-	public static function select($table, $where, $order, $perpage=20, $page=1){
+	public static function select($table, $where, $order, $perpage=-1, $page=1){
 		if(strpos($table, ':')===false){
 			$fields = '*';
 		}else{

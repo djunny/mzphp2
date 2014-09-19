@@ -144,7 +144,7 @@ class mysql_db {
 	
 	
 	//simple select
-	function select($table, $where, $order=array(), $perpage = 20, $page = 1, $fields = array()){
+	function select($table, $where, $order=array(), $perpage = -1, $page = 1, $fields = array()){
 		$where_sql = $this->build_where_sql($where);
 		$selectsql = '*';
 		if(is_array($fields)){

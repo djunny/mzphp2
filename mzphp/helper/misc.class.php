@@ -20,7 +20,6 @@ class misc {
 	// 返回格式：http://www.domain.com/blog/，这里不考虑 https://
 	public static function get_url_path() {
 		$port = core::gpc('SERVER_PORT', 'S');
-		//$portadd = ($port == 80 ? '' : ':'.$port);
 		$host = core::gpc('HTTP_HOST', 'S');	// host 里包含 port
 		$path = substr(core::gpc('PHP_SELF', 'S'), 0, strrpos(core::gpc('PHP_SELF', 'S'), '/'));
 		$http = (($port == 443) || (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off')) ? 'https' : 'http';
