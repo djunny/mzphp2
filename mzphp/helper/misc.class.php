@@ -11,7 +11,7 @@ class misc {
 	}
 	
 	// 校验 formhash
-	public static function form_submit($auth_key) {
+	public static function form_submit($auth_key = '') {
 		$hash = core::gpc('FORM_HASH', 'R');
 		return $hash == self::form_hash($auth_key);
 	}

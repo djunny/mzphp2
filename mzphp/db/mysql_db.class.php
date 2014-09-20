@@ -269,7 +269,12 @@ class mysql_db {
 	function build_set_sql($data){
 		$setkeysql = $comma = '';
 		foreach ($data as $set_key => $set_value) {
-			$setkeysql .= $comma.'`'.$set_key.'`=\''.$set_value.'\'';
+			if(preg_match('#^\s*?\w+\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
+				$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
+			}else{
+				$set_value = '\''.$set_value.'\'';
+			}
+			$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
 			$comma = ',';
 		}
 		return ' SET '.$setkeysql.' ';

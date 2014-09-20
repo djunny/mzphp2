@@ -163,10 +163,10 @@ class template {
 
 		/*$s = preg_replace("/(?<!\<\?\=|\\\\)$this->var_regexp/", "<?=\\0?>", $s);*/
 		
-		// view 开头的目录, plugin/view 前面增加 static_url
-		$s = preg_replace('#([\'"])(view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
+		// static 目录 前面增加 static_url
+		$s = preg_replace('#([\'"])(static\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 		// 分布式部署 http://www.static.com/plugin/view_xxx/common.css
-		$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
+		//$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 		
 		$isset = '<\?php echo isset(?:+*?) ? (?:+*?) : ;\?>';
 		$s = preg_replace_callback("/\{for (.*?)\}/is", array($this, 'stripvtag_callback'), $s); //  "\$this->stripvtag('<? for(\\1) {
