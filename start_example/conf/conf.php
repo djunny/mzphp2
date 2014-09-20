@@ -46,19 +46,19 @@ return array(
 		),
 	),
 	// 唯一识别ID
-	'app_id' => 'wdj_music',
+	'app_id' => 'start_example',
 	
 	//网站名称
-	'app_name' => 'wdj_music',
+	'app_name' => 'start_example',
 	
 	// 应用的绝对路径： 如: http://www.domain.com/bbs/
-	'app_url' => 'http://localhost/mzphp2/',
+	'app_url' => 'http://localhost/mzphp2/start_example/',
 	
 	// 应用的所在路径： 如: http://www.domain.com/bbs/
 	'app_dir' => $app_dir,
 	
 	// CDN 缓存的静态域名，如 http://static.domain.com/
-	'static_url' => 'http://localhost/mzphp2/',
+	'static_url' => 'http://localhost/mzphp2/start_example/',
 	
 	// 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 tmp/bbs_xxx.htm.php
 	'view_path' => array(ROOT_PATH.'view/'), 
