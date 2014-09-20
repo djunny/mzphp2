@@ -16,7 +16,7 @@ define('FRAMEWORK_TMP_PATH', $conf['tmp_path']);
 define('FRAMEWORK_LOG_PATH', $conf['log_path']);
 
 // 包含核心框架文件，转交给框架进行处理。
-include FRAMEWORK_PATH.'core.php';
+include FRAMEWORK_PATH.'mzphp.php';
 
 core::run($conf);
 ?>

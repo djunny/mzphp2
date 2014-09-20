@@ -20,7 +20,11 @@ class CACHE {
 				self::$cache_type = $type;
 				self::$cache_pre = isset($conf['pre']) ? $conf['pre'] : '';
 				self::$instance = new $cache_enigne($conf);
-				break;
+				if(!self::$instance->init()){
+					self::$instance = false;
+				}else{
+					break;
+				}
 			}
 		}
 		return self::$instance;
@@ -35,6 +39,10 @@ class CACHE {
 			$key = self::$cache_pre.$key;
 		}
 		return $key;
+	}
+	
+	public static function opened(){
+		return self::instance() == false ? false:true;
 	}
 	
 	public static function get($key){

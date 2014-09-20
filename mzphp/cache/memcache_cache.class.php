@@ -26,12 +26,15 @@ class memcache_cache{
 			$this->support_getmulti = method_exists($this->link, 'getMulti');
 			return $this->link;
 		} else {
+			$this->link = false;
 			throw new Exception('Can not connect to Memcached host.');
 		}
 		return false;
 	}
 	
-	
+	public function init(){
+		return $this->link === false ? false : true;
+	}
 	
 	public function get($key) {
 		$data = array(); 

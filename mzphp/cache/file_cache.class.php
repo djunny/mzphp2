@@ -21,6 +21,10 @@ class file_cache {
 		return true;
 	}
 	
+	public function init(){
+		return true;
+	}
+	
 	private function get_file($key){
 		static $dir_exists = array();
 		$key_name = substr($key, -2);

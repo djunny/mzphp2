@@ -74,6 +74,7 @@ $cachedir = $datadir.'/cache';
 $viewdir = PATH.'view';
 $controldir = PATH.'control';
 $modeldir = PATH.'model';
+$coredir = PATH.'core';
 
 !is_dir($datadir) && mkdir($datadir, 0777);
 !is_dir($confdir) && mkdir($confdir, 0777);
@@ -83,6 +84,7 @@ $modeldir = PATH.'model';
 !is_dir($viewdir) && mkdir($viewdir, 0777);
 !is_dir($controldir) && mkdir($controldir, 0777);
 !is_dir($modeldir) && mkdir($modeldir, 0777);
+!is_dir($coredir) && mkdir($coredir, 0777);
 
 $conffile = PATH.'conf/conf.php';
 $indexfile = PATH.'index.php';
@@ -104,6 +106,7 @@ function get_url_abpath(){
 }
 \$app_dir = get_url_abpath().'/';
 \$app_dir_reg = preg_quote(\$app_dir);
+
 return array(
 	//db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
 	'db' => array(
@@ -167,6 +170,9 @@ return array(
 	
 	// CDN 缓存的静态域名，如 http://static.domain.com/
 	'static_url' => '".get_url_path()."',
+
+	// 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
+	'core_path' => $APP_PATH.'core/',
 	
 	// 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 tmp/bbs_xxx.htm.php
 	'view_path' => array($APP_PATH.'view/'), 
@@ -209,8 +215,8 @@ return array(
 if(!is_file($indexfile)) {
 	$s = "<?php
 
-// 调试模式: 0:关闭; 1: 调试模式
-define('DEBUG', (strstr(\$_SERVER['REQUEST_URI'], 'debug') || \$argc > 0) ? 1:0);
+// 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
+define('DEBUG', (strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug') || \$argc > 0) ? 1:0);
 // 站点根目录
 define('ROOT_PATH', str_replace('\\\\', '/', dirname(__FILE__)).'/');
 
@@ -220,14 +226,20 @@ if(!(\$conf = include('./conf/conf.php'))) {
 // 框架的物理路径
 define('FRAMEWORK_PATH', $APP_PATH.'../mzphp/');
 
+// 核心扩展目录
+if(isset(\$conf['core_path'])){
+	define('FRAMEWORK_EXTEND_PATH', \$conf['core_path']);
+}
+
 // 临时目录
 define('FRAMEWORK_TMP_PATH', \$conf['tmp_path']);
 
 // 日志目录
 define('FRAMEWORK_LOG_PATH', \$conf['log_path']);
 
+
 // 包含核心框架文件，转交给框架进行处理。
-include FRAMEWORK_PATH.'core.php';
+include FRAMEWORK_PATH.'mzphp.php';
 
 core::run(\$conf);
 

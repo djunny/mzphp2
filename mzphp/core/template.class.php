@@ -213,7 +213,7 @@ class template {
 	 * @param string $tpl  当前页面模板
 	 */
 	function sub_tpl_check($subfiles, $mktime, $tpl, $objfile) {
-		if(mt_rand(1, 5) == 1 || true) {
+		if(mt_rand(1, 5) == 1) {
 			$subfiles = explode('|', $subfiles);
 			foreach ($subfiles as $tplfile) {
 				$submktime = @filemtime($tplfile);

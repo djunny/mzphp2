@@ -186,7 +186,7 @@ create index 索引名 on 表名(字段名);
 		$data_sql = $this->build_set_sql($data);
 		$where_sql = $this->build_where_sql($where);
 		if($where_sql){
-			$sql = 'UPDATE '.$table.' SET '.$data_sql.$where_sql;
+			$sql = 'UPDATE '.$table.$data_sql.$where_sql;
 			return $this->query($sql);
 		}else{
 			return 0;
@@ -258,7 +258,7 @@ create index 索引名 on 表名(字段名);
 			$setkeysql .= $comma.'`'.$set_key.'`=\''.$set_value.'\'';
 			$comma = ',';
 		}
-		return 'SET '.$setkeysql;
+		return ' SET '.$setkeysql.' ';
 	}
 }
 ?>

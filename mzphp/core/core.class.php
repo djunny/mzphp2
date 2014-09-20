@@ -626,6 +626,10 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		$muser = self::model($conf, 'userext', 'uid', 'uid');		// 显式加载 model，不需要配置文件中申明
 	*/
 	public static function model(&$conf, $model, $primarykey = array(), $maxcol = '') {
+		if(class_exists($model)){
+			$new = new $model();
+			return $new;
+		}
 		$modelname = 'model_'.$model.'.class.php';
 		if(isset($_SERVER['models'][$modelname])) {
 			return $_SERVER['models'][$modelname];
@@ -782,7 +786,8 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 			$onaction = "on_$action";
 			$newcontrol = new $controlclass($conf);
 			if(method_exists($newcontrol, $onaction)) {
-				$newcontrol->$onaction();
+				//$newcontrol->$onaction();
+				call_user_func(array($newcontrol, $onaction));
 				self::debug();
 			} else {
 				throw new Exception("Invaild URL : $action method not exists.");

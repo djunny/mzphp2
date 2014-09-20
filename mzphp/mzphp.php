@@ -3,13 +3,21 @@ if(!defined('DEBUG')) {
 	define('DEBUG', 0);
 }
 
-define('FRAMEWORK_PATH', dirname(__FILE__).'/');
+if(defined('FRAMEWORK_PATH')){
+	define('FRAMEWORK_PATH', dirname(__FILE__).'/');
+}
 
 if(DEBUG > 0) {
 	// 包含基础的类：初始化相关
 	$inc_files = glob(FRAMEWORK_PATH.'*/*.class.php');
 	foreach ($inc_files as $inc_file) {
 		include $inc_file;
+	}
+	if(defined('FRAMEWORK_EXTEND_PATH') && is_dir(FRAMEWORK_EXTEND_PATH)){
+		$inc_files = glob(FRAMEWORK_EXTEND_PATH.'*.class.php');
+		foreach ($inc_files as $inc_file) {
+			include $inc_file;
+		}
 	}
 	unset($inc_files, $inc_file);
 	
@@ -24,6 +32,12 @@ if(DEBUG > 0) {
 		$inc_files = glob(FRAMEWORK_PATH.'*/*.class.php');
 		foreach ($inc_files as $inc_file) {
 			if(strpos($inc_file, 'debug/') === false){
+				$content .= php_strip_whitespace($inc_file);
+			}
+		}
+		if(defined('FRAMEWORK_EXTEND_PATH') && is_dir(FRAMEWORK_EXTEND_PATH)){
+			$inc_files = glob(FRAMEWORK_EXTEND_PATH.'*.class.php');
+			foreach ($inc_files as $inc_file) {
 				$content .= php_strip_whitespace($inc_file);
 			}
 		}
