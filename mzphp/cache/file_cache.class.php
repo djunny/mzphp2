@@ -102,7 +102,6 @@ class file_cache {
 		);
 		try {
 			file_put_contents($file_path, $this->gen_file_body($res));
-			//$link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 			return true;
 		} catch (Exception $e) {
 			throw new Exception('[file_cache]Cant write file cache:'.$e->getMessage());

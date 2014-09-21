@@ -159,6 +159,9 @@ return array(
 	// cookie 前缀
 	'cookie_pre' => '".$appname."',
 	
+	// cookie 域名
+	'cookie_domain' => '',
+	
 	//是否开启 gzip
 	'gzip' => 0,
 	

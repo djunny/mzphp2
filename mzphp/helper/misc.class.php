@@ -6,6 +6,14 @@ if(!defined('FORM_HASH_KEY')){
 
 class misc {
 	
+	//跳转
+	public static function R($url, $code=301){
+		ob_end_clean();
+		header('Location: '.$url, true, $code);
+		exit;
+	}
+	
+	
 	public static function form_hash($auth_key = '') {
 		return substr(md5(substr($_SERVER['time'], 0, -5).$auth_key), 16);
 	}

@@ -3,10 +3,6 @@ if(!defined('DEBUG')) {
 	define('DEBUG', 0);
 }
 
-if(defined('FRAMEWORK_PATH')){
-	define('FRAMEWORK_PATH', dirname(__FILE__).'/');
-}
-
 if(DEBUG > 0) {
 	// 包含基础的类：初始化相关
 	$inc_files = glob(FRAMEWORK_PATH.'*/*.class.php');

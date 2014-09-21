@@ -25,8 +25,14 @@ class base_control {
 			return $this->$var;
 		}
 	}
+	
 	public function __call($method, $args) {
 		throw new Exception('base_control.class.php: Not implement method：'.$method.': ('.var_export($args, 1).')');
+	}
+	
+	public function show($template='', $makefile='', $charset=''){
+		$template = $template ? $template : core::R('c').'_'.core::R('a').'.htm';
+		VI::display($this, $template, $makefile, $charset);
 	}
 }
 ?>

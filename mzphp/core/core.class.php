@@ -19,7 +19,7 @@ class core {
 			case 'P': $var = &$_POST; break;
 			case 'C': 
 				//处理COOKIE
-				$k = $_SERVER['cookiepre'].$k;
+				$k = $_SERVER['cookie_pre'].$k;
 				$var = &$_COOKIE; 
 			break;
 			case 'R': $var = isset($_GET[$k]) ? $_GET : (isset($_POST[$k]) ? $_POST : array()); break;
@@ -69,12 +69,22 @@ class core {
 	}
 	
 	//set cookie or get cookie
-	public static function C($key, $value=NULL, $time = -1, $path = '', $domain = '', $httponly = FALSE){
-		if($value == NULL){
+	public static function C($key, $value='__GET__', $time = -1, $path = '/', $domain = '', $httponly = FALSE){
+		if($value === '__GET__'){
 			return self::gpc($key, 'C');
 		}else{
-			$key = $_SERVER['cookiepre'].$key;
-			$_COOKIE[$key] = $value;
+			$key = $_SERVER['cookie_pre'].$key;
+			//add server time
+			if($time > 0){
+				$time = $_SERVER['time'] + $time;
+				$_COOKIE[$key] = $value;
+			}else{
+				unset($_COOKIE[$key]);
+			}
+			
+			if(!is_null($domain) && $domain == '' && $_SERVER['cookie_domain']){
+				$domain = $_SERVER['cookie_domain'];
+			}
 			
 			if(version_compare(PHP_VERSION, '5.2.0') >= 0) {
 				setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
@@ -215,7 +225,7 @@ class core {
 	}
 	
 	//获取在线IP
-	public function init_ip($format=0) {
+	public static function init_ip($format=0) {
 		return self::ip($format);
 	}
 
@@ -300,13 +310,15 @@ class core {
 		// 错误报告
 		if(DEBUG) {
 			// E_ALL | E_STRICT
-			error_reporting(E_ALL);
+			error_reporting(E_ALL ^ E_DEPRECATED);
 			//error_reporting(E_ALL ^ E_NOTICE);
 			ini_set('error_reporting', E_ALL);
 			//error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
 			@ini_set('display_errors', 'ON');
 		} else {
-			error_reporting(E_ALL ^ E_NOTICE);
+			error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+			//error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
+			//@ini_set('display_errors', 'E_ALL & ~E_NOTICE & ~E_DEPRECATED');
 		}
 		
 		// 关闭运行期间的自动增加反斜线
@@ -320,7 +332,9 @@ class core {
 		$_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
 		$_SERVER['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 		$_SERVER['sqls'] = array();// debug
-		$_SERVER['cookiepre'] = $conf['cookie_pre'];
+		$_SERVER['app_url'] = $conf['app_url'];
+		$_SERVER['cookie_pre'] = $conf['cookie_pre'];
+		$_SERVER['cookie_domain'] = $conf['cookie_domain'];
 		// 兼容IIS $_SERVER['REQUEST_URI']
 		(!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 		
@@ -524,8 +538,10 @@ class core {
 		//fix cmd 
 		$tmpval = isset($get['c']) ? $get['c'] : (isset($argv[1]) ? $argv[1] : '');
 		// switch url mode
-		if(strpos($tmpval, '-') !== false){
+		$tmppos = strpos($tmpval, '-');
+		if($tmppos !== false){
 			$tmpact = substr(strstr($tmpval, '-'), 1);
+			$tmpval = substr($tmpval, 0, $tmppos);
 		}else{
 			$tmpact = isset($get['a']) ? $get['a'] : (isset($argv[2]) ? $argv[2] : '');
 		}
@@ -765,8 +781,8 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	public static function run(&$conf) {
 		self::init($conf);
 		
-		$control = str_replace(array('.','\\','/'), '', self::gpc('c'));
-		$action = self::gpc('a');
+		$control = str_replace(array('.','\\','/'), '', self::R('c'));
+		$action = self::R('a');
 		$obj_file = '';
 		// find control file
 		foreach($conf['control_path'] as $control_dir){
