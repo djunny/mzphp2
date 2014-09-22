@@ -219,7 +219,7 @@ if(!is_file($indexfile)) {
 	$s = "<?php
 
 // 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
-define('DEBUG', (strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug') || \$argc > 0) ? 1:0);
+define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
 // 站点根目录
 define('ROOT_PATH', str_replace('\\\\', '/', dirname(__FILE__)).'/');
 

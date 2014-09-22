@@ -5,8 +5,6 @@ class debug {
 	public static function init(){		
 	
 		error_reporting(E_ALL ^ E_DEPRECATED);
-	
-		//error_reporting(E_ALL ^ E_NOTICE);
 		function_exists('ini_set') && ini_set('error_reporting', E_ALL) && ini_set('display_errors', 'ON');
 		register_shutdown_function(array('debug', 'shutdown_handler'));	// 程序关闭时执行
 		set_error_handler(array('debug', 'error_handler'));	// 设置错误处理方法
