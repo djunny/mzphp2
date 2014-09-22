@@ -209,7 +209,7 @@ class core {
 				$ip = $serveraddr;
 			}
 			preg_match("/[\d\.]{7,15}/", $ip, $ipmatches);
-			$ip = $ipmatches[0] ? $ipmatches[0] : 'unknown';
+			$ip = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
 			$_SERVER['REMOTE_ADDR'] = &$ip;
 			$_SERVER['IP'] = &$ip;
 		}
@@ -231,6 +231,11 @@ class core {
 
 	public static function usedtime(){
 		return number_format(microtime(1) - $_SERVER['starttime'], 6) * 1000;
+	}
+	
+	// 统计程序内存开销
+	public static function runmem() {
+		return memory_get_usage() - $_SERVER['start_memory'];
 	}
 
 	// 是否为命令行模式
@@ -309,12 +314,7 @@ class core {
 		//----------------------------------> 全局设置:
 		// 错误报告
 		if(DEBUG) {
-			// E_ALL | E_STRICT
-			error_reporting(E_ALL ^ E_DEPRECATED);
-			//error_reporting(E_ALL ^ E_NOTICE);
-			ini_set('error_reporting', E_ALL);
-			//error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
-			@ini_set('display_errors', 'ON');
+			debug::init();
 		} else {
 			error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 			//error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
@@ -322,7 +322,7 @@ class core {
 		}
 		
 		// 关闭运行期间的自动增加反斜线
-		@set_magic_quotes_runtime(0);
+		//@set_magic_quotes_runtime(0);
 	}
 
 	public static function init_supevar(&$conf) {
@@ -335,6 +335,9 @@ class core {
 		$_SERVER['app_url'] = $conf['app_url'];
 		$_SERVER['cookie_pre'] = $conf['cookie_pre'];
 		$_SERVER['cookie_domain'] = $conf['cookie_domain'];
+		if(function_exists('memory_get_usage')){
+			$_SERVER['start_memory'] = memory_get_usage();
+		}
 		// 兼容IIS $_SERVER['REQUEST_URI']
 		(!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 		
@@ -344,9 +347,6 @@ class core {
 	public static function init_handle() {
 		// 自动 include
 		spl_autoload_register(array('core', 'autoload_handle'));
-		
-		// 异常处理类
-		set_exception_handler(array('core', 'exception_handle'));
 		
 		// 自定义错误处理函数，设置后 error_reporting 将失效。因为要保证 ajax 输出格式，所以必须触发 error_handle
 		if(DEBUG || self::gpc('ajax', 'R')) {
@@ -386,92 +386,9 @@ class core {
 		return true;
 	}
 	
-	public static function exception_handle($e) {
-		
-		// 避免死循环
-		DEBUG && $_SERVER['exception'] = 1;
-		
-		self::ob_clean();
-		$s = '';
-		if(DEBUG) {
-			try {
-				if(self::gpc('ajax', 'R')) {
-					$s = debug::to_json($e);
-				} else {
-					//!self::is_cmd() && header('Content-Type: text/html; charset=UTF-8');
-					$s = debug::to_html($e);
-				}
-			} catch (Exception $e) {
-				$s = get_class($e)." thrown within the exception handler. Message: ".$e->getMessage()." on line ".$e->getLine();
-			}
-		} else {
-			if(self::gpc('ajax', 'R')) {
-				$s = self::json_encode(array('servererror'=>$e->getMessage()));
-			} else {
-				$s = $e->getMessage();
-			}
-		}
-		
-		echo $s;
-		exit;
-	}
 	
 	public static function console_log($msg){
 		trigger_error ('['.date('h:i:a').'] - '.print_r($msg, 1), E_USER_NOTICE );
-	}
-	
-	public static function error_handle($errno, $errstr, $errfile, $errline) {
-		
-		// 防止死循环
-		$errortype = array (
-			E_ERROR	      => 'Error',
-			E_WARNING	    => 'Warning',
-			E_PARSE	      => 'Parsing Error',	# uncatchable
-			E_NOTICE	     => 'Notice',
-			E_CORE_ERROR	 => 'Core Error',		# uncatchable
-			E_CORE_WARNING       => 'Core Warning',		# uncatchable
-			E_COMPILE_ERROR      => 'Compile Error',	# uncatchable
-			E_COMPILE_WARNING    => 'Compile Warning',	# uncatchable
-			E_USER_ERROR	 => 'User Error',
-			E_USER_WARNING       => 'User Warning',
-			E_USER_NOTICE	=> 'User Notice',
-			E_STRICT	     => 'Runtime Notice',
-			//E_RECOVERABLE_ERRROR => 'Catchable Fatal Error'
-		);
-		
-		$errnostr = isset($errortype[$errno]) ? $errortype[$errno] : 'Unknonw';
-		
-		//hide path
-		$errfile = str_replace(dirname(dirname(__FILE__)), '', $errfile);
-		// 运行时致命错误，直接退出。并且 debug_backtrace()
-		$s = "[$errnostr] : $errstr in File $errfile, Line: $errline";
-		
-		// 抛出异常，记录到日志
-		//echo $errstr;
-		if(DEBUG && empty($_SERVER['exception'])) {
-			throw new Exception($s);
-		} else {
-			log::write($s);
-			//$s = preg_replace('# \S*[/\\\\](.+?\.php)#', ' \\1', $s);
-			if(self::gpc('ajax', 'R')) {
-				self::ob_clean();
-				//$s = preg_replace('#[\\x80-\\xff]{2}#', '?', $s);// 替换掉 gbk， 否则 json_encode 会报错！
-				// 判断错误级别，决定是否退出。
-				
-				if($errno != E_NOTICE && $errno != E_USER_ERROR && $errno != E_USER_NOTICE && $errno != E_USER_WARNING) {
-					$s = self::json_encode(array('servererror'=>$s));
-					throw new Exception($s);
-					exit;
-				} else {
-					$_SERVER['notice_error'] .= $s;
-					// 继续执行。
-				}
-			} else {
-				//echo $s;
-				// 继续执行。
-			}
-		}
-		return 0;
 	}
 	
 	/**

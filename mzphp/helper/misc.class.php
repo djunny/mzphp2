@@ -1,7 +1,7 @@
 <?php
 
 if(!defined('FORM_HASH_KEY')){
-	define('FORM_HASH_KEY', $_SERVER['HTTP_USER_AGENT']);
+	define('FORM_HASH_KEY', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'mzphp');
 }
 
 class misc {

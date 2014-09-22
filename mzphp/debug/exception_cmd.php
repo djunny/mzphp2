@@ -6,7 +6,7 @@ echo "Line: $line\r\n";
 echo 'Memory = '.memory_get_usage()."\r\n";
 echo 'Processtime = '.number_format(microtime(1) - $_SERVER['starttime'], 4)."\r\n";
 echo "\r\nCode:\r\n";
-foreach($codelist as $_line=>$code) {
+foreach(self::get_code($file, $line) as $_line=>$code) {
 	echo $_line + 1;
 	echo "  : ";
 	echo rtrim($code);
