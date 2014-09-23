@@ -208,10 +208,12 @@ create index 索引名 on 表名(字段名);
 	function build_order_sql($order){
 		$order_sql = '';
 		if(is_array($order)){
-			$order_sql .= implode(', ', $order);
+			$order_sql = implode(', ', $order);
+		}else if($order){
+			$order_sql = $order;
 		}
 		if($order_sql){
-			$order_sql .= ' ORDER BY '.$order_sql. ' ';
+			$order_sql = ' ORDER BY '.$order_sql. ' ';
 		}
 		return $order_sql;
 	}

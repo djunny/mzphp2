@@ -161,7 +161,7 @@ class debug {
 			$c = $i%2 == 0 ? ' class="even"' : '';
 			$html && is_string($v) && $v = htmlspecialchars($v);
 			if(is_array($v) || is_object($v)) {
-				$v = gettype($v);
+				$v = print_r($v, 1);
 			}
 			$s .= "<li$c>$k$v</li>";
 		}

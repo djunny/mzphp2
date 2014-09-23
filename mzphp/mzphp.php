@@ -11,8 +11,18 @@ if(DEBUG > 0) {
 	}
 	if(defined('FRAMEWORK_EXTEND_PATH') && is_dir(FRAMEWORK_EXTEND_PATH)){
 		$inc_files = glob(FRAMEWORK_EXTEND_PATH.'*.class.php');
-		foreach ($inc_files as $inc_file) {
-			include $inc_file;
+		//load base first
+		foreach ($inc_files as $key=>$inc_file) {
+			if(preg_match('/\bbase_/i', $inc_file)){
+				include $inc_file;
+				unset($inc_files[$key]);
+			}
+		}
+		// load extends
+		if($inc_files){
+			foreach ($inc_files as $inc_file) {
+				include $inc_file;
+			}
 		}
 	}
 	unset($inc_files, $inc_file);

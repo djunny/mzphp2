@@ -2,9 +2,9 @@
 defined('ROOT_PATH') || exit; 
 ?>
 <style type="text/css">
-#mzphp_trace_win{display:none;z-index:999;position:fixed;left:1%;bottom:10px;width:98%;min-width:300px;border-radius:5px;box-shadow:-2px 2px 20px #555;background:#fff;border:1px solid #ccc}
+#mzphp_trace_win{display:none;z-index:99999;position:fixed;left:1%;bottom:10px;width:98%;min-width:300px;border-radius:5px;box-shadow:-2px 2px 20px #555;background:#fff;border:1px solid #ccc}
 #mzphp_trace_win,#mzphp_trace_win,#mzphp_trace_win div,#mzphp_trace_win h6,#mzphp_trace_win ol,#mzphp_trace_win li{margin:0;padding:0;font:14px/1.6 'Microsoft YaHei',Verdana,Arial,sans-serif}
-#mzphp_trace_open{display:none;z-index:999;position:fixed;right:5px;bottom:5px;width:80px;height:24px;line-height:24px;text-align:center;border:1px solid #ccc;border-radius:5px;background:#eee;cursor:pointer;box-shadow:0 0 12px #555}
+#mzphp_trace_open{display:none;z-index:99999;position:fixed;right:5px;bottom:5px;width:80px;height:24px;line-height:24px;text-align:center;border:1px solid #ccc;border-radius:5px;background:#eee;cursor:pointer;box-shadow:0 0 12px #555}
 #mzphp_trace_size,#mzphp_trace_close{float:right;display:inline;margin:3px 5px 0 0!important;border:1px solid #ccc;border-radius:5px;background:#eee;width:24px;height:24px;line-height:24px;text-align:center;cursor:pointer}
 #mzphp_trace_title{height:32px;overflow:hidden;padding:0 3px;border-bottom:1px solid #ccc}
 #mzphp_trace_title h6{float:left;display:inline;width:100px;height:32px;line-height:32px;font-size:16px;font-weight:700;text-align:center;color:#999;cursor:pointer;text-shadow:1px 1px 0 #F2F2F2}
@@ -14,6 +14,17 @@ defined('ROOT_PATH') || exit;
 #mzphp_trace_cont ol li{padding:0 3px}
 #mzphp_trace_cont ol li span{float:left;display:inline;width:70px}
 #mzphp_trace_cont ol li.even{background:#ddd}
+.tclass, .tclass2 {
+text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;table-layout: fixed; word-wrap: break-word;background:#FFF;}
+.tclass table, .tclass2 table {width:100%;border:0;table-layout: fixed; word-wrap: break-word;}
+.tclass table td, .tclass2 table td {border-bottom:0;border-right:0;border-color: #ADADAD;}
+.tclass th, .tclass2 th {border:1px solid #000;background:#CCC;padding: 2px;font-family: Courier New, Arial;font-size: 11px;}
+.tclass td, .tclass2 td {border:1px solid #000;background:#FFFCCC;padding: 2px;font-family: Courier New, Arial;font-size: 11px;}
+.tclass2 th {background:#D5EAEA;}
+.tclass2 td {background:#FFFFFF;}
+.firsttr td {border-top:0;}
+.firsttd {border-left:none !important;}
+.bold {font-weight:bold;}
 </style>
 <div id="mzphp_trace_open"><?php echo $runtime = core::usedtime();?></div>
 <div id="mzphp_trace_win">
@@ -38,7 +49,41 @@ defined('ROOT_PATH') || exit;
 			<li><span>运行时间:</span> <?php echo core::usedtime();?>ms</li>
 			<li><span>内存开销:</span> <?php echo misc::human_size(core::runmem());?></li>
 		</ol>
-		<ol class="ktun"><?php echo self::arr2str($_SERVER['sqls'], 1, FALSE);?></ol>
+		<ol class="ktun">
+		
+		
+		<?php
+			$tdclass = '';
+			$class = 'tclass2';
+			($class == 'tclass')?$class = 'tclass2':$class = 'tclass';
+			foreach ($_SERVER['sqls'] as $dkey => $debug) {
+				echo '<table class="'.$class.'"><tr><th rowspan="2" width="20">'.($dkey+1).'</th><td width="100">'.$debug['time'].' ms</td><td class="bold">'.core::htmlspecialchars($debug['sql']).'</td></tr>';
+				if(!empty($debug['info'])) {
+					echo '<tr><td>Info</th><td>'.$debug['info'].'</td></tr>';
+				}
+				if(!empty($debug['explain'])) {
+					if($debug['type'] == 'mysql'){
+						echo '<tr><td>Explain</td><td><table cellspacing="0"><tr class="firsttr"><td width="5%" class="firsttd">id</td><td width="10%">select_type</td><td width="12%">table</td><td width="5%">type</td><td width="20%">possible_keys</td><td width="10%">key</td><td width="8%">key_len</td><td width="5%">ref</td><td width="5%">rows</td><td width="20%">Extra</td></tr><tr>';
+						foreach ($debug['explain'] as $ekey => $explain) {
+							($ekey == 'id')?$tdclass = ' class="firsttd"':$tdclass='';
+							if(empty($explain)) $explain = '-';
+							echo '<td'.$tdclass.'>'.$explain.'</td>';
+						}
+						echo '</tr></table></td></tr>';
+					}else if ($debug['type'] == 'sqlite'){
+						echo '<tr><td>Explain</td><td><table cellspacing="0"><tr class="firsttr"><td width="10%" class="firsttd">selectid</td><td width="10%">order</td><td width="20%">from</td><td width="60%">detail</td></tr><tr>';
+						foreach ($debug['explain'] as $ekey => $explain) {
+							($ekey == 'selectid')? $tdclass = ' class="firsttd"':$tdclass='';
+							if(empty($explain)) $explain = '-';
+							echo '<td'.$tdclass.'>'.$explain.'</td>';
+						}
+						echo '</tr></table></td></tr>';
+					}
+				}
+				echo '</table>';
+			//echo self::arr2str($sql, 1, FALSE);
+			}
+		?></ol>
 		<ol class="ktun"><?php echo self::arr2str($_GET);?></ol>
 		<ol class="ktun" style="white-space:pre"><?php echo print_r(core::htmlspecialchars($_POST), 1);?></ol>
 		<ol class="ktun"><?php echo self::arr2str($_COOKIE);?></ol>
