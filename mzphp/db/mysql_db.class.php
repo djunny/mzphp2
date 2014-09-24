@@ -267,6 +267,11 @@ class mysql_db {
 		return $value;
 	}
 	
+	function sql_quot($sql){
+		$sql = str_replace(array('\\', "\0", "\n", "\r", "'",  "\x1a"), array('\\\\', '\\0', '\\n', '\\r', "\\'",  '\\Z'), $sql);
+		return $sql;
+	}
+	
 	// build set sql
 	function build_set_sql($data){
 		$setkeysql = $comma = '';
@@ -274,7 +279,7 @@ class mysql_db {
 			if(preg_match('#^\s*?\w+\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
 				$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
 			}else{
-				$set_value = '\''.$set_value.'\'';
+				$set_value = '\''.$this->sql_quot($set_value).'\'';
 			}
 			$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
 			$comma = ',';

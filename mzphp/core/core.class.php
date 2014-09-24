@@ -338,6 +338,12 @@ class core {
 		if(function_exists('memory_get_usage')){
 			$_SERVER['start_memory'] = memory_get_usage();
 		}
+		// ajax 判断
+		if(isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With'] ='xmlhttprequest'){
+			$_REQUEST['ajax'] = 1;
+			$_GET['ajax'] = 1;
+			$_POST['ajax'] = 1;
+		}
 		// 兼容IIS $_SERVER['REQUEST_URI']
 		(!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 		
@@ -687,7 +693,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	
 	//debug 
 	public static function debug(){		
-		if(self::is_cmd())return;
+		if(self::is_cmd() || core::R('ajax'))return;
 		if(defined('NO_DEBUG_INFO'))return;
 		//debug
 		if(DEBUG || (defined('DEBUG_INFO') && DEBUG_INFO)){
@@ -721,7 +727,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 			if(method_exists($newcontrol, $onaction)) {
 				//$newcontrol->$onaction();
 				call_user_func(array($newcontrol, $onaction));
-				self::debug();
+				//self::debug();
 			} else {
 				throw new Exception("Invaild URL : $action method not exists.");
 			}
