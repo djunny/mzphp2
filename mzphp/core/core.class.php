@@ -339,7 +339,7 @@ class core {
 			$_SERVER['start_memory'] = memory_get_usage();
 		}
 		// ajax 判断
-		if(isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With'] ='xmlhttprequest'){
+		if(isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With']){
 			$_REQUEST['ajax'] = 1;
 			$_GET['ajax'] = 1;
 			$_POST['ajax'] = 1;

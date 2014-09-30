@@ -90,7 +90,6 @@ class debug {
 	 */
 	public static function error_handler($errno, $errstr, $errfile, $errline) {
 		if(!empty($_SERVER['exception'])) return;
-
 		// 兼容 php 5.3 以下版本
 		defined('E_DEPRECATED') || define('E_DEPRECATED', 8192);
 		defined('E_USER_DEPRECATED') || define('E_USER_DEPRECATED', 16384);
@@ -115,15 +114,10 @@ class debug {
 
 		$errno_str = isset($error_type[$errno]) ? $error_type[$errno] : '未知错误';
 		$s = "[$errno_str] : $errstr";
-		if(DEBUG) {
+		// 线上模式放宽一些，只记录日志，不中断程序执行
+		if(!in_array($errno, array(E_NOTICE, E_USER_NOTICE, E_DEPRECATED))) {
+			//log::write($s);
 			throw new Exception($s);
-		}else{
-			// 线上模式放宽一些，只记录日志，不中断程序执行
-			if(in_array($errno, array(E_NOTICE, E_USER_NOTICE, E_DEPRECATED))) {
-				//log::write($s);
-			}else{
-				throw new Exception($s);
-			}
 		}
 	}
 	

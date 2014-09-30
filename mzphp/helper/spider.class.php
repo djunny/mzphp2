@@ -507,6 +507,9 @@ class spider {
 			'Accept-Language' => 'zh-cn',
 		);
 		
+		if(is_array($post)){
+			$post = http_build_query($post);
+		}
 		if(!empty($post)){
 			$defheaders['Cache-Control'] = 'no-cache';
 			$defheaders['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -516,8 +519,9 @@ class spider {
 			$out = "GET {$path} HTTP/1.0\r\n";
 		}
 		//merge headers
-		$defheaders = array_merge($defheaders, $headers);
-		
+		if(is_array($headers) && $headers){
+			$defheaders = array_merge($defheaders, $headers);
+		}
 		foreach($defheaders as $hkey=>$hval){
 			$out .= $hkey.': '.$hval."\r\n";
 		}
