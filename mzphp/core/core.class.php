@@ -692,7 +692,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	}
 	
 	//debug 
-	public static function debug(){		
+	public static function debug(){
 		if(self::is_cmd() || core::R('ajax'))return;
 		if(defined('NO_DEBUG_INFO'))return;
 		//debug
@@ -727,7 +727,7 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 			if(method_exists($newcontrol, $onaction)) {
 				//$newcontrol->$onaction();
 				call_user_func(array($newcontrol, $onaction));
-				//self::debug();
+				self::debug();
 			} else {
 				throw new Exception("Invaild URL : $action method not exists.");
 			}

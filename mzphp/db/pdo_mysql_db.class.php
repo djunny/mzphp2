@@ -141,8 +141,9 @@ create index 索引名 on 表名(字段名);
 		$start = ($page - 1) * $perpage;
 		$fetch_first = $perpage == 0 ? true : false;
 		$fetch_all = $perpage == -1 ? true : false;
+		$fetch_count = $perpage == -2 ? true : false;
 		$limit_sql = '';
-		if(!$fetch_first && !$fetch_all){
+		if(!$fetch_first && !$fetch_all && !$fetch_count){
 			$limit_sql = ' LIMIT '.$start.','.$perpage;
 		}
 		

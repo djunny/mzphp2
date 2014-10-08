@@ -11,8 +11,8 @@ defined('ROOT_PATH') || exit;
 #mzphp_trace_cont{width:100%;height:240px;overflow:auto}
 #mzphp_trace_cont ol{list-style:none;padding:5px;overflow:hidden;word-break:break-all}
 #mzphp_trace_cont ol.ktun{display:none}
-#mzphp_trace_cont ol li{padding:0 3px}
-#mzphp_trace_cont ol li span{float:left;display:inline;width:70px}
+#mzphp_trace_cont ol li{padding:0 3px;clear:both}
+#mzphp_trace_cont ol li span{float:left;display:inline;width:100px}
 #mzphp_trace_cont ol li.even{background:#ddd}
 .tclass, .tclass2 {
 text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;table-layout: fixed; word-wrap: break-word;background:#FFF;}

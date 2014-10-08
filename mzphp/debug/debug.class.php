@@ -2,8 +2,7 @@
 // debug class
 class debug {
 	
-	public static function init(){		
-	
+	public static function init(){
 		error_reporting(E_ALL ^ E_DEPRECATED);
 		function_exists('ini_set') && ini_set('error_reporting', E_ALL) && ini_set('display_errors', 'ON');
 		register_shutdown_function(array('debug', 'shutdown_handler'));	// 程序关闭时执行
@@ -115,7 +114,7 @@ class debug {
 		$errno_str = isset($error_type[$errno]) ? $error_type[$errno] : '未知错误';
 		$s = "[$errno_str] : $errstr";
 		// 线上模式放宽一些，只记录日志，不中断程序执行
-		if(!in_array($errno, array(E_NOTICE, E_USER_NOTICE, E_DEPRECATED))) {
+		if(!in_array($errno, array(E_WARNING, E_NOTICE, E_USER_NOTICE, E_DEPRECATED))) {
 			//log::write($s);
 			throw new Exception($s);
 		}

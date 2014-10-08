@@ -34,5 +34,13 @@ class base_control {
 		$template = $template ? $template : core::R('c').'_'.core::R('a').'.htm';
 		VI::display($this, $template, $makefile, $charset);
 	}
+	
+	public function assign($var, &$val){
+		VI::assign($var, $val);
+	}
+	
+	public function assign_value($var, $val){
+		VI::assign_value($var, $val);
+	}
 }
 ?>

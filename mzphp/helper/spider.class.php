@@ -536,7 +536,7 @@ class spider {
 			}
 
 			$host == 'localhost' && $ip = '127.0.0.1';
-			$fp = @fsockopen(($ip ? $ip : $host), $port, $errno, $errstr, $timeout);
+			$fp = fsockopen(($ip ? $ip : $host), $port, $errno, $errstr, $timeout);
 			if(!$fp) {
 				return FALSE;
 			} else {

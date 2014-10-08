@@ -58,7 +58,15 @@ class DB {
 		}else{
 			list($table, $fields) = explode(':', $table);
 		}
-		return call_user_func(array(self::instance(), 'select'), self::table($table), $where, $order, $perpage, $page, $fields);		
+		if($perpage==-2){
+			$fields = 'count(*) AS C';
+		}
+		$result = call_user_func(array(self::instance(), 'select'), self::table($table), $where, $order, $perpage, $page, $fields);
+		if($perpage == -2){
+			return $result[0]['C'];
+		}else{
+			return $result;
+		}
 	}
 	
 	public static function insert($table, $data, $return_id){

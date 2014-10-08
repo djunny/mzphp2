@@ -151,6 +151,77 @@ class misc {
 			return false;
 		}
 	}
+	
+	
+	//分页
+	public static function pages($num=-1, $perpage, $curpage, $mpurl, $options = array()) {
+		$page = 8;
+		$multipage = '';
+		$realpages = 1;
+		$options = array_merge(array(
+			'first' => '首页',
+			'last' => '尾页',
+			'prev' => '上一页',
+			'next' => '下一页',
+			'curr' => '[第 <strong>%d</strong> 页]',
+			'total' => '共 <strong>%d</strong> 页',
+			'wrap' => '%s',
+		), $options);
+		if($num==-1 || $num > $perpage) {
+			if($num>0){
+				$offset = 2;
+				$realpages = @ceil($num / $perpage);
+				$pages = $realpages;
+				if($page > $pages) {
+					$from = 1;
+					$to = $pages;
+				} else {
+					$from = $curpage - $offset;
+					$to = $from + $page - 1;
+					if($from < 1) {
+						$to = $curpage + 1 - $from;
+						$from = 1;
+						if($to - $from < $page) {
+							$to = $page;
+						}
+					} elseif($to > $pages) {
+						$from = $pages - $page + 1;
+						$to = $pages;
+					}
+				}
+			}
+			$multipage = '';
+			
+			if($num==0){
+				$multipage .= "".sprintf($options['curr'], $curpage)." ";
+			}
+			$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, 1)."\">".$options['first']."</a>");
+			if($curpage > 1) {
+				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage-1)."\">".$options['last']."</a>");
+			}else{
+				$multipage .= sprintf($options['wrap'], "<a href=\"#\">".$options['last']."</a>");
+			}
+			if($num>0){
+				for($i = $from; $i <= $to; $i++) {
+					if($i == $curpage) {
+						$multipage .= sprintf($options['wrap'], sprintf($options['curr'], $i));
+					} else {
+						$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $i)."\">".sprintf($options['curr'], $i)."</a>");
+					}
+				}
+			}
+	
+			$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
+			
+			if($to < $pages || $num>0) {
+				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $pages)."\">".$options['last']."</a>");
+			}
+			if($multipage && $num>0) {
+				$multipage = sprintf($options['wrap'], sprintf($options['total'], $realpages)).$multipage;
+			}
+		}
+		return $multipage;
+	}
 }
 
 ?>
