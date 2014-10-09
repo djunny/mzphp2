@@ -50,7 +50,7 @@ class misc {
 		} else {
 			$request_uri = $_SERVER['REQUEST_URI'];
 		}
-		$http = (($port == 443) || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off')) ? 'https' : 'http';
+		$http = (($port == 443) || (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off')) ? 'https' : 'http';
 		return  "$http://$host".$request_uri;
 		//if(isset($_SERVER['SCRIPT_URI']) && 0) {
 		//	return $_SERVER['SCRIPT_URI'];// 会漏掉 query_string, .core::gpc('QUERY_STRING', 'S');
