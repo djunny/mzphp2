@@ -153,17 +153,61 @@ class misc {
 	}
 	
 	
+	
+	// 替代 scandir, safe_mode
+	public static function scandir($dir, $exts=array()) {
+		//if(function_exists('scan_dir')) return scandir($dir);
+		$df = opendir($dir);
+		$arr = array();
+		$search_ext = !empty($exts) && is_array($exts) ? 1 : 0;
+		while($file = readdir($df)) {
+			if($file == '.' || $file == '..') continue;
+			$find = false;
+			if($search_ext){
+				//check
+				if(in_array(self::ext($file), $exts)){
+					$arr[] = $file;
+				}
+			}else{
+				$arr[] = $file;
+			}
+		}
+		closedir($df);
+		return $arr;
+	}
+	
+	// 递归删除目录，这个函数比较危险，传参一定要小心
+	public static function rmdir($dir, $keepdir = 0) {
+		if($dir == '/' || $dir == '../') return FALSE;// 不允许删除根目录，避免程序意外删除数据。
+		if(!is_dir($dir)) return FALSE;
+		substr($dir, -1, 1) != '/' && $dir .= '/';
+		$files = self::scandir($dir);
+		foreach($files as $file) {
+			if($file == '.' || $file == '..') continue;
+			$filepath = $dir.$file;
+			if(!is_dir($filepath)) {
+				try {unlink($filepath);} catch (Exception $e) {}
+			} else {
+				self::rmdir($filepath.'/');
+			}
+		}
+		try {if(!$keepdir) rmdir($dir);} catch (Exception $e) {}
+		return TRUE;
+	}
+	
+	
+	
 	//分页
 	public static function pages($num=-1, $perpage, $curpage, $mpurl, $options = array()) {
 		$page = 8;
 		$multipage = '';
 		$realpages = 1;
 		$options = array_merge(array(
+			'curr' => '[第 <strong>%d</strong> 页]',
 			'first' => '首页',
 			'last' => '尾页',
 			'prev' => '上一页',
 			'next' => '下一页',
-			'curr' => '[第 <strong>%d</strong> 页]',
 			'total' => '共 <strong>%d</strong> 页',
 			'wrap' => '%s',
 		), $options);
@@ -195,28 +239,35 @@ class misc {
 			if($num==0){
 				$multipage .= "".sprintf($options['curr'], $curpage)." ";
 			}
-			$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, 1)."\">".$options['first']."</a>");
-			if($curpage > 1) {
-				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage-1)."\">".$options['last']."</a>");
-			}else{
-				$multipage .= sprintf($options['wrap'], "<a href=\"#\">".$options['last']."</a>");
+			if($options['first']){
+				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, 1)."\">".$options['first']."</a>");
+			}
+			if($options['last']){
+				if($curpage > 1) {
+					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage-1)."\">".$options['prev']."</a>");
+				}else{
+					$multipage .= sprintf($options['wrap'], "<a href=\"#\">".$options['prev']."</a>");
+				}
 			}
 			if($num>0){
 				for($i = $from; $i <= $to; $i++) {
 					if($i == $curpage) {
-						$multipage .= sprintf($options['wrap'], sprintf($options['curr'], $i));
+						$multipage .= sprintf($options['wrap'], "<strong>".sprintf($options['curr'], $i)."</strong>");
 					} else {
 						$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $i)."\">".sprintf($options['curr'], $i)."</a>");
 					}
 				}
 			}
 	
-			$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
-			
-			if($to < $pages || $num>0) {
-				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $pages)."\">".$options['last']."</a>");
+			if($options['next']){
+				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
 			}
-			if($multipage && $num>0) {
+			if($to < $pages || $num>0) {
+				if($options['last']){
+					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $pages)."\">".$options['last']."</a>");
+				}
+			}
+			if($multipage&&$num>0) {
 				$multipage = sprintf($options['wrap'], sprintf($options['total'], $realpages)).$multipage;
 			}
 		}
