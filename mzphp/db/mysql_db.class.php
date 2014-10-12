@@ -62,7 +62,7 @@ class mysql_db {
 		$func = ($type == 'UNBUFFERED' && $unbuffered_exists) ? 'mysql_unbuffered_query' : 'mysql_query';
 		$query = $func($sql, $this->link);
 		if($query === false) {
-	        throw new Exception('MySQL Query Error, error='.$this->errno().':'.$this->error());    
+	        throw new Exception('MySQL Query Error, error='.$this->errno().':'.$this->error()."\r\n". $sql);    
 		}
 		if(DEBUG) {
 			$mtime = explode(' ', microtime());
