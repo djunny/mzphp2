@@ -173,6 +173,8 @@ class core {
 					$json .= ($c1 > 31) ? $char : sprintf("\\u%04x", $c1);
 					continue;
 				}
+				$json .= $char;
+				/*
 				$c2 = ord($string[++$i]);
 				if (($c1 & 32) === 0) {
 					$json .= sprintf("\\u%04x", ($c1 - 192) * 64 + $c2 - 128);
@@ -190,6 +192,7 @@ class core {
 					$w2 = (55<<10) + (($c3 & 15)<<6) + ($c4-128);
 					$json .= sprintf("\\u%04x\\u%04x", $w1, $w2);
 				}
+				*/
 			}
 		}  else {
 			$json = strtolower(var_export( $data, true ));
