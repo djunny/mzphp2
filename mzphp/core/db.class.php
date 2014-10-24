@@ -9,6 +9,7 @@ class DB {
 	
 	public static function init_db_config(&$conf){
 		self::$db_conf = $conf;
+		self::instance();
 	}
 	
     public static function instance(){
