@@ -223,7 +223,7 @@ define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '
 // 站点根目录
 define('ROOT_PATH', str_replace('\\\\', '/', dirname(__FILE__)).'/');
 
-if(!(\$conf = include('./conf/conf.php'))) {
+if(!(\$conf = include(ROOT_PATH.'conf/conf.php'))) {
 	exit('config file not exists');
 }
 // 框架的物理路径
