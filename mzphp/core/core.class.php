@@ -687,7 +687,10 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 			self::stripslashes($_COOKIE);
 		}
 		
-		if(!self::is_cmd()) {
+		if(self::is_cmd()) {
+			//flush console output
+			ob_implicit_flush(1);
+		}else{
 			//	header("Expires: 0");
 			//	header("Cache-Control: private, post-check=0, pre-check=0, max-age=0");
 			//	header("Pragma: no-cache");
