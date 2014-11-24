@@ -300,9 +300,11 @@ class core {
 	}
 
 	public static function ob_start($gzip = TRUE) {
-		!isset($_SERVER['ob_stack']) && $_SERVER['ob_stack'] = array();
-		array_push($_SERVER['ob_stack'], $gzip);
-		ob_start(array('core', 'ob_handle'));
+		if($gzip){
+			!isset($_SERVER['ob_stack']) && $_SERVER['ob_stack'] = array();
+			array_push($_SERVER['ob_stack'], $gzip);
+		}
+		ob_start($gzip ? array('core', 'ob_handle') : 0);
 	}
 	
 	public static function ob_end_clean() {
@@ -706,7 +708,6 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	
 	public static function run(&$conf) {
 		self::init($conf);
-		
 		$control = str_replace(array('.','\\','/'), '', self::R('c'));
 		$action = self::R('a');
 		$obj_file = '';
