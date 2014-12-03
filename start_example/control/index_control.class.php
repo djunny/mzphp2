@@ -1,5 +1,8 @@
 <?php
-class index_control extends base_control{
+/*
+common_control from external core path = FRAMEWORK_EXTEND_PATH
+*/
+class index_control extends common_control{
 	
 	function __construct(&$conf) {
 		parent::__construct($conf);

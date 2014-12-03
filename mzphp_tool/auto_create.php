@@ -240,6 +240,8 @@ define('FRAMEWORK_TMP_PATH', \$conf['tmp_path']);
 // 日志目录
 define('FRAMEWORK_LOG_PATH', \$conf['log_path']);
 
+//扩展核心目录（该目录文件会一起打包入 runtime.php 文件）
+//define('FRAMEWORK_EXTEND_PATH', ROOT_PATH.'model/');
 
 // 包含核心框架文件，转交给框架进行处理。
 include FRAMEWORK_PATH.'mzphp.php';
