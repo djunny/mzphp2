@@ -1,0 +1,11 @@
+
+<!--{template header}-->
+
+<form action="{DIR}?c=index-fetch" method="post">
+	<p>fetchUrl=<input type="text" name="url" value="{$url}" style="width:400px;" /></p>
+	<p></p>
+	<p><textarea style="width:500px;height:300px;">{htmlspecialchars($html)}</textarea></p>
+	<input type="submit" value="提交" />
+</form>
+
+<!--{template footer}-->

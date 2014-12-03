@@ -65,8 +65,16 @@ class index_control extends base_control{
 		// like first_summary
 		$result['first_title'] = strip_tags($result['first_title']);
 		VI::assign('result', $result);
-		VI::display($this, 'index.htm');
-		
+		$this->show('index.htm');	
+	}
+	
+	function on_fetch(){
+		$url = C::P('url', 'http://baidu.com/');
+		$html = spider::fetch_url($url);
+		VI::assign('url', $url);
+		VI::assign('html', $html);
+		//default show index_fetch.htm
+		$this->show();
 	}
 }
 ?>

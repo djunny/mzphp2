@@ -1,5 +1,5 @@
 <?php
-define('DEBUG', (strstr($_SERVER['REQUEST_URI'], 'debug') || $argc > 0) ? 1:0);
+define('DEBUG', (strstr($_SERVER['REQUEST_URI'], 'debug') || isset($argc) && $argc > 0) ? 1:0);
 // 站点根目录，在单元测试时候，此文件可能被包含
 define('ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)).'/');
 

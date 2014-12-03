@@ -82,7 +82,10 @@ return array(
 	'log_path' => ROOT_PATH.'data/log/',
 
 	// cookie 前缀
-	'cookie_pre' => $app_id,
+	'cookie_pre' => 'rnd_',
+	
+	// cookie 域名
+	'cookie_domain' => '',
 	
 	// 服务器所在的时区
 	'timeoffset' => '+8',

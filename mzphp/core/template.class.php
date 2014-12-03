@@ -139,7 +139,8 @@ class template {
 		$s = preg_replace_callback("#(<!--\{eval)\s+?(.*?)\s*\}-->#is", array($this, 'stripvtag_callback'), $s);
 		//$s = preg_replace_callback("/\{eval\s+(.+?)\s*\}/is", array($this, 'stripvtag_callback'), $s);
 		$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
-		
+		//方法
+		$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 		// hook, 最多允许三层嵌套
 		for($i = 0; $i < 4; $i++) {
 			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
@@ -148,6 +149,8 @@ class template {
 			$s = preg_replace_callback("#\{template\s+([^}]*?)\}#i", array($this, 'get_tpl'), $s);
 			$s = preg_replace_callback("#(<!--\{eval)\s+?(.*?)\s*\}-->#is", array($this, 'stripvtag_callback'), $s);
 			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
+			//方法
+			$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 			//$s = preg_replace_callback('#\{hook\s+([^}]+)\}#is', array($this, 'process_hook'), $s); // 不允许嵌套！
 			//$s = preg_replace_callback('#\t*//\s*hook\s+([^\s]+)#is', array($this, 'process_hook'), $s);// (\$conf, '\\1')"
 		}
@@ -340,19 +343,12 @@ class template {
 		$s = preg_replace('#<\?php echo isset\((.*?)\) \? (\\1) : \'\';\?>#', $instring ? '{\\1}' : '\\1', $s);
 		return preg_replace("/$this->vtag_regexp/is", "\\1", str_replace("\\\"", '"', $s));
 	}
-
-	// 提取 ajax header
-	// 格式：<!--#ajax width="300" height="400" title="用户登录"-->
-	private function fetch_json_header(&$s, &$arr) {
-		preg_match('#<!--\{json (.*?)\}-->#', $s, $m);
-		if(isset($m[1])) {
-			preg_match_all('#(\w+):"(.*?)"#', $m[1], $m2);
-			foreach($m2[1] as $k=>$v) {
-				$arr[$m2[1][$k]] = $m2[2][$k];
-			}
-			$s = preg_replace('#<!--\{json (.*?)\}-->#', '', $s);
-		}
-		return $arr;
+	
+	private function funtag_callback($matchs){
+		$search = '<!--[func='.count($this->tag_search).']-->';
+		$this->tag_search[] = $search;
+		$this->tag_replace[] = '<?php if($_val='.$matchs[1].')echo $_val;?>';
+		return $search;
 	}
 
 	private function loopsection($matchs) {
