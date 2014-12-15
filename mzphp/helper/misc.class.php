@@ -156,7 +156,9 @@ class misc {
 	
 	// 替代 scandir, safe_mode
 	public static function scandir($dir, $exts=array()) {
-		//if(function_exists('scan_dir')) return scandir($dir);
+		if(function_exists('scan_dir')){
+			return array_diff(scandir($dir), array('..', '.'));
+		}
 		$df = opendir($dir);
 		$arr = array();
 		$search_ext = !empty($exts) && is_array($exts) ? 1 : 0;
