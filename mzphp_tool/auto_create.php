@@ -145,7 +145,7 @@ return array(
 		),
 		*/
 		'file' => array(
-			'dir' => ROOT_PATH.'data/cache/',
+			'dir' => ROOT_PATH.'data/cache".md5(time())."/',
 			'pre' => 'bbs_',
 		),
 	),
