@@ -264,13 +264,15 @@ class misc {
 			if($options['next']){
 				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
 			}
+			
+			if($multipage&&$num>0) {
+				$multipage .= sprintf($options['wrap'], sprintf($options['total'], $realpages));
+			}
+			
 			if($to < $pages || $num>0) {
 				if($options['last']){
 					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $pages)."\">".$options['last']."</a>");
 				}
-			}
-			if($multipage&&$num>0) {
-				$multipage = sprintf($options['wrap'], sprintf($options['total'], $realpages)).$multipage;
 			}
 		}
 		return $multipage;
