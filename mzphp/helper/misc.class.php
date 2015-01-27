@@ -256,7 +256,7 @@ class misc {
 					if($i == $curpage) {
 						$multipage .= sprintf($options['wrap'], "<strong>".sprintf($options['curr'], $i)."</strong>");
 					} else {
-						$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $i)."\">".sprintf($options['curr'], $i)."</a>");
+						$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $i)."\">".sprintf(strip_tags($options['curr']), $i)."</a>");
 					}
 				}
 			}

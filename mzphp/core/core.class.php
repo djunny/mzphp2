@@ -37,6 +37,8 @@ class core {
 		switch($type){
 			case 'int':
 				return (int)$value;
+			case 'float':
+				return (float)$value;
 			case 'email':
 				return preg_match("/^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/", $value) ? $value : '';
 			case 'url':
@@ -321,7 +323,8 @@ class core {
 		if(DEBUG) {
 			debug::init();
 		} else {
-			error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
+			error_reporting(0);
+			//error_reporting(E_ALL ^ E_DEPRECATED);
 			//error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
 			//@ini_set('display_errors', 'E_ALL & ~E_NOTICE & ~E_DEPRECATED');
 		}
