@@ -44,6 +44,9 @@ class DB {
 	}
 	
 	public static function fetch_all($query){
+		if(is_string($query)){
+			$query = self::query($query);
+		}
 		return call_user_func(array(self::instance(), 'fetch_all'), $query);
 	}
 	
