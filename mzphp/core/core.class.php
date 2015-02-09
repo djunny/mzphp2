@@ -446,18 +446,30 @@ class core {
 			if($conf['rewrite_info']['ext']) {
 				$get['rewrite'] = preg_replace('#'.preg_quote($conf['rewrite_info']['ext']).'$#i', '', $get['rewrite']);
 			}
+			//开发规范：REQUEST_URI 中参数名称不能有 _
 			$get['rewrite'] = str_replace(array('\\', '//', '_'), '/', $get['rewrite']);
 			$get['rewrite'] = preg_replace('/^\//is', '', $get['rewrite']);
 			$rws = explode('/', $get['rewrite']);
 			if(isset($rws[0])) {
 				$rw_count = count($rws);
 				for ($rw_i=0; $rw_i<$rw_count; $rw_i=$rw_i+2) {
-					$get[$rws[$rw_i]] = empty($rws[$rw_i+1]) ? '' : $rws[$rw_i+1];
+					$key = $rws[$rw_i];
+					// support url : &arr[query]=1&arr[dateline]=1
+					$pos = strpos($key, '[');
+					if($pos !== false){
+						$arr = substr($key, $pos+1, -1);
+						if($arr){
+							$get[substr($key, 0, $pos)][$arr] =$rws[$rw_i+1];
+						}else{
+							$get[substr($key, 0, $pos)][] = $rws[$rw_i+1];
+						}
+					}else{
+						$get[$key] = empty($rws[$rw_i+1]) ? '' : $rws[$rw_i+1];
+					}
 				}
 			}
 			unset($get['rewrite']);
 		}
-		
 		// cmd: 
 		// php index.php "c=index-index&b=2&c=3"
 		// php index.php "c=index&a=index&b=2&c=3"
@@ -465,7 +477,6 @@ class core {
 		if($argc == 2){
 			parse_str($argv[1], $get);
 		}
-		
 		//fix cmd 
 		$tmpval = isset($get['c']) ? $get['c'] : (isset($argv[1]) ? $argv[1] : '');
 		// switch url mode

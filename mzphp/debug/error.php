@@ -25,5 +25,6 @@ body,div,ul,li,h1{margin:0;padding:0}
 
 	<ul class="fo">&lt;?php echo 'mzPHP.'; ?&gt;</ul>
 </div>
+<?php core::debug();?>
 </body>
 </html>

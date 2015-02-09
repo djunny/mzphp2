@@ -140,7 +140,7 @@ class template {
 		//$s = preg_replace_callback("/\{eval\s+(.+?)\s*\}/is", array($this, 'stripvtag_callback'), $s);
 		$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
 		//方法
-		$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
+		$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 		// hook, 最多允许三层嵌套
 		for($i = 0; $i < 4; $i++) {
 			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
@@ -150,7 +150,7 @@ class template {
 			$s = preg_replace_callback("#(<!--\{eval)\s+?(.*?)\s*\}-->#is", array($this, 'stripvtag_callback'), $s);
 			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
 			//方法
-			$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
+			$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 			//$s = preg_replace_callback('#\{hook\s+([^}]+)\}#is', array($this, 'process_hook'), $s); // 不允许嵌套！
 			//$s = preg_replace_callback('#\t*//\s*hook\s+([^\s]+)#is', array($this, 'process_hook'), $s);// (\$conf, '\\1')"
 		}
@@ -347,7 +347,7 @@ class template {
 	private function funtag_callback($matchs){
 		$search = '<!--[func='.count($this->tag_search).']-->';
 		$this->tag_search[] = $search;
-		$this->tag_replace[] = '<?php if($_val='.$matchs[1].')echo $_val;?>';
+		$this->tag_replace[] = '<?php if(false !== ($_val='.$matchs[1].'))echo $_val;?>';
 		return $search;
 	}
 
