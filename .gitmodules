@@ -1,3 +1,6 @@
 [submodule "mzphp/spider"]
 	path = mzphp/spider
 	url = git@git.oschina.net:mz/spider-utils-for-php.git
+[submodule "mzdns_tool"]
+	path = mzdns_tool
+	url = git@git.oschina.net:mz/php_mzdns.git
