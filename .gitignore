@@ -1,3 +1,6 @@
 */data/tmp/*
 */data/cache/*
 *dwsync.xml
+/dns_tool/conf/dnsdun.php
+/dns_tool/conf/dnspod.php
+/dns_tool/conf/dnsla.php

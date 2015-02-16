@@ -1,0 +1,2 @@
+dnspod	abc123123123.cn|*.abc123123123.cn
+dnsla	ccc123123123.cn|*.ccc123123123.cn
