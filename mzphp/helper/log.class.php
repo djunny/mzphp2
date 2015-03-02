@@ -3,7 +3,7 @@ class log {
 	public static $log_file = 0;
 	public static $log_fp = 0;
 	
-	public static function setLogFile($file){
+	public static function set_logfile($file){
 		self::$log_file = $file;
 		self::$log_fp = fopen($file, 'a+');
 	}
