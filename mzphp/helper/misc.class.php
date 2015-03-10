@@ -153,6 +153,10 @@ class misc {
 	}
 	
 	
+	//获取文件名后缀
+	public static function ext($filename) {
+		return strtolower(trim(substr(strrchr($filename, '.'), 1)));
+	}
 	
 	// 替代 scandir, safe_mode
 	public static function scandir($dir, $exts=array()) {
