@@ -61,14 +61,14 @@ class misc {
 		$seconds = $_SERVER['time'] - $timestamp;
 		if($seconds > 31536000) {
 			return date($date, $timestamp);
-		} elseif($seconds > 2592000) {
-			return ceil($seconds / 2592000).' 月前';
-		} elseif($seconds > 86400) {
-			return ceil($seconds / 86400).' 天前';
-		} elseif($seconds > 3600) {
-			return ceil($seconds / 3600).' 小时前';
-		} elseif($seconds > 60) {
-			return ceil($seconds / 60).' 分钟前';
+		} elseif($seconds >= 2592000) {
+			return round($seconds / 2592000).' 月前';
+		} elseif($seconds >= 86400) {
+			return round($seconds / 86400).' 天前';
+		} elseif($seconds >= 3600) {
+			return round($seconds / 3600).' 小时前';
+		} elseif($seconds >= 60) {
+			return round($seconds / 60).' 分钟前';
 		} else {
 			return $seconds.' 秒前';
 		}
