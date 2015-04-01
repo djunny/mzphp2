@@ -238,7 +238,7 @@ class pdo_sqlite_db {
 	function build_set_sql($data){
 		$setkeysql = $comma = '';
 		foreach ($data as $set_key => $set_value) {
-			if(preg_match('#^'.$set_key.'\s*?[\+\-\*\/]\s*?\d+$#is', $_set_value)){
+			if(preg_match('#^'.$set_key.'\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
 			//if(preg_match('#^\s*?\w+\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
 				$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
 			}else{
