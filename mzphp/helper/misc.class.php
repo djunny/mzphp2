@@ -251,7 +251,7 @@ class misc {
 			if($options['first']){
 				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, 1)."\">".$options['first']."</a>");
 			}
-			if($options['last']){
+			if($options['prev']){
 				if($curpage > 1) {
 					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage-1)."\">".$options['prev']."</a>");
 				}else{
