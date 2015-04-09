@@ -254,8 +254,6 @@ class misc {
 			if($options['prev']){
 				if($curpage > 1) {
 					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage-1)."\">".$options['prev']."</a>");
-				}else{
-					$multipage .= sprintf($options['wrap'], "<a href=\"#\">".$options['prev']."</a>");
 				}
 			}
 			if($num>0){
@@ -269,7 +267,9 @@ class misc {
 			}
 	
 			if($options['next']){
-				$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
+				if($curpage+1 <= $realpages || $num == 0) {
+					$multipage .= sprintf($options['wrap'], "<a href=\"".sprintf($mpurl, $curpage+1)."\">".$options['next']."</a>");
+				}
 			}
 			
 			if($multipage&&$num>0) {
