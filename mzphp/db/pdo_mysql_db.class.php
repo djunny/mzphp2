@@ -263,10 +263,7 @@ create index 索引名 on 表名(字段名);
 	function build_set_sql($data){
 		$setkeysql = $comma = '';
 		foreach ($data as $set_key => $set_value) {
-			if(preg_match('#^'.$set_key.'\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
-			//if(preg_match('#^\s*?\w+\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
-				$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
-			}else{
+			if(!preg_match('#^'.$set_key.'\s*?[\+\-\*\/]\s*?\d+$#is', $set_value)){
 				$set_value = '\''.$this->sql_quot($set_value).'\'';
 			}
 			$setkeysql .= $comma.'`'.$set_key.'`='.$set_value.'';
