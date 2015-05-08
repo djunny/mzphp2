@@ -446,8 +446,16 @@ class core {
 			if($conf['rewrite_info']['ext']) {
 				$get['rewrite'] = preg_replace('#'.preg_quote($conf['rewrite_info']['ext']).'$#i', '', $get['rewrite']);
 			}
-			//开发规范：REQUEST_URI 中参数名称不能有 _
-			$get['rewrite'] = str_replace(array('\\', '//', '_'), '/', $get['rewrite']);
+			//地址中只会存在一种分隔符，判断地址中，优先级 / _ - 三种分隔符顺序
+			//解决了地址中如果分隔符为/，参数可加_的bug
+			$url_sp = '';
+			if(strpos($get['rewrite'], '/') !== false){
+			}elseif(strpos($get['rewrite'], '_') !== false){
+				$url_sp = '_';
+			}elseif(strpos($get['rewrite'], '-') !== false){
+				$url_sp = '-';
+			}
+			$url_sp && $get['rewrite'] = str_replace($url_sp, '/', $get['rewrite']);
 			$get['rewrite'] = preg_replace('/^\//is', '', $get['rewrite']);
 			$rws = explode('/', $get['rewrite']);
 			if(isset($rws[0])) {
