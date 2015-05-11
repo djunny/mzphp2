@@ -14,6 +14,7 @@ class template {
 	private $var_regexp = "\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\$]+\])*";// \[\]
 	private $vtag_regexp = "\<\?=(\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\[\]\$]+\])*)\?\>";
 	private $const_regexp = "\{([\w]+)\}";
+	private $eval_regexp = "#(?:<!--\{(eval))\s+?(.*?)\s*\}-->#is";
 	/*private $isset_regexp = '<\?php echo isset\(.+?\) \? (?:.+?) : \'\';\?>';*/
 
 	// 存放全局的 $conf，仅仅用来处理 hook
@@ -48,7 +49,7 @@ class template {
 	}
 
 	// 约定必须主模板调用其他应用模板，不能反其道而行之
-	public function display($file, $makefile='', $charset ='') {
+	public function display($file, $makefile='', $charset ='', $compress = 1) {
 		extract($this->vars, EXTR_SKIP);
 		$_SERVER['warning_info'] = ob_get_contents();
 		if($_SERVER['warning_info']){
@@ -63,19 +64,23 @@ class template {
 		// rewrite process
 		core::process_urlrewrite($this->conf, $body);
 
-		//make file
-		//$makefile = self::gpc('makefile', 'S');
-		if($makefile){
-			return file_put_contents($makefile, $body);
-		}
+		$is_xml = strpos($file, '.xml') !== false ?  true : false;
 		// old ob_start
 		core::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
 		//check charset
-		//$charset = self::gpc('charset','S');
 		if($charset && $charset != 'utf-8'){
-			header('Content-Type: text/html; charset='.$charset);
-			$body = iconv('utf-8', $charset, $body);
+			header('Content-Type: text/'.($is_xml ? 'xml' : 'html').'; charset='.$charset);
+			$body = mb_convert_encoding($body, $charset, 'utf-8');
 		}
+		
+		if($makefile){
+			$save_body = $body;
+			if($compress){
+				$save_body = gzencode($body, 6);
+			}
+			return file_put_contents($makefile, $save_body);
+		}
+		
 		echo $body;
 	}
 	
@@ -124,6 +129,15 @@ class template {
 		return $objfile;
 	}
 	
+	private function do_tpl(&$s){
+		//优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
+		$s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
+		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]+?)</script>#is", array($this, 'striptag_callback'), $s);
+		$s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
+		//function
+		$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
+	}
+	
 	public function complie($viewfile, $objfile) {
 		$conf = $this->conf;
 		
@@ -135,31 +149,27 @@ class template {
 		//$s = preg_replace('#\r\n\s*//[^\r\n]*#ism', '', $s);
 		//$s = str_replace('{DIR}', $this->conf['app_dir'], $s);
 		
-		//优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
-		$s = preg_replace_callback("#(<!--\{eval)\s+?(.*?)\s*\}-->#is", array($this, 'stripvtag_callback'), $s);
-		//$s = preg_replace_callback("/\{eval\s+(.+?)\s*\}/is", array($this, 'stripvtag_callback'), $s);
-		$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
-		//方法
-		$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 		// hook, 最多允许三层嵌套
 		for($i = 0; $i < 4; $i++) {
-			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
 			// template , include file 减少 io
-			//$s = preg_replace('#\{template\s+([^}]*?)\}#is', "<?php include \$this->get_complie_tpl('\\1');?".">", $s);
-			$s = preg_replace_callback("#\{template\s+([^}]*?)\}#i", array($this, 'get_tpl'), $s);
-			$s = preg_replace_callback("#(<!--\{eval)\s+?(.*?)\s*\}-->#is", array($this, 'stripvtag_callback'), $s);
-			$s = preg_replace("/<!--\{(.+?)\}-->/s", "{\\1}", $s);
-			//方法
-			$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
-			//$s = preg_replace_callback('#\{hook\s+([^}]+)\}#is', array($this, 'process_hook'), $s); // 不允许嵌套！
-			//$s = preg_replace_callback('#\t*//\s*hook\s+([^\s]+)#is', array($this, 'process_hook'), $s);// (\$conf, '\\1')"
+			$s = preg_replace_callback("#<!--{template\s+([^}]*?)}-->#i", array($this, 'get_tpl'), $s);
 		}
+		
+		$this->do_tpl($s);
 		
 		
 		/*$s = preg_replace("/(?:\{?)($this->var_regexp)(?(1)\}|)/", "<?=\\1?>", $s);*/
+		/*
 		$s = preg_replace("/($this->var_regexp|\{$this->var_regexp\})/", "<?=\\1?>", $s);
 		$s = preg_replace("/\<\?=\{(.+?)\}\?\>/", "<?=\\1?>", $s);//
 		$s = preg_replace("/\{($this->const_regexp)\}/", "<?=\\1?>", $s);
+		*/
+		
+		$s = preg_replace("#(\{".$this->var_regexp."\}|".$this->var_regexp.")#", "<?=\\1?>", $s);
+		if(strpos($s, '<?={') !== false){
+			$s = preg_replace("/\<\?={(.+?)}\?\>/", "<?=\\1?>", $s);//
+		}
+		
 		
 		// 修正 $data[key] -> $data['key']
 		$s = preg_replace_callback("/\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>/is", array($this, 'arrayindex'), $s);
@@ -172,31 +182,34 @@ class template {
 		//$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 		
 		$isset = '<\?php echo isset(?:+*?) ? (?:+*?) : ;\?>';
-		$s = preg_replace_callback("/\{for (.*?)\}/is", array($this, 'stripvtag_callback'), $s); //  "\$this->stripvtag('<? for(\\1) {
+		//$s = preg_replace_callback("/\{for (.*?)\}/is", array($this, 'stripvtag_callback'), $s); //  "\$this->stripvtag('<? for(\\1) {
 		
-		$s = preg_replace_callback("/\{elseif\s+(.+?)\}/is", array($this, 'stripvtag_callback'), $s);
 		for($i=0; $i<4; $i++) {
 			$s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loopsection'), $s);
 			$s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loopsection'), $s);
 		}
-		$s = preg_replace_callback("/\{if\s+(.+?)\}/is", array($this, 'stripvtag_callback'), $s);
+		$s = preg_replace_callback("/\{(if|elseif|for)\s+(.*?)\}/is", array($this, 'stripvtag_callback'), $s); 
 		
-		$s = preg_replace("/\{else\}/is", "<? } else { ?>", $s);
-		$s = preg_replace("/\{\/if\}/is", "<? } ?>", $s);
-		$s = preg_replace("/\{\/for\}/is", "<? } ?>", $s);
-
-		$s = preg_replace("/$this->const_regexp/", "<?=\\1?>", $s);//{else} 也符合常量格式，此处要注意先后顺??
+		//$s = preg_replace_callback("/\{if\s+(.+?)\}/is", array($this, 'strip_vtag_callback'), $s);
+		
+		$s = preg_replace("/\{else\}/is", "<?}else { ?>", $s);
+		$s = preg_replace("/\{\/(if|for)\}/is", "<?}?>", $s);
+		//{else} 也符合常量格式，此处要注意先后顺??
+		$s = preg_replace("/".$this->const_regexp."/", "<?=\\1?>", $s);
 		
 		// 给数组KEY加上判断
 		$s = preg_replace_callback("/\<\?=\@(\\\$[a-zA-Z_]\w*)((\[[\\$\[\]\w\']+\])+)\?\>/is", array($this, 'array_keyexists'), $s);
 		//
 		if($this->tag_search){
 			$s = str_replace($this->tag_search, $this->tag_replace, $s);
+			// 可能js中还有eval
+			if(strpos($s, '<!--[') !== false){
+				$s = str_replace($this->tag_search, $this->tag_replace, $s);
+			}
 		}
+		
 		// 翻译段标签为全标签
-		$s = preg_replace('#<\?=(\w+.*?)\?>#', "<?php echo \\1;?>", $s);// 常量
 		$s = preg_replace('#<\?=(\$\w+.*?)\?>#', "<?php echo isset(\\1) ? \\1 : '';?>", $s); // 变量
-		$s = preg_replace('#<\? (.*?)\?>#', "<?php \\1?>", $s); // else if ...
 		
 		$s = "<?php !defined('FRAMEWORK_PATH') && exit('Access Denied');".
 			"\$this->sub_tpl_check('".implode('|', $this->sub_tpl)."', '{$_SERVER['starttime']}', '$viewfile', '$objfile');?>$s";
@@ -315,33 +328,38 @@ class template {
 	}
 
 	private function array_keyexists($name, $items) {
-		// 此处不能有空格，美国免费空间居然会在中间插入乱码 ED A7 A0 / ED 9E BA /， 如此诡异的空间！最终导致 jquery .html() 出错。
 		return "<?php echo isset($name$items)?$name$items:'';?>";
 	}
 	
 	private function stripvtag_callback($matchs) {
-		$arr = explode(' ', $matchs[0]);
-		$pre = $arr[0];
-		$s = $matchs[1];
-		if($pre == '{for') {
-			$s = '<? for('.$s.') {?>';
-		} elseif($s == '<!--{eval') {
-			$s = '<? '.$matchs[2].'?'.'>';
-			$search = '<!--[eval='.count($this->tag_search).']-->';
-			$this->tag_search[] = $search;
-			$this->tag_replace[] = $this->stripvtag($s);
-			return $search;
-		} elseif($pre == '{elseif') {
-			$s = '<? } elseif('.$s.') { ?>';
-		} elseif($pre == '{if') {
-			$s = '<? if('.$s.') { ?>';
+		$pre = $matchs[1];
+		$s = $matchs[2];
+		switch($pre){
+			case 'for':
+				$s = '<? for('.$s.') {?>';
+			break;
+			case 'eval':
+				$s = '<? '.$s.'?'.'>';
+				$search = '<!--[eval='.count($this->tag_search).']-->';
+				$this->tag_search[] = $search;
+				$this->tag_replace[] = $this->stripvtag($s);
+				return $search;
+			break;
+			case 'elseif':
+				$s = '<? } elseif('.$s.') { ?>';
+			break;
+			case 'if':
+				$s = '<? if('.$s.') { ?>';
+			break;
 		}
 		return $this->stripvtag($s);
 	}
 
 	private function stripvtag($s, $instring = FALSE) {
-		$s = preg_replace('#<\?php echo isset\((.*?)\) \? (\\1) : \'\';\?>#', $instring ? '{\\1}' : '\\1', $s);
-		return preg_replace("/$this->vtag_regexp/is", "\\1", str_replace("\\\"", '"', $s));
+		if(strpos($s, '<? echo isset') !== false){
+			$s = preg_replace('#<\? echo isset\((.*?)\) \? (\\1) : \'\';\?>#', $instring ? '{\\1}' : '\\1', $s);
+		}
+		return preg_replace("/".$this->vtag_regexp."/is", "\\1", str_replace("\\\"", '"', $s));
 	}
 	
 	private function funtag_callback($matchs){

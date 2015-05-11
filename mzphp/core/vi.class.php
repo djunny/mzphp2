@@ -3,8 +3,10 @@ class VI {
 	private static $instance = NULL;
 	
 	public static function instance(){
-		if (is_null(self::$instance)){
+		static $inited = 0;;
+		if (!$inited){
 			self::$instance = new template();
+			$inited = 1;
 		}
 		return self::$instance;
 	}
