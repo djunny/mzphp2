@@ -48,7 +48,7 @@ preg_match_all('#\/([\w\-]+)\/$#i', PATH, $dir);
 $dir = str_replace('', '', $dir[1][0]);
 define('APP_NAME', $dir);
 
-if(!is_file(PATH.'../mzphp/core.php')) {
+if(!is_file(PATH.'../mzphp/mzphp.php')) {
 	show_message('没有找到 mzphp 目录，请确定应用和 mzphp 框架是在同一级目录');
 }
 

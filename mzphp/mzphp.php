@@ -29,30 +29,33 @@ if(DEBUG > 0) {
 	
 } else {
 	// 语义同上段，优先读取应用定义的目录下的 runtime 文件
-	$content = '';
 	$runtimefile = FRAMEWORK_TMP_PATH.'_runtime.php';
 	if (!(@include($runtimefile))) {
+		$content = '';
 		if(!is_dir(FRAMEWORK_TMP_PATH)){
-			mkdir(FRAMEWORK_TMP_PATH, 0777, true);
+			mkdir(FRAMEWORK_TMP_PATH, 0777, 1);
 		}
 		// 最低版本需求判断
 		PHP_VERSION < '5.0' && exit('Required PHP version 5.0.* or later.');
-		//make runtime file
+		// make runtime file
 		$inc_files = glob(FRAMEWORK_PATH.'*/*.class.php');
+		// 加载除debug目录的文件
 		foreach ($inc_files as $inc_file) {
 			if(strpos($inc_file, 'debug/') === false){
 				$content .= php_strip_whitespace($inc_file);
 			}
 		}
+		// 加载扩展内核的文件
 		if(defined('FRAMEWORK_EXTEND_PATH') && is_dir(FRAMEWORK_EXTEND_PATH)){
 			$inc_files = glob(FRAMEWORK_EXTEND_PATH.'*.class.php');
 			foreach ($inc_files as $inc_file) {
 				$content .= php_strip_whitespace($inc_file);
 			}
 		}
-		unset($inc_files, $inc_file);
+		//写入 runtime 文件
 		file_put_contents($runtimefile, $content);
-		unset($content);
+		unset($content, $inc_files, $inc_file);
+		//加载 runtime 
 		include $runtimefile;
 	}
 }
