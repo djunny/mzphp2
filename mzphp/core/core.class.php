@@ -746,6 +746,9 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		}
 		
 		if(empty($obj_file)) {
+			if($conf['page_setting'][404]){
+				$conf['page_setting'][404]($control);
+			}
 			throw new Exception("Invaild URL : {$control} control not exists.");
 		}
 		
