@@ -691,7 +691,6 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	}
 		
 	public static function init($conf = array()) {
-		
 		// init 
 		self::init_timezone($conf);
 		self::init_supevar($conf);
@@ -734,7 +733,6 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 	public static function run(&$conf) {
 		self::init($conf);
 		$control = str_replace(array('.','\\','/'), '', self::R('c'));
-		$action = self::R('a');
 		$obj_file = '';
 		// find control file
 		foreach($conf['control_path'] as $control_dir){
@@ -754,14 +752,15 @@ RewriteRule ^index/(\d+)\.htm$ index.php?m=index&a=index&id=$1 [L]
 		
 		if(include $obj_file) {
 			$controlclass = "{$control}_control";
-			$onaction = "on_$action";
 			$newcontrol = new $controlclass($conf);
+			// control can run hook before on_cation
+			$onaction = "on_".self::G('a');
 			if(method_exists($newcontrol, $onaction)) {
 				//$newcontrol->$onaction();
 				call_user_func(array($newcontrol, $onaction));
 				self::debug();
 			} else {
-				throw new Exception("Invaild URL : $action method not exists.");
+				throw new Exception("Invaild URL : $onaction method not exists.");
 			}
 		} else {
 			throw new Exception("Invaild URL : {$control} control file not exists");

@@ -43,13 +43,14 @@ class template {
 	public function assign_value($k, $v) {
 		$this->vars[$k] = $v;
 	}
+	
 	public function show(&$conf, $file, $makefile='', $charset=''){
 		$this->set_conf($conf);
 		$this->display($file, $makefile, $charset);
 	}
 
-	// 约定必须主模板调用其他应用模板，不能反其道而行之
-	public function display($file, $makefile='', $charset ='', $compress = 1) {
+	// 约定必须主模板调用其他应用模板
+	public function display($file, $makefile='', $charset ='', $compress = 6) {
 		extract($this->vars, EXTR_SKIP);
 		$_SERVER['warning_info'] = ob_get_contents();
 		if($_SERVER['warning_info']){
@@ -65,21 +66,23 @@ class template {
 		core::process_urlrewrite($this->conf, $body);
 
 		$is_xml = strpos($file, '.xml') !== false ?  true : false;
-		// old ob_start
-		core::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
+		
+		if($makefile){
+			$save_body = $body;
+			if($compress){
+				$save_body = gzencode($body, $compress);
+			}
+			return file_put_contents($makefile, $save_body);
+		}
+		
 		//check charset
 		if($charset && $charset != 'utf-8'){
 			header('Content-Type: text/'.($is_xml ? 'xml' : 'html').'; charset='.$charset);
 			$body = mb_convert_encoding($body, $charset, 'utf-8');
 		}
 		
-		if($makefile){
-			$save_body = $body;
-			if($compress){
-				$save_body = gzencode($body, 6);
-			}
-			return file_put_contents($makefile, $save_body);
-		}
+		// old ob_start
+		core::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
 		
 		echo $body;
 	}
@@ -135,7 +138,7 @@ class template {
 		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]+?)</script>#is", array($this, 'striptag_callback'), $s);
 		$s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
 		//function
-		$s = preg_replace_callback('#{(\w+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
+		$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 	}
 	
 	public function complie($viewfile, $objfile) {
@@ -389,48 +392,6 @@ class template {
 		return $k ? "<? if(!empty($arr)) { foreach($arr as $k=>&$v) {?>$statement<? }}?>" : "<? if(!empty($arr)) { foreach($arr as &$v) {?>$statement<? }} ?>";
 	}
 	
-	/*
-		转换 <input class="button" 为 <a><span></span></a>
-		the button <input type="button" class="button bigblue" id="button2" value="确定22"/>
-		<input type="button" class="button bigblue" id="button1" value="确定333"/>
-	*/
-	private function convert_button($s) {
-		$r = '';
-		$p = '#<input ([^<]*?)>#is';
-		// 一直匹配，替换
-		$offset = 0;
-		while(preg_match($p, $s, $m, PREG_OFFSET_CAPTURE)) {
-			$start = $m[0][1];
-			$len = strlen($m[0][0]);
-			preg_match_all('#(\w+)\s*=\s*"(.*?)"#', $m[1][0], $m2);
-			if(!empty($m2[1]) && !empty($m2[2])) {
-				$arr = array_combine($m2[1], $m2[2]);
-			} else {
-				$arr = array();
-			}
-			$offset = $len + $start;
-			if(!isset($arr['class']) || strpos($arr['class'], 'button') === FALSE) {
-				$r .= substr($s, 0, $offset);
-				$s = substr($s, $offset);
-				continue;
-			}
-			
-			$value = $arr['value'];
-			//unset($arr['type'], $arr['value']);
-			$attrs = '';
-			!isset($arr['href']) && $arr['href'] = 'javascript:void(0)';
-			!isset($arr['role']) && $arr['role'] = 'button';
-			foreach($arr as $k=>$v) {
-				// FIX ie6
-				$k == 'onclick' && stripos($v, 'return false') === FALSE && $v .= ";return false;";
-				$attrs .= " $k=\"$v\"";
-			}
-			$r .= substr($s, 0, $start)."<a$attrs><span>$value</span></a>";
-			$s = substr($s, $offset);
-		}
-		$r .= $s;
-		return $r;
-	}
 }
 
 /*
