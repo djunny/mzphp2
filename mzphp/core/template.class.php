@@ -374,7 +374,7 @@ class template {
 			//filter script comment
 			$matchs[0] = preg_replace('#(//[^\'";><]*$|/\*[\s\S]*?\*/)#im', '', $matchs[0]);
 			// replace variable and constant
-			$matchs[0] = preg_replace('#{\$?(\w+)}#is', '<'.'?php echo $1;?'.'>', $matchs[0]);
+			$matchs[0] = preg_replace('#{((?:\$\w+)|(?:[A-Z_]+))}#s', '<'.'?php echo $1;?'.'>', $matchs[0]);
 			$this->tag_replace[] = $matchs[0];
 			return $search;
 		}
