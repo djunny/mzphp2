@@ -365,6 +365,21 @@ class template {
 		return preg_replace("/".$this->vtag_regexp."/is", "\\1", str_replace("\\\"", '"', $s));
 	}
 	
+	private function striptag_callback($matchs){
+		if(trim($matchs[1]) == ''){
+			return $matchs[0];
+		}else{
+			$search = '<!--[script='.count($this->tag_search).']-->';
+			$this->tag_search[] = $search;
+			//filter script comment
+			$matchs[0] = preg_replace('#(//[^\'";><]*$|/\*[\s\S]*?\*/)#im', '', $matchs[0]);
+			// replace variable and constant
+			$matchs[0] = preg_replace('#{\$?(\w+)}#is', '<'.'?php echo $1;?'.'>', $matchs[0]);
+			$this->tag_replace[] = $matchs[0];
+			return $search;
+		}
+	}
+	
 	private function funtag_callback($matchs){
 		$search = '<!--[func='.count($this->tag_search).']-->';
 		$this->tag_search[] = $search;
