@@ -70,7 +70,7 @@ class template {
 		if($makefile){
 			$save_body = $body;
 			if($compress){
-				$save_body = gzencode($body, $compress);
+				$save_body = gzencode($this->compress_html($body), $compress);
 			}
 			return file_put_contents($makefile, $save_body);
 		}
@@ -136,8 +136,11 @@ class template {
 		//优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
 		$s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
 		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]+?)</script>#is", array($this, 'striptag_callback'), $s);
+		// remove template comment 
+		$s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
+		// replace dynamic tag
 		$s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
-		//function
+		// replace function 
 		$s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
 	}
 	
@@ -407,6 +410,31 @@ class template {
 		return $k ? "<? if(!empty($arr)) { foreach($arr as $k=>&$v) {?>$statement<? }}?>" : "<? if(!empty($arr)) { foreach($arr as &$v) {?>$statement<? }} ?>";
 	}
 	
+	private function compress_html($higrid_uncompress_html_source ){
+	    $chunks = preg_split( '/(<pre.*?\/pre>)/ms', $higrid_uncompress_html_source, -1, PREG_SPLIT_DELIM_CAPTURE );
+	    $compress_html_source = '';
+		// compress html : clean new line , clean tab, clean comment
+	    foreach ( $chunks as $c ){
+	        if ( stripos( $c, '<pre' ) !== 0 ){
+	            // remove new lines & tabs
+	            $c = preg_replace( '/[\\n\\r\\t]+/', ' ', $c );
+	            // remove inter-tag newline
+	            $c = preg_replace( '/>[\\r\\n]+</', '><', $c );
+	            // remove inter-tag whitespace
+	            $c = preg_replace( '/>\\s+</s', '> <', $c );
+	            // remove extra whitespace
+	            $c = preg_replace( '/\\s{2,}/', ' ', $c );
+	            // remove CSS & JS comments
+	            $c = preg_replace( '/\\/\\*.*?\\*\\//i', '', $c );
+	        }
+	        if(strpos($c, '<!--') !==  false){
+	        	$c = preg_replace( '/<!--[\s\S]*?-->/is', '', $c );
+	        }
+	        //short tag
+	        $compress_html_source .= $c;
+	    }
+	    return $compress_html_source;
+	}
 }
 
 /*
