@@ -161,6 +161,18 @@ class template {
 			$s = preg_replace_callback("#<!--{template\s+([^}]*?)}-->#i", array($this, 'get_tpl'), $s);
 		}
 		
+		// load plugin to complie
+		if(!empty($this->conf['tpl']['plugins'])){
+			//$this->conf['tpl']['plugins'] = array('class' => 'class_real_path');
+			foreach($this->conf['tpl']['plugins'] as $plugin=>$plugin_file){
+				if(!isset(self::$plugin_loaded[$plugin])){
+					include $plugin_file;
+					self::$plugin_loaded[$plugin] = new $plugin($this->conf);
+				}
+				self::$plugin_loaded[$plugin]->process($s);
+			}
+		}
+		
 		$this->do_tpl($s);
 		
 		
@@ -280,7 +292,7 @@ class template {
 		}
 		
 		if($file){
-			$this->sub_tpl[] = $file;
+			$this->sub_tpl[$file] = $file;
 			return file_get_contents($file);
 		}
 		return '';
