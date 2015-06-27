@@ -134,7 +134,7 @@ class debug {
 	 * @param boot $html 是否转换为 HTML 实体
 	 * @return string
 	 */
-	public static function arr2str($arr, $type = 2, $html = TRUE) {
+	public static function arr2str($arr, $type = 3, $html = TRUE) {
 		$s = '';
 		$i = 0;
 		if(!$arr){
@@ -145,9 +145,11 @@ class debug {
 				case 0:
 					$k = ''; break;
 				case 1:
-					$k = "#$k "; break;
+					$k = "$k "; break;
+				case 2:
+					$k ="<span>$k</span>"; break;
 				default:
-					$k = "#$k => ";
+					$k = "$k = ";
 			}
 
 			$i++;
@@ -156,7 +158,7 @@ class debug {
 			if(is_array($v) || is_object($v)) {
 				$v = print_r($v, 1);
 			}
-			$s .= "<li$c>$k$v</li>";
+			$s .= "\r\n<li$c>$k$v</li>";
 		}
 		return $s;
 	}

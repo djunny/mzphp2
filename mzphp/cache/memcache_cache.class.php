@@ -4,32 +4,46 @@ class memcache_cache{
 	private $support_getmulti;
 	// link
 	private $link = NULL;
+	// how many servers connect
+	private $servers = 0;
 	
 	function __construct(&$conf) {
+		$this->support_getmulti = false;
 		if(extension_loaded('Memcached')) {
 			$this->link = new Memcached;
+			$this->support_getmulti = true;
 		} elseif(extension_loaded('Memcache')) {
 			$this->link = new Memcache;
 		} else {
 			throw new Exception('Memcache Extension not loaded.');
 		}
-		if(!$this->link) {
-			throw new Exception('PHP.ini Error: Memcache extension not loaded.');
+		
+		$hosts = $conf['host'];
+		if(!is_array($hosts)){
+			$hosts = explode('|', $conf['host']);
 		}
-		if(strpos($conf['host'], ':') !== false){
-			list($host, $port) = explode(':', $conf['host']);
-		}else{
-			$host = $conf['host'];
-			$port = 11211;
+		
+		$this->servers = 0;
+		foreach($hosts as $host){
+			$host = $this->get_host_by_str($host);
+			if($this->link->addServer($host['host'], $host['port'])) {
+				$this->servers++;
+			}
 		}
-		if($this->link->connect($host, $port)) {
-			$this->support_getmulti = method_exists($this->link, 'getMulti');
+		
+		if($this->servers) {
 			return $this->link;
-		} else {
-			$this->link = false;
-			throw new Exception('Can not connect to Memcached host.');
 		}
+		
 		return false;
+	}
+	
+	private function get_host_by_str($host){
+		list($host, $port) = explode(':', $host);
+		return array(
+			'host' => $host,
+			'port' => $port ? $port : 11211,
+		);
 	}
 	
 	public function init(){
@@ -37,7 +51,7 @@ class memcache_cache{
 	}
 	
 	public function get($key) {
-		$data = array(); 
+		$data = array();
 		if(is_array($key)) {
 			// 安装的时候要判断 Memcached 版本！ getMulti()
 			if($this->support_getmulti) {

@@ -2,18 +2,19 @@
 defined('ROOT_PATH') || exit; 
 ?>
 <style type="text/css">
-#mzphp_trace_win{display:none;z-index:99999;position:fixed;left:1%;bottom:10px;width:98%;min-width:300px;border-radius:5px;box-shadow:-2px 2px 20px #555;background:#fff;border:1px solid #ccc}
+#mzphp_trace_win{display:none;z-index:99999;position:fixed;left:1%;bottom:10px;width:98%;min-width:300px;border-radius:5px;box-shadow:-2px 2px 20px #555;background:#fff;border:1px solid #ccc;}
 #mzphp_trace_win,#mzphp_trace_win,#mzphp_trace_win div,#mzphp_trace_win h6,#mzphp_trace_win ol,#mzphp_trace_win li{margin:0;padding:0;font:14px/1.6 'Microsoft YaHei',Verdana,Arial,sans-serif}
 #mzphp_trace_open{display:none;z-index:99999;position:fixed;right:5px;bottom:5px;width:80px;height:24px;line-height:24px;text-align:center;border:1px solid #ccc;border-radius:5px;background:#eee;cursor:pointer;box-shadow:0 0 12px #555}
 #mzphp_trace_size,#mzphp_trace_close{float:right;display:inline;margin:3px 5px 0 0!important;border:1px solid #ccc;border-radius:5px;background:#eee;width:24px;height:24px;line-height:24px;text-align:center;cursor:pointer}
 #mzphp_trace_title{height:32px;overflow:hidden;padding:0 3px;border-bottom:1px solid #ccc}
-#mzphp_trace_title h6{float:left;display:inline;width:100px;height:32px;line-height:32px;font-size:16px;font-weight:700;text-align:center;color:#999;cursor:pointer;text-shadow:1px 1px 0 #F2F2F2}
+#mzphp_trace_title h6{float:left;display:inline;width:12%;max-width:100px;height:32px;line-height:32px;font-size:12px;font-weight:700;text-align:center;color:#999;cursor:pointer;text-shadow:1px 1px 0 #F2F2F2}
 #mzphp_trace_cont{width:100%;height:240px;overflow:auto}
 #mzphp_trace_cont ol{list-style:none;padding:5px;overflow:hidden;word-break:break-all}
 #mzphp_trace_cont ol.ktun{display:none}
-#mzphp_trace_cont ol li{padding:0 3px;clear:both}
+#mzphp_trace_cont ol li{padding:0 3px;clear:both; border-radius:5px;font-size:12px;}
 #mzphp_trace_cont ol li span{float:left;display:inline;width:100px}
 #mzphp_trace_cont ol li.even{background:#ddd}
+#mzphp_trace_cont ol li.tit{background:#333;color:#FFF;}
 .tclass, .tclass2 {
 text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;table-layout: fixed; word-wrap: break-word;background:#FFF;}
 .tclass table, .tclass2 table {width:100%;border:0;table-layout: fixed; word-wrap: break-word;}
@@ -31,12 +32,11 @@ text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;t
 	<div id="mzphp_trace_title">
 		<div id="mzphp_trace_close">关</div>
 		<div id="mzphp_trace_size">大</div>
-		<h6 style="color:#000">基本信息</h6>
-		<h6>SQL</h6>
-		<h6>$_GET</h6>
-		<h6>$_POST</h6>
-		<h6>$_COOKIE</h6>
-		<h6>$_SERVER</h6>
+		<h6 style="color:#000">Info</h6>
+		<?php if($_SERVER['sqls']){?><h6>SQL</h6><?php }?>
+		<h6>Request</h6>
+		<h6>Cookie</h6>
+		<h6>Server</h6>
 		<h6>包含文件</h6>
 	</div>
 	<div id="mzphp_trace_cont">
@@ -49,9 +49,8 @@ text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;t
 			<li><span>运行时间:</span> <?php echo core::usedtime();?>ms</li>
 			<li><span>内存开销:</span> <?php echo misc::human_size(core::runmem());?></li>
 		</ol>
+        <?php if($_SERVER['sqls']){?>
 		<ol class="ktun">
-		
-		
 		<?php
 			$tdclass = '';
 			$class = 'tclass2';
@@ -84,8 +83,13 @@ text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;t
 			//echo self::arr2str($sql, 1, FALSE);
 			}
 		?></ol>
-		<ol class="ktun"><?php echo self::arr2str($_GET);?></ol>
-		<ol class="ktun" style="white-space:pre"><?php echo print_r(core::htmlspecialchars($_POST), 1);?></ol>
+        <?php }?>
+		<ol class="ktun">
+            <li class="tit">GET</li>
+            <?php echo self::arr2str($_GET);?>
+            <li class="tit">POST</li>
+            <?php $_POST && print_r(core::htmlspecialchars($_POST));?>
+        </ol>
 		<ol class="ktun"><?php echo self::arr2str($_COOKIE);?></ol>
 		<ol class="ktun"><?php echo self::arr2str(core::htmlspecialchars($_SERVER));?></ol>
 		<ol class="ktun"><?php echo self::arr2str(get_included_files(), 1);?></ol>
