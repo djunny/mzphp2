@@ -32,7 +32,7 @@ class base_control {
 	
 	public function show($template='', $makefile='', $charset=''){
 		$template = $template ? $template : core::R('c').'_'.core::R('a').'.htm';
-		VI::display($this, $template, $makefile, $charset);
+		return VI::display($this, $template, $makefile, $charset);
 	}
 	
 	public function assign($var, &$val){

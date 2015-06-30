@@ -25,6 +25,10 @@ class template {
 	
 	private $sub_tpl = array();
 	
+	// plugin loaded
+	static $plugin_loaded = array();
+	
+	
 	function __construct() {
 	}
 
@@ -67,18 +71,28 @@ class template {
 
 		$is_xml = strpos($file, '.xml') !== false ?  true : false;
 		
+		//check charset
+		if($charset && $charset != 'utf-8'){
+			header('Content-Type: text/'.($is_xml ? 'xml' : 'html').'; charset='.$charset);
+			$body = mb_convert_encoding($body, $charset, 'utf-8');
+		}
+
 		if($makefile){
 			$save_body = $body;
 			if($compress){
 				$save_body = gzencode($this->compress_html($body), $compress);
 			}
-			return file_put_contents($makefile, $save_body);
-		}
-		
-		//check charset
-		if($charset && $charset != 'utf-8'){
-			header('Content-Type: text/'.($is_xml ? 'xml' : 'html').'; charset='.$charset);
-			$body = mb_convert_encoding($body, $charset, 'utf-8');
+			// cache current content 600s in memcache use 'url_key'
+			// CACHE:memcache:url_key:600
+			// CACHE:namespace:memcache_key:time
+			if(substr($makefile, 0, 6) == 'CACHE:'){
+				list(, $provider, $key, $time) = explode(':', $makefile);
+				$res = CACHE::set($key, $save_body, $time);
+			}else{
+				$dir = dirname($makefile);
+				!is_dir($dir) && mkdir($dir, 0777, 1);
+				file_put_contents($makefile, $save_body);
+			}
 		}
 		
 		// old ob_start
@@ -135,7 +149,7 @@ class template {
 	private function do_tpl(&$s){
 		//优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
 		$s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
-		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]+?)</script>#is", array($this, 'striptag_callback'), $s);
+		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]*?)</script>#is", array($this, 'striptag_callback'), $s);
 		// remove template comment 
 		$s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
 		// replace dynamic tag

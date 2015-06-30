@@ -24,7 +24,7 @@ class VI {
 	}
 
 	public static function display($control, $template, $makefile = '', $charset = ''){
-		self::instance()->show($control->conf, $template, $makefile, $charset);
+		return self::instance()->show($control->conf, $template, $makefile, $charset);
 	}
 }
 

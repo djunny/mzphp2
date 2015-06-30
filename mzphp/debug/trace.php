@@ -37,7 +37,7 @@ text-align:left;width:100%;border:0;border-collapse:collapse;margin-bottom:5px;t
 		<h6>Request</h6>
 		<h6>Cookie</h6>
 		<h6>Server</h6>
-		<h6>包含文件</h6>
+		<h6>Include</h6>
 	</div>
 	<div id="mzphp_trace_cont">
 		<ol>
