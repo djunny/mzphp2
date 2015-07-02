@@ -208,8 +208,6 @@ class template {
 
 		/*$s = preg_replace("/(?<!\<\?\=|\\\\)$this->var_regexp/", "<?=\\0?>", $s);*/
 		
-		// static 目录 前面增加 static_url
-		$s = preg_replace('#([\'"])(static\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 		// 分布式部署 http://www.static.com/plugin/view_xxx/common.css
 		//$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 		
@@ -242,7 +240,10 @@ class template {
 		
 		// 翻译段标签为全标签
 		$s = preg_replace('#<\?=(\$\w+.*?)\?>#', "<?php echo isset(\\1) ? \\1 : '';?>", $s); // 变量
-		
+		// static 目录 前面增加 static_url
+		if($this->conf['static_url']){
+			$s = preg_replace('#([\'"])(static\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
+		}
 		$s = "<?php !defined('FRAMEWORK_PATH') && exit('Access Denied');".
 			"\$this->sub_tpl_check('".implode('|', $this->sub_tpl)."', '{$_SERVER['starttime']}', '$viewfile', '$objfile');?>$s";
 
