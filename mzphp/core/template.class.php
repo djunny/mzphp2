@@ -149,7 +149,9 @@ class template {
 	private function do_tpl(&$s){
 		//优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
 		$s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
-		$s = preg_replace_callback("#<script[^><}]*?>([\s\S]*?)</script>#is", array($this, 'striptag_callback'), $s);
+		/*
+		$s = preg_replace_callback("#<script([^><}]*?)>([\s\S]*?)</script>#is", array($this, 'striptag_callback'), $s);
+		*/
 		// remove template comment 
 		$s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
 		// replace dynamic tag
@@ -396,9 +398,12 @@ class template {
 	}
 	
 	private function striptag_callback($matchs){
-		if(trim($matchs[1]) == ''){
+		if(trim($matchs[2]) == ''){
 			return $matchs[0];
 		}else{
+			if(stripos($matchs[1], ' type="tpl"') !== false){
+				return $matchs[0];
+			}
 			$search = '<!--[script='.count($this->tag_search).']-->';
 			$this->tag_search[] = $search;
 			// filter script comment

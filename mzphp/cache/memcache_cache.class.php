@@ -7,11 +7,14 @@ class memcache_cache{
 	// how many servers connect
 	private $servers = 0;
 	
+	private $memcached = 0;
+	
 	function __construct(&$conf) {
 		$this->support_getmulti = false;
 		if(extension_loaded('Memcached')) {
 			$this->link = new Memcached;
 			$this->support_getmulti = true;
+			$this->memcached = 1;
 		} elseif(extension_loaded('Memcache')) {
 			$this->link = new Memcache;
 		} else {
@@ -75,7 +78,11 @@ class memcache_cache{
 	}
 
 	public function set($key, $value, $life = 0) {
-		return $this->link->set($key, $value, 0, $life);
+		if($this->memcached){
+			return $this->link->set($key, $value, $life);
+		}else{
+			return $this->link->set($key, $value, 0, $life);
+		}
 	}
 
 	public function update($key, $value) {
