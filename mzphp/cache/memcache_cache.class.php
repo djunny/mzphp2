@@ -1,14 +1,30 @@
 <?php
 class memcache_cache{
-	// private $memcache;
+
+	/**
+	 * multi get support
+	 * @var bool
+	 */
 	private $support_getmulti;
-	// link
+	/**
+	 * memcache link
+	 * @var Memcache|null
+	 */
 	private $link = NULL;
-	// how many servers connect
+	/**
+	 * how many servers connect
+	 * @var int
+	 */
 	private $servers = 0;
-	
+	/**
+	 * @var int
+	 */
 	private $memcached = 0;
-	
+
+	/**
+	 * @param $conf
+	 * @throws Exception
+	 */
 	function __construct(&$conf) {
 		$this->support_getmulti = false;
 		if(extension_loaded('Memcached')) {
@@ -40,7 +56,11 @@ class memcache_cache{
 		
 		return false;
 	}
-	
+
+	/**
+	 * @param $host
+	 * @return array
+	 */
 	private function get_host_by_str($host){
 		list($host, $port) = explode(':', $host);
 		return array(
@@ -48,11 +68,18 @@ class memcache_cache{
 			'port' => $port ? $port : 11211,
 		);
 	}
-	
+
+	/**
+	 * @return bool
+	 */
 	public function init(){
 		return $this->link === false ? false : true;
 	}
-	
+
+	/**
+	 * @param $key
+	 * @return array|string
+	 */
 	public function get($key) {
 		$data = array();
 		if(is_array($key)) {
@@ -77,6 +104,12 @@ class memcache_cache{
 		}
 	}
 
+	/**
+	 * @param $key
+	 * @param $value
+	 * @param int $life
+	 * @return bool
+	 */
 	public function set($key, $value, $life = 0) {
 		if($this->memcached){
 			return $this->link->set($key, $value, $life);
@@ -85,6 +118,11 @@ class memcache_cache{
 		}
 	}
 
+	/**
+	 * @param $key
+	 * @param $value
+	 * @return bool|int
+	 */
 	public function update($key, $value) {
 		$arr = $this->get($key);
 		if($arr !== FALSE) {
@@ -94,10 +132,18 @@ class memcache_cache{
 		return 0;
 	}
 
+	/**
+	 * @param $key
+	 * @return bool
+	 */
 	public function delete($key) {
 		return $this->link->delete($key);
 	}
-	
+
+	/**
+	 * @param string $pre
+	 * @return bool
+	 */
 	public function truncate($pre = '') {
 		return $this->link->flush();
 	}

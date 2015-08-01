@@ -1,5 +1,6 @@
 */data/tmp/*
 */data/cache/*
+.idea/*
 *dwsync.xml
 /dns_tool/conf/dnsdun.php
 /dns_tool/conf/dnspod.php
