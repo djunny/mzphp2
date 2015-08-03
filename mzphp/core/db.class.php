@@ -160,7 +160,7 @@ class DB {
      * @param $return_id
      * @return mixed
      */
-    public static function insert($table, $data, $return_id) {
+    public static function insert($table, $data, $return_id = 0) {
         return call_user_func(array(self::instance(), 'insert'), self::table($table), $data, $return_id);
     }
 
@@ -199,5 +199,8 @@ class DB {
     }
 
 }
+
+
+
 
 ?>

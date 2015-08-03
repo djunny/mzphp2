@@ -49,7 +49,7 @@ if (DEBUG > 0) {
         $inc_files = glob(FRAMEWORK_PATH . '*/*.class.php');
         // 加载除debug目录的文件
         foreach ($inc_files as $inc_file) {
-            if (strpos($inc_file, 'debug/') === false || strpos($inc_file, 'plugin/') === false) {
+            if (strpos($inc_file, 'debug/') === false && strpos($inc_file, 'plugin/') === false) {
                 $content .= php_strip_whitespace($inc_file);
             }
         }
@@ -72,6 +72,7 @@ if (DEBUG > 0) {
         unset($content, $inc_files, $inc_file, $dirs, $dir);
         //加载 runtime
         include $runtimefile;
+		//unlink($runtimefile);
     }
 }
 
