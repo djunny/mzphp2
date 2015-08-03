@@ -88,7 +88,7 @@ $staticdir = PATH.'static';
 !is_dir($coredir) && mkdir($coredir, 0777);
 !is_dir($staticdir) && mkdir($staticdir, 0777);
 
-$conffile = PATH.'conf/conf.php';
+$conffile = PATH.'conf/conf.debug.php';
 $indexfile = PATH.'index.php';
 $view_header_file = PATH.'view/header.htm';
 $view_index_file = PATH.'view/index.htm';
@@ -114,8 +114,6 @@ function get_url_abpath(){
 \$app_dir_reg = preg_quote(\$app_dir);
 
 return array(
-	// enviroment 环境
-	'env' => 'online',
 	//db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
 	'db' => array(
 			'mysql' => array(
@@ -231,21 +229,41 @@ return array(
 	";
 	
 	file_put_contents($conffile, $s);
+	
+	$conffile = str_replace('.debug', '.online', $conffile);
+	if(!is_file($conffile)){
+		file_put_contents($conffile, $s);
+	}
 }
+
+//str_replace('\\\\', '/', )
 
 if(!is_file($indexfile)) {
 	$s = "<?php
-
+\$_SERVER['ENV'] = isset(\$_SERVER['ENV']) ? \$_SERVER['ENV'] : 'debug';
 // 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
 define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
 // 站点根目录
-define('ROOT_PATH', str_replace('\\\\', '/', dirname(__FILE__)).'/');
+define('ROOT_PATH', dirname(__FILE__).'/');
 // 框架的物理路径
 define('FRAMEWORK_PATH', $APP_PATH.'../mzphp/');
+// 404
+\$page_setting = array(
+	404 => function(\$control = ''){
+		header(\$_SERVER['SERVER_PROTOCOL'].' 404 Not Found');
+		include('404.htm');
+		exit;
+	},
+);
 
-if(!(\$conf = include(ROOT_PATH.'conf/conf.php'))) {
-	exit('config file not exists');
+if(!(\$conf = include(ROOT_PATH.'conf/conf.'.\$_SERVER['ENV'].'.php'))) {
+	\$page_setting[404]();
 }
+
+// 错误页面设置
+\$conf['page_setting'] = isset(\$conf['page_setting']) ? array_merge(\$page_setting, \$conf['page_setting']) : \$page_setting;
+
+\$conf['env'] = \$_SERVER['ENV'];
 
 // 核心扩展目录
 if(isset(\$conf['core_path'])){
