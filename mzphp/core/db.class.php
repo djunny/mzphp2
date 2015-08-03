@@ -3,27 +3,32 @@
 class DB {
     /**
      * type of database
+     *
      * @var
      */
     private static $db_type;
     /**
      * conf of database
+     *
      * @var
      */
     private static $db_conf;
     /**
      * table prefix
+     *
      * @var
      */
     private static $db_table_pre;
     /**
      * database instance
+     *
      * @var null
      */
     private static $instance = NULL;
 
     /**
      * init database by config
+     *
      * @param $conf
      */
     public static function init_db_config(&$conf) {
@@ -32,6 +37,7 @@ class DB {
 
     /**
      * get instance
+     *
      * @return null
      */
     public static function instance() {
@@ -50,6 +56,7 @@ class DB {
 
     /**
      * add prefix for table
+     *
      * @param $table
      * @return string
      */
@@ -60,7 +67,8 @@ class DB {
 
     /**
      * query and fetch first row from db
-     * @param $sql
+     *
+     * @param     $sql
      * @param int $fetch
      * @return mixed
      */
@@ -75,6 +83,7 @@ class DB {
 
     /**
      * fetch row
+     *
      * @param $query
      * @return mixed
      */
@@ -84,6 +93,7 @@ class DB {
 
     /**
      * fetch all rows
+     *
      * @param $query
      * @return mixed
      */
@@ -96,6 +106,7 @@ class DB {
 
     /**
      * alias for fetch
+     *
      * @param $query
      * @return mixed
      */
@@ -105,11 +116,23 @@ class DB {
 
     /**
      * select table
-     * @param $table example table | table:fields | table:*
-     * @param $where
-     * @param $order
-     * @param int $perpage limit for perpage show number
-     * @param int $page for select page
+     *
+     * @param     $table   forexample:
+     *                     article
+     *                     article:id,title
+     *                     article:*
+     * @param     $where   forexample:
+     *                     'a>1'
+     *                     array('a'=>1)
+     * @param     $order   forexample:
+     *                     ' id DESC'
+     *                     array(' id DESC', ' name ASC')
+     * @param int $perpage limit for perpage show number,
+     *                     first of row: perpage = 0
+     *                     fetch all: perpage=1
+     *                     count of all: perpage = -2
+     * @param int $page    if perpage large than 0 for select page
+     *                     (page - 1) * perpage
      * @return mixed
      */
     public static function select($table, $where, $order, $perpage = -1, $page = 1) {
@@ -131,6 +154,7 @@ class DB {
 
     /**
      * insert data
+     *
      * @param $table
      * @param $data
      * @param $return_id
@@ -142,6 +166,7 @@ class DB {
 
     /**
      * replace data
+     *
      * @param $table
      * @param $data
      * @return mixed
@@ -152,6 +177,7 @@ class DB {
 
     /**
      * update data
+     *
      * @param $table
      * @param $data
      * @param $where
@@ -163,6 +189,7 @@ class DB {
 
     /**
      * delete
+     *
      * @param $table
      * @param $where
      * @return mixed

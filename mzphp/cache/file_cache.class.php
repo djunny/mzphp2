@@ -1,14 +1,13 @@
 <?php
 
-/*
-if you create file cache please create crontab:
- 
-*/
-
+/**
+ * Class file_cache
+ */
 class file_cache {
 
     /**
      * $conf[filename] = 'pre_';
+     *
      * @param $conf
      * @throws Exception
      */
@@ -27,9 +26,9 @@ class file_cache {
     }
 
     /**
-     * @param $array array
+     * @param        $array array
      * @param string $space_line
-     * @param int $level
+     * @param int    $level
      * @return string
      */
     public static function array_eval($array, $space_line = "\n", $level = 0) {
@@ -92,8 +91,8 @@ class file_cache {
     }
 
     /**
-     * @param $key
-     * @param $value
+     * @param     $key
+     * @param     $value
      * @param int $life
      * @return bool
      * @throws Exception
@@ -113,8 +112,8 @@ class file_cache {
     }
 
     /**
-     * @param $key
-     * @param $value
+     * @param     $key
+     * @param     $value
      * @param int $life
      * @return bool
      */

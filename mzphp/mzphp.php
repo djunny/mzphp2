@@ -7,7 +7,9 @@ if (DEBUG > 0) {
     // 包含基础的类：初始化相关
     $inc_files = glob(FRAMEWORK_PATH . '*/*.class.php');
     foreach ($inc_files as $inc_file) {
-        include $inc_file;
+        if (strpos($inc_file, 'plugin/') === false) {
+            include $inc_file;
+        }
     }
     if (defined('FRAMEWORK_EXTEND_PATH')) {
         //扩展目录用 | 隔开
@@ -47,7 +49,7 @@ if (DEBUG > 0) {
         $inc_files = glob(FRAMEWORK_PATH . '*/*.class.php');
         // 加载除debug目录的文件
         foreach ($inc_files as $inc_file) {
-            if (strpos($inc_file, 'debug/') === false) {
+            if (strpos($inc_file, 'debug/') === false || strpos($inc_file, 'plugin/') === false) {
                 $content .= php_strip_whitespace($inc_file);
             }
         }

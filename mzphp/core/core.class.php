@@ -3,13 +3,15 @@
 class core {
     /**
      * config for core
+     *
      * @var array
      */
     public static $conf = array();
 
     /**
      * get variables from GET|POST|COOKIE|REQUEST|SERVER
-     * @param $k
+     *
+     * @param        $k
      * @param string $var
      * @return null|string
      */
@@ -48,7 +50,8 @@ class core {
 
     /**
      * GET variable
-     * @param $key
+     *
+     * @param        $key
      * @param string $default
      * @return null|string
      */
@@ -59,7 +62,8 @@ class core {
 
     /**
      * POST variable
-     * @param $key
+     *
+     * @param        $key
      * @param string $default
      * @return null|string
      */
@@ -70,11 +74,12 @@ class core {
 
     /**
      * get or set Cookie
-     * @param $key
-     * @param string $value
-     * @param int $time
-     * @param string $path
-     * @param string $domain
+     *
+     * @param            $key
+     * @param string     $value
+     * @param int        $time
+     * @param string     $path
+     * @param string     $domain
      * @param bool|FALSE $httponly
      * @return null|string
      */
@@ -105,7 +110,8 @@ class core {
 
     /**
      * REQUEST variable
-     * @param $key
+     *
+     * @param        $key
      * @param string $default
      * @return null|string
      */
@@ -116,7 +122,8 @@ class core {
 
     /**
      * SERVER
-     * @param $key
+     *
+     * @param        $key
      * @param string $default
      * @return null|string
      */
@@ -127,6 +134,7 @@ class core {
 
     /**
      * addslashes for object
+     *
      * @param $var
      * @return string
      */
@@ -143,6 +151,7 @@ class core {
 
     /**
      * stripslashes for object
+     *
      * @param $var
      * @return string
      */
@@ -159,6 +168,7 @@ class core {
 
     /**
      * htmlspecialchas for object
+     *
      * @param $var
      * @return mixed
      */
@@ -175,6 +185,7 @@ class core {
 
     /**
      * fix urlencode
+     *
      * @param $s
      * @return mixed
      */
@@ -185,6 +196,7 @@ class core {
 
     /**
      * fix urldecode
+     *
      * @param $s
      * @return string
      */
@@ -194,6 +206,7 @@ class core {
 
     /**
      * json_decode
+     *
      * @param $s
      * @return bool|mixed
      */
@@ -203,6 +216,7 @@ class core {
 
     /**
      * json_encode
+     *
      * @param $data
      * @return string
      */
@@ -257,6 +271,7 @@ class core {
 
     /**
      * get ip by format
+     *
      * @param int $format
      * @return null|string
      */
@@ -289,6 +304,7 @@ class core {
 
     /**
      * init ip
+     *
      * @param int $format
      * @return null|string
      */
@@ -298,6 +314,7 @@ class core {
 
     /**
      * get process time
+     *
      * @return string
      */
     public static function usedtime() {
@@ -306,6 +323,7 @@ class core {
 
     /**
      * get memory
+     *
      * @return int
      */
     public static function runmem() {
@@ -314,6 +332,7 @@ class core {
 
     /**
      * is cli mode
+     *
      * @return bool
      */
     public static function is_cmd() {
@@ -326,6 +345,7 @@ class core {
 
     /**
      * ob start callback
+     *
      * @param $s
      * @return mixed|string
      */
@@ -368,8 +388,9 @@ class core {
 
     /**
      * rewrite replace
-     * @param $pre
-     * @param $para
+     *
+     * @param        $pre
+     * @param        $para
      * @param string $ds
      * @param string $ext
      * @return string
@@ -386,6 +407,7 @@ class core {
 
     /**
      * ob_start
+     *
      * @param bool|TRUE $gzip
      */
     public static function ob_start($gzip = TRUE) {
@@ -431,6 +453,7 @@ class core {
 
     /**
      * init super variable
+     *
      * @param $conf
      */
     public static function init_supevar(&$conf) {
@@ -473,6 +496,7 @@ class core {
 
     /**
      * init auto load handler
+     *
      * @param $classname
      * @return bool
      * @throws Exception
@@ -509,6 +533,7 @@ class core {
 
     /**
      * process url rewrite
+     *
      * @param $conf
      * @param $s
      */
@@ -555,9 +580,10 @@ class core {
 
     /**
      * rewrite url
-     * @param $path
-     * @param $pre
-     * @param $para
+     *
+     * @param        $path
+     * @param        $pre
+     * @param        $para
      * @param string $ds
      * @param string $ext
      * @return string
@@ -585,7 +611,8 @@ class core {
 
     /**
      * get paths from $path
-     * @param $path
+     *
+     * @param            $path
      * @param bool|FALSE $fullpath
      * @return array
      */
@@ -603,9 +630,10 @@ class core {
 
     /**
      * load model
-     * @param $conf
-     * @param $model
-     * @param array $primarykey
+     *
+     * @param        $conf
+     * @param        $model
+     * @param array  $primarykey
      * @param string $maxcol
      * @return base_model
      * @throws Exception
@@ -660,6 +688,7 @@ class core {
 
     /**
      * get model file search model path
+     *
      * @param $conf
      * @param $model
      * @return string
@@ -679,6 +708,7 @@ class core {
 
     /**
      * init time zone
+     *
      * @param array $conf
      */
     public static function init_timezone($conf = array()) {
@@ -725,6 +755,7 @@ class core {
 
     /**
      * init core
+     *
      * @param array $conf
      */
     public static function init($conf = array()) {
@@ -771,6 +802,7 @@ class core {
 
     /**
      * core run
+     *
      * @param $conf
      * @throws Exception
      */
@@ -815,6 +847,7 @@ class core {
 
     /**
      * get gpc value by string type
+     *
      * @param $type
      * @param $value
      * @return float|int|string
@@ -871,6 +904,7 @@ class core {
 
     /**
      * init GET for request_uri or cli mode run
+     *
      * @param $conf
      */
 
@@ -945,6 +979,8 @@ class core {
 }
 
 class C extends core {
-};
+}
+
+;
 
 ?>

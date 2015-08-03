@@ -3,13 +3,15 @@
 class VI {
     /**
      * instance for VI
+     *
      * @var null
      */
     private static $instance = NULL;
 
     /**
      * get instance
-     * @return null|template
+     *
+     * @return template
      */
     public static function instance() {
         static $inited = 0;;
@@ -38,6 +40,7 @@ class VI {
 
     /**
      * assign value
+     *
      * @param $var
      * @param $val
      */
@@ -47,8 +50,9 @@ class VI {
 
     /**
      * display template
-     * @param $control
-     * @param $template
+     *
+     * @param        $control
+     * @param        $template
      * @param string $makefile
      * @param string $charset
      */

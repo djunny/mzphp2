@@ -5,22 +5,26 @@ class template {
 
     /**
      * plugin class loaded
+     *
      * @var array
      */
     static $plugin_loaded = array();
     /**
      * config for template
+     *
      * @var array
      */
     public $conf = array();
 
     /**
      * template variables
+     *
      * @var array
      */
     private $vars = array();
     /**
      * check template by force
+     *
      * @var int
      */
     private $force = 1;
@@ -33,6 +37,7 @@ class template {
     private $var_regexp = "\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\$]+\])*";
     /**
      * variable tag regexp
+     *
      * @var string
      */
     private $vtag_regexp = "\<\?=(\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\[\]\$]+\])*)\?\>";
@@ -40,27 +45,32 @@ class template {
 
     /**
      * const regexp
+     *
      * @var string
      */
     private $const_regexp = "\{([\w]+)\}";
     /**
      * eval regexp
+     *
      * @var string
      */
     private $eval_regexp = "#(?:<!--\{(eval))\s+?(.*?)\s*\}-->#is";
     /**
      * tag search
+     *
      * @var array
      */
     private $tag_search = array();
     /**
      * tag replace
+     *
      * @var array
      */
     private $tag_replace = array();
 
     /**
      * sub templates
+     *
      * @var array
      */
     private $sub_tpl = array();
@@ -70,6 +80,7 @@ class template {
 
     /**
      * assign variable(variable must references)
+     *
      * @param $k
      * @param $v
      */
@@ -79,6 +90,7 @@ class template {
 
     /**
      * assign value
+     *
      * @param $k
      * @param $v
      */
@@ -87,26 +99,32 @@ class template {
     }
 
     /**
+     *
      * show template by config
-     * @param $conf
-     * @param $file
+     *
+     * @param        $conf
+     * @param        $file
      * @param string $makefile
      * @param string $charset
+     * @return string template render body
      */
     public function show(&$conf, $file, $makefile = '', $charset = '') {
         $this->set_conf($conf);
-        $this->display($file, $makefile, $charset);
+        return $this->display($file, $makefile, $charset);
     }
 
     /**
      * display template
-     * @param $file
-     * @param string $makefile
-     * @param string $charset
-     * @param int $compress
+     *
+     * @param            $file
+     * @param string     $makefile
+     * @param string     $charset
+     * @param int        $compress
+     * @param bool|false $by_return
+     * @return string
      * @throws Exception
      */
-    public function display($file, $makefile = '', $charset = '', $compress = 6) {
+    public function display($file, $makefile = '', $charset = '', $compress = 6, $by_return = false) {
         extract($this->vars, EXTR_SKIP);
         $_SERVER['warning_info'] = ob_get_contents();
         if ($_SERVER['warning_info']) {
@@ -129,32 +147,37 @@ class template {
             $body = mb_convert_encoding($body, $charset, 'utf-8');
         }
 
+        $body = DEBUG ? $body : $this->compress_html($body);
         if ($makefile) {
-            $save_body = $body;
             if ($compress) {
-                $save_body = gzencode($this->compress_html($body), $compress);
+                $save_body = gzencode($body, $compress);
+            } else {
+                $save_body = $body;
             }
             // cache current content 600s in memcache use 'url_key'
             // CACHE:memcache:url_key:600
             // CACHE:namespace:memcache_key:time
             if (substr($makefile, 0, 6) == 'CACHE:') {
-                list(, $provider, $key, $time) = explode(':', $makefile);
-                $res = CACHE::set($key, $save_body, $time);
+                list(, , $key, $time) = explode(':', $makefile);
+                CACHE::set($key, $save_body, $time);
             } else {
                 $dir = dirname($makefile);
                 !is_dir($dir) && mkdir($dir, 0777, 1);
                 file_put_contents($makefile, $save_body);
             }
         }
-
         // old ob_start
         core::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
 
+        if ($by_return) {
+            return $body;
+        }
         echo $body;
     }
 
     /**
      * find template in view path & get compile template
+     *
      * @param $filename
      * @return string
      * @throws Exception
@@ -163,10 +186,10 @@ class template {
         if (strpos($filename, '.') === false) {
             $filename .= '.htm';
         }
-        $objfile = $this->conf['tmp_path'] . $this->conf['app_id'] . '_view_' . $filename . '.php';
-        if (!$this->force) return $objfile;
+        $obj_file = $this->conf['tmp_path'] . $this->conf['app_id'] . '_view_' . $filename . '.php';
+        if (!$this->force) return $obj_file;
 
-        $existsfile = is_file($objfile);
+        $exists_file = is_file($obj_file);
         // 模板目录搜索顺序：view_xxx/, view/, plugin/*/
         $file = '';
         if (!empty($this->conf['first_view_path'])) {
@@ -189,35 +212,35 @@ class template {
             throw new Exception("template not found: $filename");
         }
 
-        if ($existsfile) {
+        $file_mtime_old = $file_mtime = 0;
+        if ($exists_file) {
             //存在，对比文件时间
-            $filemtime = filemtime($file);
-            if (!$filemtime) {
+            $file_mtime = filemtime($file);
+            if (!$file_mtime) {
                 throw new Exception("template stat error: $filename ");
             }
-            $filemtimeold = $existsfile ? filemtime($objfile) : 0;
+            $file_mtime_old = $exists_file ? filemtime($obj_file) : 0;
         }
 
-        if (!$existsfile || $filemtimeold < $filemtime || DEBUG > 0) {
-            $s = $this->compile($file, $objfile);
+        if (!$exists_file || $file_mtime_old < $file_mtime || DEBUG > 0) {
+            $this->compile($file, $obj_file);
         }
-        return $objfile;
+        return $obj_file;
     }
 
     /**
-     * compile template from viewfile to objfile
-     * @param $viewfile
-     * @param $objfile
+     * compile template from view_file to obj_file
+     *
+     * @param $view_file
+     * @param $obj_file
      * @return bool
      */
-    public function compile($viewfile, $objfile) {
-        $conf = $this->conf;
-
+    public function compile($view_file, $obj_file) {
         $this->sub_tpl = array();
 
-        $s = file_get_contents($viewfile);
+        $s = file_get_contents($view_file);
 
-        // TODO 去掉JS中的注释 // ，否则JS传送会有错误
+        /* TODO 去掉JS中的注释  // ，否则JS传送会有错误 */
         //$s = preg_replace('#\r\n\s*//[^\r\n]*#ism', '', $s);
         //$s = str_replace('{DIR}', $this->conf['app_dir'], $s);
 
@@ -256,14 +279,14 @@ class template {
 
 
         // 修正 $data[key] -> $data['key']
-        $s = preg_replace_callback("/\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>/is", array($this, 'arrayindex'), $s);
+        $s = preg_replace_callback("/\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>/is", array($this, 'array_index'), $s);
 
         /*$s = preg_replace("/(?<!\<\?\=|\\\\)$this->var_regexp/", "<?=\\0?>", $s);*/
 
         // 分布式部署 http://www.static.com/plugin/view_xxx/common.css
         //$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
 
-        $isset = '<\?php echo isset(?:+*?) ? (?:+*?) : ;\?>';
+        /*$isset = '<\?php echo isset(?:+*?) ? (?:+*?) : ;\?>';*/
         //$s = preg_replace_callback("/\{for (.*?)\}/is", array($this, 'stripvtag_callback'), $s); //  "\$this->stripvtag('<? for(\\1) {
 
         for ($i = 0; $i < 4; $i++) {
@@ -297,27 +320,29 @@ class template {
             $s = preg_replace('#([\'"])(static\w*)/#i', '\\1' . $this->conf['static_url'] . '\\2/', $s);
         }
         $s = "<?php !defined('FRAMEWORK_PATH') && exit('Access Denied');" .
-            "\$this->sub_tpl_check('" . implode('|', $this->sub_tpl) . "', '{$_SERVER['starttime']}', '$viewfile', '$objfile');?>$s";
+            "\$this->sub_tpl_check('" . implode('|', $this->sub_tpl) . "', '{$_SERVER['starttime']}', '$view_file', '$obj_file');?>$s";
 
         // 此处不锁，多个进程并发写入可能会有问题。
         // PHP 5.1 以后加入了 LOCK_EX 参数
-        file_put_contents($objfile, $s);
+        file_put_contents($obj_file, $s);
         return true;
     }
 
-    /** get sub template & check compile
-     * @param $subfiles sub file paths
-     * @param $mktime sub template last modified time
-     * @param $tpl template
-     * @param $objfile object template
+    /**
+     * get sub template & check compile
+     *
+     * @param $sub_files   sub template file paths
+     * @param $make_time   template last modified time
+     * @param $tpl         template
+     * @param $obj_file    object template
      */
-    function sub_tpl_check($subfiles, $mktime, $tpl, $objfile) {
+    function sub_tpl_check($sub_files, $make_time, $tpl, $obj_file) {
         if (mt_rand(1, 5) == 1) {
-            $subfiles = explode('|', $subfiles);
-            foreach ($subfiles as $tplfile) {
-                $submktime = @filemtime($tplfile);
-                if ($submktime > $mktime) {
-                    $this->compile($tpl, $objfile);
+            $sub_files = explode('|', $sub_files);
+            foreach ($sub_files as $tpl_file) {
+                $sub_make_time = @filemtime($tpl_file);
+                if ($sub_make_time > $make_time) {
+                    $this->compile($tpl, $obj_file);
                     break;
                 }
             }
@@ -326,6 +351,7 @@ class template {
 
     /**
      * search view path to find tpl path
+     *
      * @param $filename
      * @return string
      */
@@ -364,6 +390,7 @@ class template {
 
     /**
      * set_conf
+     *
      * @param $conf
      */
     private function set_conf(&$conf) {
@@ -375,6 +402,7 @@ class template {
 
     /**
      * process tpl
+     *
      * @param $s
      */
     private function do_tpl(&$s) {
@@ -391,25 +419,16 @@ class template {
         $s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
     }
 
-    /**
-     * process hook
-     * @param $matchs
-     * @return mixed
-     */
-    private function process_hook($matchs) {
-        $hookfile = $matchs[1];
-        //$s = core::process_hook($this->conf, $hookfile);
-        return $s;
-    }
 
     /**
      * fix array index
-     * @param $matchs
+     *
+     * @param $matches
      * @return string
      */
-    private function arrayindex($matchs) {
-        $name = $matchs[1];
-        $items = $matchs[2];
+    private function array_index($matches) {
+        $name = $matches[1];
+        $items = $matches[2];
         if (strpos($items, '$') === FALSE) {
             $items = preg_replace("/\[([\$a-zA-Z_][\w\$]*)\]/is", "['\\1']", $items);
         } else {
@@ -420,6 +439,7 @@ class template {
 
     /**
      * fix echo array index key
+     *
      * @param $name
      * @param $items
      * @return string
@@ -430,6 +450,7 @@ class template {
 
     /**
      * strip tag
+     *
      * @param $matchs
      * @return mixed|string
      */
@@ -458,7 +479,7 @@ class template {
     }
 
     /**
-     * @param $s
+     * @param            $s
      * @param bool|FALSE $instring
      * @return mixed
      */
@@ -470,31 +491,32 @@ class template {
     }
 
     /**
-     * @param $matchs
+     * @param $matches
      * @return string
      */
-    private function striptag_callback($matchs) {
-        if (trim($matchs[2]) == '') {
-            return $matchs[0];
+    private function striptag_callback($matches) {
+        if (trim($matches[2]) == '') {
+            return $matches[0];
         } else {
-            if (stripos($matchs[1], ' type="tpl"') !== false) {
-                return $matchs[0];
+            if (stripos($matches[1], ' type="tpl"') !== false) {
+                return $matches[0];
             }
             $search = '<!--[script=' . count($this->tag_search) . ']-->';
             $this->tag_search[] = $search;
             // filter script comment
-            $matchs[0] = preg_replace('#(//[^\'";><]*$|/\*[\s\S]*?\*/)#im', '', $matchs[0]);
+            $matches[0] = preg_replace('#(//[^\'";><]*$|/\*[\s\S]*?\*/)#im', '', $matches[0]);
             // replace variable and constant
             // e.g.
             // {$a} {$a[1]} {$a[desc]} {ROOT}
-            $matchs[0] = preg_replace('#{((?:\$[\w\[\]]+)|(?:[A-Z_]+))}#s', '<' . '?php echo $1;?' . '>', $matchs[0]);
-            $this->tag_replace[] = $matchs[0];
+            $matches[0] = preg_replace('#{((?:\$[\w\[\]]+)|(?:[A-Z_]+))}#s', '<' . '?php echo $1;?' . '>', $matches[0]);
+            $this->tag_replace[] = $matches[0];
             return $search;
         }
     }
 
     /**
      * function tag callback
+     *
      * @param $matchs
      * @return string
      */
@@ -507,6 +529,7 @@ class template {
 
     /**
      * for loop
+     *
      * @param $matchs
      * @return string
      */
@@ -532,6 +555,7 @@ class template {
 
     /**
      * compress html
+     *
      * @param $html_source
      * @return string
      */

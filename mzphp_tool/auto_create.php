@@ -75,6 +75,7 @@ $viewdir = PATH.'view';
 $controldir = PATH.'control';
 $modeldir = PATH.'model';
 $coredir = PATH.'core';
+$staticdir = PATH.'static';
 
 !is_dir($datadir) && mkdir($datadir, 0777);
 !is_dir($confdir) && mkdir($confdir, 0777);
@@ -85,12 +86,17 @@ $coredir = PATH.'core';
 !is_dir($controldir) && mkdir($controldir, 0777);
 !is_dir($modeldir) && mkdir($modeldir, 0777);
 !is_dir($coredir) && mkdir($coredir, 0777);
+!is_dir($staticdir) && mkdir($staticdir, 0777);
 
 $conffile = PATH.'conf/conf.php';
 $indexfile = PATH.'index.php';
 $view_header_file = PATH.'view/header.htm';
 $view_index_file = PATH.'view/index.htm';
 $view_footer_file = PATH.'view/footer.htm';
+$static_jquery_js = PATH.'static/jquery.js';
+$static_common_js = PATH.'static/common.js';
+$static_reset_css = PATH.'static/reset.css';
+$static_common_css = PATH.'static/common.css';
 
 if(!is_file($conffile)) {
 	$s = "<?php 
@@ -108,6 +114,8 @@ function get_url_abpath(){
 \$app_dir_reg = preg_quote(\$app_dir);
 
 return array(
+	// enviroment 环境
+	'env' => 'online',
 	//db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
 	'db' => array(
 			'mysql' => array(
@@ -172,7 +180,10 @@ return array(
 	'app_dir' => \$app_dir,
 	
 	// CDN 缓存的静态域名，如 http://static.domain.com/
-	'static_url' => '".get_url_path()."',
+	'static_url' => '".get_url_path()."static/',
+	
+	// CDN 本地缓存的静态目录，如 http://static.domain.com/
+	'static_dir' => ROOT_PATH.'static/',
 
 	// 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
 	'core_path' => $APP_PATH.'core/',
@@ -198,6 +209,13 @@ return array(
 	// 服务器所在的时区
 	'timeoffset' => '+8',
 	
+	// 模板支持 static 插件，支持 scss、css、js 打包
+	'tpl' => array(
+		'plugins' => array(
+			'tpl_static' => FRAMEWORK_PATH.'plugin/tpl_static.class.php',
+		),
+	),
+	
 	// 开启rewrite
 	'url_rewrite' => 1,
 	
@@ -222,12 +240,12 @@ if(!is_file($indexfile)) {
 define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
 // 站点根目录
 define('ROOT_PATH', str_replace('\\\\', '/', dirname(__FILE__)).'/');
+// 框架的物理路径
+define('FRAMEWORK_PATH', $APP_PATH.'../mzphp/');
 
 if(!(\$conf = include(ROOT_PATH.'conf/conf.php'))) {
 	exit('config file not exists');
 }
-// 框架的物理路径
-define('FRAMEWORK_PATH', $APP_PATH.'../mzphp/');
 
 // 核心扩展目录
 if(isset(\$conf['core_path'])){
@@ -258,6 +276,10 @@ if(!is_file($view_header_file)) {
 <head>
 	<title>Title</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<!--{static ../static/reset.css _global.css}-->
+	<!--{static ../static/common.css _global.css}-->
+	<!--{static ../static/jquery.js _global.js}-->
+	<!--{static ../static/common.js _global.js}-->
 </head>
 <body>
 <h3>mzPHP Framework</h3>
@@ -306,6 +328,29 @@ class index_control extends base_control {
 	
 	file_put_contents($control_index_file, $s);
 }
+
+if(!is_file($static_jquery_js)){
+	$s = '//jquery code
+console.log("jquery Code");';
+	file_put_contents($static_jquery_js, $s);
+}
+
+if(!is_file($static_common_js)){
+	$s = '//common code
+console.log("common Code");';
+	file_put_contents($static_common_js, $s);
+}
+
+if(!is_file($static_reset_css)){
+	$s = '/*reset code*/body{margin:0;padding:0}';
+	file_put_contents($static_reset_css, $s);
+}
+
+if(!is_file($static_common_css)){
+	$s = '/*common code*/a{color:red}';
+	file_put_contents($static_common_css, $s);
+}
+
 
 $url = $app_url."?c=index-index";
 @unlink('./auto_create.php');
