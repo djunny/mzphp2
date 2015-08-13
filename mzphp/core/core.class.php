@@ -25,21 +25,21 @@ class core {
         switch ($var) {
             case 'G':
                 $var = &$_GET;
-                break;
+            break;
             case 'P':
                 $var = &$_POST;
-                break;
+            break;
             case 'C':
                 //处理COOKIE
                 $k = $_SERVER['cookie_pre'] . $k;
                 $var = &$_COOKIE;
-                break;
+            break;
             case 'R':
                 $var = isset($_GET[$k]) ? $_GET : (isset($_POST[$k]) ? $_POST : array());
-                break;
+            break;
             case 'S':
                 $var = &$_SERVER;
-                break;
+            break;
         }
         if (isset($var[$k])) {
             return $type == 'str' ? $var[$k] : self::get_gpc_value(strtolower($type), $var[$k]);
@@ -602,11 +602,14 @@ class core {
 
         $para = str_replace(array('&', '='), $ds, $para);
 
+        // get anchor
+        list($para, $anchor) = explode('#', $para, 2);
+
         if (!$para) {
             // delete last comma
             $pre = substr($pre, 0, -1);
         }
-        return '<a href="' . $path . $pre . $para . $ext . '"';
+        return '<a href="' . $path . $pre . $para . $ext . ($anchor ? '#' . $anchor : '') . '"';
     }
 
     /**
@@ -870,7 +873,7 @@ class core {
                 return preg_match('#^[\d-]+$#', $value) ? $value : '';
             case 'mobile':
                 $value = trim($value);
-                return preg_match('#^\d{13}$#', $value) ? $value : '';
+                return preg_match('#^\d{11}$#', $value) ? $value : '';
             case 'version':
                 $value = trim($value);
                 return preg_match('#^\d(\.\d+)+$#', $value) ? $value : '';
@@ -979,6 +982,8 @@ class core {
 }
 
 class C extends core {
-};
+}
+
+;
 
 ?>
