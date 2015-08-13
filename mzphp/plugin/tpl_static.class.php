@@ -85,7 +85,7 @@ class tpl_static {
             // make css file
             if ($this->css_file) {
                 foreach ($this->css_file as $filename => $body) {
-                    if($body){
+                    if ($body) {
                         file_put_contents($this->static_dir . $filename, $body);
                     }
                 }
@@ -93,7 +93,7 @@ class tpl_static {
             // make js file
             if ($this->js_file) {
                 foreach ($this->js_file as $filename => $body) {
-                    if($body){
+                    if ($body) {
                         file_put_contents($this->static_dir . $filename, $body);
                     }
                 }
@@ -117,7 +117,8 @@ class tpl_static {
         if (!isset($filename[1]) || !isset($filename[2])) {
             return '';
         }
-        $compile = $filename[2];
+        list($compile, $compress) = explode(' ', $filename[2]);
+        $compress = is_numeric($compress) ? $compress : 1;
         $filename = $filename[1];
         $mask = basename($filename);
         // css sprite
@@ -170,7 +171,9 @@ class tpl_static {
             if ($is_css) {
                 $css_body = scssc::css_compress($css_body, dirname($file) . '/');
             } else {
-                $css_body = scssc::css($css_body, dirname($file) . '/');
+                if ($compress) {
+                    $css_body = scssc::css($css_body, dirname($file) . '/');
+                }
             }
             // link static image
             if (strpos($css_body, 'url(') !== false) {
@@ -194,7 +197,11 @@ class tpl_static {
             }
             $this->load_lib('js');
             // add ; fix js concat bug
-            $this->js_file[$compile] .= jsMin::minify(file_get_contents($file)) . ';';
+            $js_body = file_get_contents($file);
+            if ($compress) {
+                $js_body = jsMin::minify($js_body);
+            }
+            $this->js_file[$compile] .= $js_body . ';';
         }
         return $return_tag;
     }

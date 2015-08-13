@@ -979,8 +979,6 @@ class core {
 }
 
 class C extends core {
-}
-
-;
+};
 
 ?>
