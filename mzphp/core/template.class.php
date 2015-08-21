@@ -186,7 +186,8 @@ class template {
         if (strpos($filename, '.') === false) {
             $filename .= '.htm';
         }
-        $obj_file = $this->conf['tmp_path'] . $this->conf['app_id'] . '_view_' . $filename . '.php';
+        $fix_filename = strtr($filename, array('/' => '#', '\\' => '#'));
+        $obj_file = $this->conf['tmp_path'] . $this->conf['app_id'] . '_view_' . $fix_filename . '.php';
         if (!$this->force) return $obj_file;
 
         $exists_file = is_file($obj_file);
@@ -460,20 +461,20 @@ class template {
         switch ($pre) {
             case 'for':
                 $s = '<? for(' . $s . ') {?>';
-                break;
+            break;
             case 'eval':
                 $s = '<? ' . $s . '?' . '>';
                 $search = '<!--[eval=' . count($this->tag_search) . ']-->';
                 $this->tag_search[] = $search;
                 $this->tag_replace[] = $this->stripvtag($s);
                 return $search;
-                break;
+            break;
             case 'elseif':
                 $s = '<? } elseif(' . $s . ') { ?>';
-                break;
+            break;
             case 'if':
                 $s = '<? if(' . $s . ') { ?>';
-                break;
+            break;
         }
         return $this->stripvtag($s);
     }
