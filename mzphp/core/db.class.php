@@ -129,7 +129,7 @@ class DB {
      *                     array(' id DESC', ' name ASC')
      * @param int $perpage limit for perpage show number,
      *                     first of row: perpage = 0
-     *                     fetch all: perpage=1
+     *                     fetch all: perpage = -1
      *                     count of all: perpage = -2
      * @param int $page    if perpage large than 0 for select page
      *                     (page - 1) * perpage
