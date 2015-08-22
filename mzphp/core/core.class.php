@@ -762,6 +762,7 @@ class core {
      * @param array $conf
      */
     public static function init($conf = array()) {
+        self::$conf = $conf;
         // init
         self::init_timezone($conf);
         self::init_supevar($conf);
