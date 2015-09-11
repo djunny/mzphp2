@@ -28,6 +28,7 @@ class spider {
 		// decode entities
 		$html = html_entity_decode($html, ENT_COMPAT, 'UTF-8');
 		$html = preg_replace('#([\r\n]\s+[\r\n])+#is', "\n", $html);
+		$html = preg_replace('#<\/\w+\s*>#is', '', $html);
 		
 		$html = str_replace(array("\r", "\n\n"), "\n", $html);
 		while(strpos($html, "\n\n") !== false){
@@ -73,11 +74,10 @@ class spider {
 			}
 			if($line_tags){
 				$line_tags = substr($line_tags, 0, -1);
-				$searches[] = '#<(?!(?:'. $line_tags.')|\/(?:'.$line_tags.')\b)[^>]*?>#si';
+				$searches[] = '#<\/?(?!(?:'. $line_tags.')|\/(?:'.$line_tags.')\b)[^>]*?>#si';
 			}
-			return preg_replace($searches, '', $text);
 		}
-		return $text; 
+		return preg_replace($searches, '', $text);
 	}
 	
 	public static function cut_str($html, $start='', $end=''){
