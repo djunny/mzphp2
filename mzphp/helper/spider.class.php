@@ -5,6 +5,8 @@ class spider {
 	
 	public static $url = '';
 	
+	public static $last_header = array();
+	
 	public static function no_html($html){
 		return self::reg_replace($html, array('<(*)>' => ''));
 	}
@@ -28,7 +30,7 @@ class spider {
 		// decode entities
 		$html = html_entity_decode($html, ENT_COMPAT, 'UTF-8');
 		$html = preg_replace('#([\r\n]\s+[\r\n])+#is', "\n", $html);
-		$html = preg_replace('#<\/\w+\s*>#is', '', $html);
+		$html = preg_replace('#<\/?\w+[^>]*?>#is', '', $html);
 		
 		$html = str_replace(array("\r", "\n\n"), "\n", $html);
 		while(strpos($html, "\n\n") !== false){
@@ -694,6 +696,13 @@ class spider {
 				curl_setopt($ch, CURLOPT_INTERFACE, $defheaders['ip']);
 				unset($defheaders['ip']);
 			}
+			//禁止
+			if(isset($defheaders['nofollow'])){
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+				unset($defheaders['nofollow']);
+			}else{
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+			}
 			//gzip compress
 			if(isset($defheaders['Accept-Encoding'])){
 				curl_setopt($ch, CURLOPT_ENCODING, $defheaders['Accept-Encoding']);
@@ -726,7 +735,6 @@ class spider {
 			// set version 1.0 
 			//curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 			curl_setopt($ch, CURLOPT_MAXREDIRS, $deep ? $deep : 5);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 			//build curl headers
 			$header_array = array();
 			foreach($defheaders as $key=>$val){
@@ -767,13 +775,14 @@ class spider {
 			}
 			//for debug request header
 			//print_r($defheaders);
-			//$info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo http_build_query($post);exit;
+			// $info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo http_build_query($post);exit;
 			$header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
 			self::$last_response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 			self::$url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
 			$header = substr($data, 0, $header_size);
 			$data = substr($data, $header_size);
 			//extract last response header
+			self::$last_header = self::extract_header($header);
 			$header = explode("\r\n\r\n", trim($header));
 			$header = array_pop($header);
 			//match charset
@@ -800,6 +809,27 @@ class spider {
 		} else {
 			return FALSE;
 		}
+	}
+	
+	private static function extract_header($header){
+		$lines = explode("\n", $header);
+		$result = array();
+		foreach($lines as $line){
+			list($key, $val) = explode(":", $line, 2);
+			$key = trim(strtolower($key));
+			switch($key){
+				case 'set-cookie':
+					if(!isset($result['cookie'])){
+						$result['cookie'] = array();
+					}
+					$result['cookie'][] = $val;
+				break;
+				default:
+					$result[$key] = trim($val);
+				break;
+			}
+		}
+		return $result;
 	}
 	
 	// gzdecode
