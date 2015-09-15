@@ -224,6 +224,8 @@ class template {
         }
 
         if (!$exists_file || $file_mtime_old < $file_mtime || DEBUG > 0) {
+        	// create tmp path
+        	!is_dir($this->conf['tmp_path']) && mkdir($this->conf['tmp_path'], 0777, 1);
             $this->compile($file, $obj_file);
         }
         return $obj_file;

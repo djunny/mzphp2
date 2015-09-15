@@ -856,7 +856,7 @@ class core {
      * @param $value
      * @return float|int|string
      */
-    private static function get_gpc_value($type, $value) {
+    public static function get_gpc_value($type, $value) {
         switch ($type) {
             case 'int':
                 return (int)$value;

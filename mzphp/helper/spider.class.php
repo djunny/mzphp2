@@ -380,13 +380,11 @@ class spider {
 		spider::str_match('123', '1(*)3') = 2
 		spider::str_match('123', '1(\d+)3') = 2
 	*/
-	public static function str_match($str, $pattern, &$dom, $option){
+	public static function str_match($str, $pattern){
 		$value = '';
 		//array mask pattern
 		if(strpos($pattern, '(*)') !== false){
 			$value = self::mask_match($str, $pattern);
-		}elseif(substr($pattern, 0, 4) == 'DOM:'){
-			return self::dom_match($str, $pattern, $dom, $option);
 		}elseif(strpos($pattern, '(') !== false){
 			//has reg match field
 			preg_match_all($pattern, $str, $value);
