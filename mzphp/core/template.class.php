@@ -114,6 +114,19 @@ class template {
     }
 
     /**
+     * set_conf
+     *
+     * @param $conf
+     */
+    private function set_conf(&$conf) {
+        $this->conf = &$conf;
+        if (!defined('DIR')) {
+            define('DIR', $conf['app_dir']);
+        }
+        VI::assign('conf', $conf);
+    }
+
+    /**
      * display template
      *
      * @param            $file
@@ -224,8 +237,8 @@ class template {
         }
 
         if (!$exists_file || $file_mtime_old < $file_mtime || DEBUG > 0) {
-        	// create tmp path
-        	!is_dir($this->conf['tmp_path']) && mkdir($this->conf['tmp_path'], 0777, 1);
+            // create tmp path
+            !is_dir($this->conf['tmp_path']) && mkdir($this->conf['tmp_path'], 0777, 1);
             $this->compile($file, $obj_file);
         }
         return $obj_file;
@@ -332,6 +345,57 @@ class template {
     }
 
     /**
+     * process tpl
+     *
+     * @param $s
+     */
+    private function do_tpl(&$s) {
+        //优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
+        $s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
+        /*
+        $s = preg_replace_callback("#<script([^><}]*?)>([\s\S]*?)</script>#is", array($this, 'striptag_callback'), $s);
+        */
+        // remove template comment
+        $s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
+        // replace dynamic tag
+        $s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
+        // replace function
+        $s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
+    }
+
+    /**
+     * compress html
+     *
+     * @param $html_source
+     * @return string
+     */
+    private function compress_html($html_source) {
+        $chunks = preg_split('/(<pre.*?\/pre>)/ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $compress_html_source = '';
+        // compress html : clean new line , clean tab, clean comment
+        foreach ($chunks as $c) {
+            if (stripos($c, '<pre') !== 0) {
+                // remove new lines & tabs
+                $c = preg_replace('/[\\n\\r\\t]+/', ' ', $c);
+                // remove inter-tag newline
+                $c = preg_replace('/>[\\r\\n]+</', '><', $c);
+                // remove inter-tag whitespace
+                $c = preg_replace('/>\\s+</s', '> <', $c);
+                // remove extra whitespace
+                $c = preg_replace('/\\s{2,}/', ' ', $c);
+                // remove CSS & JS comments
+                $c = preg_replace('/\\/\\*.*?\\*\\//i', '', $c);
+            }
+            if (strpos($c, '<!--') !== false) {
+                $c = preg_replace('/<!--[\s\S]*?-->/is', '', $c);
+            }
+            //short tag
+            $compress_html_source .= $c;
+        }
+        return $compress_html_source;
+    }
+
+    /**
      * get sub template & check compile
      *
      * @param $sub_files   sub template file paths
@@ -390,38 +454,6 @@ class template {
         }
         return '';
     }
-
-    /**
-     * set_conf
-     *
-     * @param $conf
-     */
-    private function set_conf(&$conf) {
-        $this->conf = &$conf;
-        if (!defined('DIR')) {
-            define('DIR', $conf['app_dir']);
-        }
-    }
-
-    /**
-     * process tpl
-     *
-     * @param $s
-     */
-    private function do_tpl(&$s) {
-        //优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
-        $s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
-        /*
-        $s = preg_replace_callback("#<script([^><}]*?)>([\s\S]*?)</script>#is", array($this, 'striptag_callback'), $s);
-        */
-        // remove template comment
-        $s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
-        // replace dynamic tag
-        $s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
-        // replace function
-        $s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
-    }
-
 
     /**
      * fix array index
@@ -554,38 +586,6 @@ class template {
         $v = $this->stripvtag($v);
         $statement = str_replace("\\\"", '"', $statement);
         return $k ? "<? if(!empty($arr)) { foreach($arr as $k=>&$v) {?>$statement<? }}?>" : "<? if(!empty($arr)) { foreach($arr as &$v) {?>$statement<? }} ?>";
-    }
-
-    /**
-     * compress html
-     *
-     * @param $html_source
-     * @return string
-     */
-    private function compress_html($html_source) {
-        $chunks = preg_split('/(<pre.*?\/pre>)/ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
-        $compress_html_source = '';
-        // compress html : clean new line , clean tab, clean comment
-        foreach ($chunks as $c) {
-            if (stripos($c, '<pre') !== 0) {
-                // remove new lines & tabs
-                $c = preg_replace('/[\\n\\r\\t]+/', ' ', $c);
-                // remove inter-tag newline
-                $c = preg_replace('/>[\\r\\n]+</', '><', $c);
-                // remove inter-tag whitespace
-                $c = preg_replace('/>\\s+</s', '> <', $c);
-                // remove extra whitespace
-                $c = preg_replace('/\\s{2,}/', ' ', $c);
-                // remove CSS & JS comments
-                $c = preg_replace('/\\/\\*.*?\\*\\//i', '', $c);
-            }
-            if (strpos($c, '<!--') !== false) {
-                $c = preg_replace('/<!--[\s\S]*?-->/is', '', $c);
-            }
-            //short tag
-            $compress_html_source .= $c;
-        }
-        return $compress_html_source;
     }
 }
 
