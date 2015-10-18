@@ -1,56 +1,39 @@
 <?php
 
 class tpl_static {
+    /**
+     * @var array
+     */
+    static $load_class = array();
     private $version = "1.0";
     /**
      * @var
      */
     private $conf;
-
     /**
      * @var array
      */
     private $css_file = array();
-
     /**
      * @var array
      */
     private $js_file = array();
-
     /**
      * @var array
      */
     private $sprite_file = array();
-
     /**
      * @var string
      */
     private $static_dir = '';
-
     /**
      * @var array
      */
     private $exists_file = array();
-
     /**
      * @var bool|string
      */
     private $expire_key = '';
-
-    /**
-     * @var array
-     */
-    static $load_class = array();
-
-    /**
-     * @param $var
-     */
-    public function load_lib($var) {
-        if (!self::$load_class[$var]) {
-            include FRAMEWORK_PATH . 'plugin/' . $var . '.class.php';
-            self::$load_class[$var] = 1;
-        }
-    }
 
     /**
      * @param $conf
@@ -195,31 +178,16 @@ class tpl_static {
                 $this->js_file[$compile] = 0;
                 return $return_tag;
             }
-            $this->load_lib('js');
             // add ; fix js concat bug
             $js_body = file_get_contents($file);
-            if ($compress) {
+            if ($compress == 1) {
+                $this->load_lib('js');
                 $js_body = jsMin::minify($js_body);
             }
-            $this->js_file[$compile] .= $js_body . ';';
+            $this->js_file[$compile] .= $js_body . ";\n";
         }
         return $return_tag;
     }
-
-    /**
-     * check file exists
-     *
-     * @param $file
-     * @return mixed
-     */
-    private function check_file_exists($file) {
-        $file = $this->static_dir . $file;
-        if (!isset($this->exists_file[$file])) {
-            $this->exists_file[$file] = is_file($file);
-        }
-        return $this->exists_file[$file];
-    }
-
 
     /**
      * get template path
@@ -251,6 +219,30 @@ class tpl_static {
             }
         }
         return $file;
+    }
+
+    /**
+     * check file exists
+     *
+     * @param $file
+     * @return mixed
+     */
+    private function check_file_exists($file) {
+        $file = $this->static_dir . $file;
+        if (!isset($this->exists_file[$file])) {
+            $this->exists_file[$file] = is_file($file);
+        }
+        return $this->exists_file[$file];
+    }
+
+    /**
+     * @param $var
+     */
+    public function load_lib($var) {
+        if (!self::$load_class[$var]) {
+            include FRAMEWORK_PATH . 'plugin/' . $var . '.class.php';
+            self::$load_class[$var] = 1;
+        }
     }
 }
 
