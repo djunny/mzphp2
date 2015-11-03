@@ -160,7 +160,7 @@ class template {
             $body = mb_convert_encoding($body, $charset, 'utf-8');
         }
 
-        $body = DEBUG ? $body : $this->compress_html($body);
+        $body = (DEBUG || $this->conf['html_no_compress']) ? $body : $this->compress_html($body);
         if ($makefile) {
             if ($compress) {
                 $save_body = gzencode($body, $compress);

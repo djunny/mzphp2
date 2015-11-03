@@ -216,6 +216,9 @@ return array(
 	
 	// 开启rewrite
 	'url_rewrite' => 1,
+
+	// 是否不压缩 html代码(如果不开启，html中的<script>片段不能有//行注释，只能用块注释/**/)
+	'html_no_compress' => 0,
 	
 	//url rewrite params
 	'rewrite_info' => array(
