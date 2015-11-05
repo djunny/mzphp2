@@ -373,24 +373,32 @@ class template {
         $chunks = preg_split('/(<pre.*?\/pre>)/ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
         // compress html : clean new line , clean tab, clean comment
-        foreach ($chunks as $c) {
+        foreach ($chunks as $index=>$c) {
             if (stripos($c, '<pre') !== 0) {
-                // remove new lines & tabs
-                $c = preg_replace('/[\\n\\r\\t]+/', ' ', $c);
+                while (strpos($c, "\r") !== false) {
+                    $c = str_replace("\r", "\n", $c);
+                }
+                while (strpos($c, "\n\n") !== false) {
+                    $c = str_replace("\n\n", "\n", $c);
+                }
                 // remove inter-tag newline
-                $c = preg_replace('/>[\\r\\n]+</', '><', $c);
-                // remove inter-tag whitespace
-                $c = preg_replace('/>\\s+</s', '> <', $c);
+                $c = preg_replace('#>\\n<(/?\w)#is', '><$1', $c);
                 // remove extra whitespace
-                $c = preg_replace('/\\s{2,}/', ' ', $c);
+                $c = preg_replace('/\\n[\\t ]+/is', "\n", $c);
+                $c = preg_replace('/[\\t ]{2,}/', ' ', $c);
                 // remove CSS & JS comments
-                $c = preg_replace('/\\/\\*.*?\\*\\//i', '', $c);
+                if (strpos($c, '/*') !== false) {
+                    $c = preg_replace('#/\*[\s\S]*?\*/#i', '', $c);
+                }
             }
             if (strpos($c, '<!--') !== false) {
-                $c = preg_replace('/<!--[\s\S]*?-->/is', '', $c);
+                $c = preg_replace('#\s*<!--[\s\S]*?-->\s*#is', '', $c);
+            }
+            while (strpos($c, "\n\n") !== false) {
+                $c = str_replace("\n\n", "\n", $c);
             }
             //short tag
-            $compress_html_source .= $c;
+            $compress_html_source .= trim($c);
         }
         return $compress_html_source;
     }
