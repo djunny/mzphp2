@@ -212,7 +212,9 @@ class pdo_sqlite_db {
                             break;
                     }
                 } elseif ($key) {
-                    $where_sql .= ' AND ' . $key;
+                    if(strpos($key, '=') !== false) {
+                        $where_sql .= ' AND ' . $key;
+                    }
                 }
             }
         } else if ($where) {
