@@ -9,6 +9,18 @@ class core {
     public static $conf = array();
 
     /**
+     * POST variable
+     *
+     * @param        $key
+     * @param string $default
+     * @return null|string
+     */
+    public static function P($key, $default = '') {
+        $val = self::gpc($key, 'P');
+        return $val ? $val : $default;
+    }
+
+    /**
      * get variables from GET|POST|COOKIE|REQUEST|SERVER
      *
      * @param        $k
@@ -49,27 +61,37 @@ class core {
     }
 
     /**
-     * GET variable
+     * get gpc value by string type
      *
-     * @param        $key
-     * @param string $default
-     * @return null|string
+     * @param $type
+     * @param $value
+     * @return float|int|string
      */
-    public static function G($key, $default = '') {
-        $val = self::gpc($key, 'G');
-        return $val ? $val : $default;
-    }
-
-    /**
-     * POST variable
-     *
-     * @param        $key
-     * @param string $default
-     * @return null|string
-     */
-    public static function P($key, $default = '') {
-        $val = self::gpc($key, 'P');
-        return $val ? $val : $default;
+    public static function get_gpc_value($type, $value) {
+        switch ($type) {
+            case 'int':
+                return (int)$value;
+            case 'float':
+                return (float)$value;
+            case 'email':
+                return preg_match("/^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/", $value) ? $value : '';
+            case 'url':
+                return preg_match('#^(https?://[^\'"\\\\<>:\s]+(:\d+)?)?([^\'"\\\\<>:\s]+?)*$#is', $value) ? $value : '';
+            case 'qq':
+                $value = trim($value);
+                return preg_match('#^\d+{5,18}$#', $value) ? $value : '';
+            case 'tel':
+                $value = trim($value);
+                return preg_match('#^[\d-]+$#', $value) ? $value : '';
+            case 'mobile':
+                $value = trim($value);
+                return preg_match('#^\d{11}$#', $value) ? $value : '';
+            case 'version':
+                $value = trim($value);
+                return preg_match('#^\d(\.\d+)+$#', $value) ? $value : '';
+            default:
+                return $value;
+        }
     }
 
     /**
@@ -109,18 +131,6 @@ class core {
     }
 
     /**
-     * REQUEST variable
-     *
-     * @param        $key
-     * @param string $default
-     * @return null|string
-     */
-    public static function R($key, $default = '') {
-        $val = self::gpc($key, 'R');
-        return $val ? $val : $default;
-    }
-
-    /**
      * SERVER
      *
      * @param        $key
@@ -150,23 +160,6 @@ class core {
     }
 
     /**
-     * stripslashes for object
-     *
-     * @param $var
-     * @return string
-     */
-    public static function stripslashes(&$var) {
-        if (is_array($var)) {
-            foreach ($var as $k => &$v) {
-                self::stripslashes($v);
-            }
-        } else {
-            $var = stripslashes($var);
-        }
-        return $var;
-    }
-
-    /**
      * htmlspecialchas for object
      *
      * @param $var
@@ -175,7 +168,7 @@ class core {
     public static function htmlspecialchars(&$var) {
         if (is_array($var)) {
             foreach ($var as $k => &$v) {
-                self::htmlspecialchars($v);
+                $var[$k] = self::htmlspecialchars($v);
             }
         } else {
             $var = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $var);
@@ -268,50 +261,6 @@ class core {
         return $json;
     }
 
-
-    /**
-     * get ip by format
-     *
-     * @param int $format
-     * @return null|string
-     */
-    public static function ip($format = 0) {
-        static $ip = '';
-        if (empty($ip)) {
-            $server_addr = self::gpc('REMOTE_ADDR', 'S');
-            if (getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
-                $ip = getenv('HTTP_X_FORWARDED_FOR');
-            } elseif (getenv('REMOTE_ADDR') && strcasecmp(getenv('REMOTE_ADDR'), 'unknown')) {
-                $ip = getenv('REMOTE_ADDR');
-            } elseif ($server_addr && strcasecmp($server_addr, 'unknown')) {
-                $ip = $server_addr;
-            }
-            preg_match("/[\d\.]{7,15}/", $ip, $ipmatches);
-            $ip = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
-            $_SERVER['REMOTE_ADDR'] = &$ip;
-            $_SERVER['IP'] = &$ip;
-        }
-        if ($format) {
-            $ips = explode('.', $ip);
-            for ($i = 0; $i < 3; $i++) {
-                $ips[$i] = intval($ips[$i]);
-            }
-            return sprintf('%03d%03d%03d', $ips[0], $ips[1], $ips[2]);
-        } else {
-            return $ip;
-        }
-    }
-
-    /**
-     * init ip
-     *
-     * @param int $format
-     * @return null|string
-     */
-    public static function init_ip($format = 0) {
-        return self::ip($format);
-    }
-
     /**
      * get process time
      *
@@ -328,19 +277,6 @@ class core {
      */
     public static function runmem() {
         return memory_get_usage() - $_SERVER['start_memory'];
-    }
-
-    /**
-     * is cli mode
-     *
-     * @return bool
-     */
-    public static function is_cmd() {
-        if (php_sapi_name() == 'cli' && (empty($_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR'] == 'unknown')) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -387,6 +323,19 @@ class core {
     }
 
     /**
+     * is cli mode
+     *
+     * @return bool
+     */
+    public static function is_cmd() {
+        if (php_sapi_name() == 'cli' && (empty($_SERVER['REMOTE_ADDR']) || $_SERVER['REMOTE_ADDR'] == 'unknown')) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * rewrite replace
      *
      * @param        $pre
@@ -404,20 +353,6 @@ class core {
         return '<a href="' . $conf['app_dir'] . $pre . $para . $ext . '"';
     }
 
-
-    /**
-     * ob_start
-     *
-     * @param bool|TRUE $gzip
-     */
-    public static function ob_start($gzip = TRUE) {
-        if ($gzip) {
-            !isset($_SERVER['ob_stack']) && $_SERVER['ob_stack'] = array();
-            array_push($_SERVER['ob_stack'], $gzip);
-        }
-        ob_start($gzip ? array('core', 'ob_handle') : 0);
-    }
-
     /**
      * ob end clean
      */
@@ -430,68 +365,6 @@ class core {
      */
     public static function ob_clean() {
         !empty($_SERVER['ob_stack']) && count($_SERVER['ob_stack']) > 0 && ob_clean();
-    }
-
-    /**
-     * init setting
-     */
-    public static function init_set() {
-        //----------------------------------> 全局设置:
-        // 错误报告
-        if (DEBUG) {
-            debug::init();
-        } else {
-            error_reporting(0);
-            //error_reporting(E_ALL ^ E_DEPRECATED);
-            //error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
-            //@ini_set('display_errors', 'E_ALL & ~E_NOTICE & ~E_DEPRECATED');
-        }
-
-        // 关闭运行期间的自动增加反斜线
-        //@set_magic_quotes_runtime(0);
-    }
-
-    /**
-     * init super variable
-     *
-     * @param $conf
-     */
-    public static function init_supevar(&$conf) {
-        // 将更多有用的信息放入 $_SERVER 变量
-        $_SERVER['starttime'] = microtime(1);
-        $starttime = explode(' ', $_SERVER['starttime']);
-        $_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
-        $_SERVER['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-        $_SERVER['sqls'] = array();// debug
-        $_SERVER['app_url'] = $conf['app_url'];
-        $_SERVER['cookie_pre'] = $conf['cookie_pre'];
-        $_SERVER['cookie_domain'] = $conf['cookie_domain'];
-        if (function_exists('memory_get_usage')) {
-            $_SERVER['start_memory'] = memory_get_usage();
-        }
-        // ajax 判断
-        if (isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With']) {
-            $_REQUEST['ajax'] = 1;
-            $_GET['ajax'] = 1;
-            $_POST['ajax'] = 1;
-        }
-        // 兼容IIS $_SERVER['REQUEST_URI']
-        (!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
-
-        self::init_get($conf);
-    }
-
-    /**
-     * init  handler
-     */
-    public static function init_handle() {
-        // 自动 include
-        spl_autoload_register(array('core', 'autoload_handle'));
-
-        // 自定义错误处理函数，设置后 error_reporting 将失效。因为要保证 ajax 输出格式，所以必须触发 error_handle
-        if (DEBUG || self::gpc('ajax', 'R')) {
-            //set_error_handler(array('core', 'error_handle'));
-        }
     }
 
     /**
@@ -529,6 +402,26 @@ class core {
             }
         }
         return true;
+    }
+
+    /**
+     * get model file search model path
+     *
+     * @param $conf
+     * @param $model
+     * @return string
+     */
+    public static function model_file($conf, $model) {
+        $modelname = 'model_' . $model . '.class.php';
+        //search model file
+        $orgfile = '';
+        foreach ($conf['model_path'] as &$path) {
+            if (is_file($path . $model . '.class.php')) {
+                $orgfile = $path . $model . '.class.php';
+                break;
+            }
+        }
+        return $orgfile;
     }
 
     /**
@@ -690,23 +583,84 @@ class core {
     }
 
     /**
-     * get model file search model path
+     * core run
      *
      * @param $conf
-     * @param $model
-     * @return string
+     * @throws Exception
      */
-    public static function model_file($conf, $model) {
-        $modelname = 'model_' . $model . '.class.php';
-        //search model file
-        $orgfile = '';
-        foreach ($conf['model_path'] as &$path) {
-            if (is_file($path . $model . '.class.php')) {
-                $orgfile = $path . $model . '.class.php';
+    public static function run(&$conf) {
+        self::init($conf);
+        $control = str_replace(array('.', '\\', '/'), '', self::R('c'));
+        $obj_file = '';
+        // find control file
+        foreach ($conf['control_path'] as $control_dir) {
+            $tmp_file = $control_dir . $control . '_control.class.php';
+            if (is_file($tmp_file)) {
+                $obj_file = $tmp_file;
                 break;
             }
         }
-        return $orgfile;
+
+        if (empty($obj_file)) {
+            if ($conf['page_setting'][404]) {
+                $conf['page_setting'][404]($control);
+            }
+            throw new Exception("Invaild URL : {$control} control not exists.");
+        }
+
+        if (include $obj_file) {
+            $controlclass = "{$control}_control";
+            $newcontrol = new $controlclass($conf);
+            // control can run hook before on_cation
+            $onaction = "on_" . self::G('a');
+            if (method_exists($newcontrol, $onaction)) {
+                //$newcontrol->$onaction();
+                call_user_func(array($newcontrol, $onaction));
+                self::debug();
+            } else {
+                throw new Exception("Invaild URL : $onaction method not exists.");
+            }
+        } else {
+            throw new Exception("Invaild URL : {$control} control file not exists");
+        }
+
+        unset($newcontrol, $control, $action);
+    }
+
+    /**
+     * init core
+     *
+     * @param array $conf
+     */
+    public static function init($conf = array()) {
+        self::$conf = $conf;
+        // init
+        self::init_timezone($conf);
+        self::init_supevar($conf);
+        self::init_ip();
+        self::init_set();
+        self::init_handle();
+        DB::init_db_config($conf['db']);
+        if (isset($conf['cache']) && $conf['cache']) {
+            CACHE::init_cache_config($conf['cache']);
+        }
+        // GPC 安全过滤，关闭，数据的正确性可能会受到影响。
+        if (get_magic_quotes_gpc()) {
+            self::stripslashes($_GET);
+            self::stripslashes($_POST);
+            self::stripslashes($_COOKIE);
+        }
+
+        if (self::is_cmd()) {
+            //flush console output
+            ob_implicit_flush(1);
+        } else {
+            //	header("Expires: 0");
+            //	header("Cache-Control: private, post-check=0, pre-check=0, max-age=0");
+            //	header("Pragma: no-cache");
+            //	header('Content-Type: text/html; charset=UTF-8');
+            self::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
+        }
     }
 
     /**
@@ -755,132 +709,34 @@ class core {
 
     }
 
-
     /**
-     * init core
-     *
-     * @param array $conf
-     */
-    public static function init($conf = array()) {
-        self::$conf = $conf;
-        // init
-        self::init_timezone($conf);
-        self::init_supevar($conf);
-        self::init_ip();
-        self::init_set();
-        self::init_handle();
-        DB::init_db_config($conf['db']);
-        if (isset($conf['cache']) && $conf['cache']) {
-            CACHE::init_cache_config($conf['cache']);
-        }
-        // GPC 安全过滤，关闭，数据的正确性可能会受到影响。
-        if (get_magic_quotes_gpc()) {
-            self::stripslashes($_GET);
-            self::stripslashes($_POST);
-            self::stripslashes($_COOKIE);
-        }
-
-        if (self::is_cmd()) {
-            //flush console output
-            ob_implicit_flush(1);
-        } else {
-            //	header("Expires: 0");
-            //	header("Cache-Control: private, post-check=0, pre-check=0, max-age=0");
-            //	header("Pragma: no-cache");
-            //	header('Content-Type: text/html; charset=UTF-8');
-            self::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
-        }
-    }
-
-    /**
-     * debug
-     */
-    public static function debug() {
-        if (self::is_cmd() || core::R('ajax')) return;
-        if (defined('NO_DEBUG_INFO')) return;
-        //debug
-        if (DEBUG || (defined('DEBUG_INFO') && DEBUG_INFO)) {
-            debug::process();
-        }
-    }
-
-    /**
-     * core run
+     * init super variable
      *
      * @param $conf
-     * @throws Exception
      */
-    public static function run(&$conf) {
-        self::init($conf);
-        $control = str_replace(array('.', '\\', '/'), '', self::R('c'));
-        $obj_file = '';
-        // find control file
-        foreach ($conf['control_path'] as $control_dir) {
-            $tmp_file = $control_dir . $control . '_control.class.php';
-            if (is_file($tmp_file)) {
-                $obj_file = $tmp_file;
-                break;
-            }
+    public static function init_supevar(&$conf) {
+        // 将更多有用的信息放入 $_SERVER 变量
+        $_SERVER['starttime'] = microtime(1);
+        $starttime = explode(' ', $_SERVER['starttime']);
+        $_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
+        $_SERVER['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        $_SERVER['sqls'] = array();// debug
+        $_SERVER['app_url'] = $conf['app_url'];
+        $_SERVER['cookie_pre'] = $conf['cookie_pre'];
+        $_SERVER['cookie_domain'] = $conf['cookie_domain'];
+        if (function_exists('memory_get_usage')) {
+            $_SERVER['start_memory'] = memory_get_usage();
         }
-
-        if (empty($obj_file)) {
-            if ($conf['page_setting'][404]) {
-                $conf['page_setting'][404]($control);
-            }
-            throw new Exception("Invaild URL : {$control} control not exists.");
+        // ajax 判断
+        if (isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With']) {
+            $_REQUEST['ajax'] = 1;
+            $_GET['ajax'] = 1;
+            $_POST['ajax'] = 1;
         }
+        // 兼容IIS $_SERVER['REQUEST_URI']
+        (!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 
-        if (include $obj_file) {
-            $controlclass = "{$control}_control";
-            $newcontrol = new $controlclass($conf);
-            // control can run hook before on_cation
-            $onaction = "on_" . self::G('a');
-            if (method_exists($newcontrol, $onaction)) {
-                //$newcontrol->$onaction();
-                call_user_func(array($newcontrol, $onaction));
-                self::debug();
-            } else {
-                throw new Exception("Invaild URL : $onaction method not exists.");
-            }
-        } else {
-            throw new Exception("Invaild URL : {$control} control file not exists");
-        }
-
-        unset($newcontrol, $control, $action);
-    }
-
-    /**
-     * get gpc value by string type
-     *
-     * @param $type
-     * @param $value
-     * @return float|int|string
-     */
-    public static function get_gpc_value($type, $value) {
-        switch ($type) {
-            case 'int':
-                return (int)$value;
-            case 'float':
-                return (float)$value;
-            case 'email':
-                return preg_match("/^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/", $value) ? $value : '';
-            case 'url':
-                return preg_match('#^(https?://[^\'"\\\\<>:\s]+(:\d+)?)?([^\'"\\\\<>:\s]+?)*$#is', $value) ? $value : '';
-            case 'qq':
-                $value = trim($value);
-                return preg_match('#^\d+{5,18}$#', $value) ? $value : '';
-            case 'tel':
-                $value = trim($value);
-                return preg_match('#^[\d-]+$#', $value) ? $value : '';
-            case 'mobile':
-                $value = trim($value);
-                return preg_match('#^\d{11}$#', $value) ? $value : '';
-            case 'version':
-                $value = trim($value);
-                return preg_match('#^\d(\.\d+)+$#', $value) ? $value : '';
-            default:
-                return $value;
-        }
+        self::init_get($conf);
     }
 
     /**
@@ -979,6 +835,148 @@ class core {
 
         $get['c'] = $tmpval && preg_match("/^\w+$/", $tmpval) ? $tmpval : 'index';
         $get['a'] = $tmpact && preg_match("/^\w+$/", $tmpact) ? $tmpact : 'index';
+    }
+
+    /**
+     * init ip
+     *
+     * @param int $format
+     * @return null|string
+     */
+    public static function init_ip($format = 0) {
+        return self::ip($format);
+    }
+
+    /**
+     * get ip by format
+     *
+     * @param int $format
+     * @return null|string
+     */
+    public static function ip($format = 0) {
+        static $ip = '';
+        if (empty($ip)) {
+            $server_addr = self::gpc('REMOTE_ADDR', 'S');
+
+            if (isset(core::$conf['ip_x_forward']) && core::$conf['ip_x_forward'] && getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
+                $ip = getenv('HTTP_X_FORWARDED_FOR');
+            } elseif (getenv('REMOTE_ADDR') && strcasecmp(getenv('REMOTE_ADDR'), 'unknown')) {
+                $ip = getenv('REMOTE_ADDR');
+            } elseif ($server_addr && strcasecmp($server_addr, 'unknown')) {
+                $ip = $server_addr;
+            }
+            preg_match("/[\d\.]{7,15}/", $ip, $ipmatches);
+            $ip = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
+            $_SERVER['REMOTE_ADDR'] = &$ip;
+            $_SERVER['IP'] = &$ip;
+        }
+        if ($format) {
+            $ips = explode('.', $ip);
+            for ($i = 0; $i < 3; $i++) {
+                $ips[$i] = intval($ips[$i]);
+            }
+            return sprintf('%03d%03d%03d', $ips[0], $ips[1], $ips[2]);
+        } else {
+            return $ip;
+        }
+    }
+
+    /**
+     * init setting
+     */
+    public static function init_set() {
+        //----------------------------------> 全局设置:
+        // 错误报告
+        if (DEBUG) {
+            debug::init();
+        } else {
+            error_reporting(0);
+            //error_reporting(E_ALL ^ E_DEPRECATED);
+            //error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
+            //@ini_set('display_errors', 'E_ALL & ~E_NOTICE & ~E_DEPRECATED');
+        }
+
+        // 关闭运行期间的自动增加反斜线
+        //@set_magic_quotes_runtime(0);
+    }
+
+    /**
+     * init  handler
+     */
+    public static function init_handle() {
+        // 自动 include
+        spl_autoload_register(array('core', 'autoload_handle'));
+
+        // 自定义错误处理函数，设置后 error_reporting 将失效。因为要保证 ajax 输出格式，所以必须触发 error_handle
+        if (DEBUG || self::gpc('ajax', 'R')) {
+            //set_error_handler(array('core', 'error_handle'));
+        }
+    }
+
+    /**
+     * stripslashes for object
+     *
+     * @param $var
+     * @return string
+     */
+    public static function stripslashes(&$var) {
+        if (is_array($var)) {
+            foreach ($var as $k => &$v) {
+                self::stripslashes($v);
+            }
+        } else {
+            $var = stripslashes($var);
+        }
+        return $var;
+    }
+
+    /**
+     * ob_start
+     *
+     * @param bool|TRUE $gzip
+     */
+    public static function ob_start($gzip = TRUE) {
+        if ($gzip) {
+            !isset($_SERVER['ob_stack']) && $_SERVER['ob_stack'] = array();
+            array_push($_SERVER['ob_stack'], $gzip);
+        }
+        ob_start($gzip ? array('core', 'ob_handle') : 0);
+    }
+
+    /**
+     * REQUEST variable
+     *
+     * @param        $key
+     * @param string $default
+     * @return null|string
+     */
+    public static function R($key, $default = '') {
+        $val = self::gpc($key, 'R');
+        return $val ? $val : $default;
+    }
+
+    /**
+     * GET variable
+     *
+     * @param        $key
+     * @param string $default
+     * @return null|string
+     */
+    public static function G($key, $default = '') {
+        $val = self::gpc($key, 'G');
+        return $val ? $val : $default;
+    }
+
+    /**
+     * debug
+     */
+    public static function debug() {
+        if (self::is_cmd() || core::R('ajax')) return;
+        if (defined('NO_DEBUG_INFO')) return;
+        //debug
+        if (DEBUG || (defined('DEBUG_INFO') && DEBUG_INFO)) {
+            debug::process();
+        }
     }
 }
 

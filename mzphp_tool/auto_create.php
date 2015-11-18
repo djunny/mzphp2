@@ -10,55 +10,65 @@
 */
 
 function gpc($k, $var = 'G') {
-	switch($var) {
-		case 'G': $var = &$_GET; break;
-		case 'P': $var = &$_POST; break;
-		case 'C': $var = &$_COOKIE; break;
-		case 'R': $var = isset($_GET[$k]) ? $_GET : (isset($_POST[$k]) ? $_POST : $_COOKIE); break;
-		case 'S': $var = &$_SERVER; break;
-	}
-	return isset($var[$k]) ? $var[$k] : NULL;
+    switch ($var) {
+        case 'G':
+            $var = &$_GET;
+        break;
+        case 'P':
+            $var = &$_POST;
+        break;
+        case 'C':
+            $var = &$_COOKIE;
+        break;
+        case 'R':
+            $var = isset($_GET[$k]) ? $_GET : (isset($_POST[$k]) ? $_POST : $_COOKIE);
+        break;
+        case 'S':
+            $var = &$_SERVER;
+        break;
+    }
+    return isset($var[$k]) ? $var[$k] : NULL;
 }
 
 function get_url_path() {
-	$port = gpc('SERVER_PORT', 'S');
-	$portadd = $port == 80 ? '' : ':80';
-	$host = gpc('HTTP_HOST', 'S');
-	//$schme = self::gpc('SERVER_PROTOCOL', 'S');
-	$path = get_url_abpath();
-	return  "http://$host$portadd$path/";
+    $port = gpc('SERVER_PORT', 'S');
+    $portadd = $port == 80 ? '' : ':80';
+    $host = gpc('HTTP_HOST', 'S');
+    //$schme = self::gpc('SERVER_PROTOCOL', 'S');
+    $path = get_url_abpath();
+    return "http://$host$portadd$path/";
 }
 
 
-function show_message($msg){
-	header('Content-Type: text/html; charset=UTF-8');
-	echo $msg;
-	//echo '请创建一个新目录，将本文件拷至新目录，然后通过URL访问此文件。';
-	exit;
+function show_message($msg) {
+    header('Content-Type: text/html; charset=UTF-8');
+    echo $msg;
+    //echo '请创建一个新目录，将本文件拷至新目录，然后通过URL访问此文件。';
+    exit;
 }
 
-function get_url_abpath(){
-	return substr(gpc('PHP_SELF', 'S'), 0, strrpos(gpc('PHP_SELF', 'S'), '/'));
+function get_url_abpath() {
+    return substr(gpc('PHP_SELF', 'S'), 0, strrpos(gpc('PHP_SELF', 'S'), '/'));
 }
 
 // 目录名
-define('PATH', str_replace('\\', '/', dirname(__FILE__)).'/');
+define('PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('ROOT_PATH', preg_replace('#\/([\w\-]+)\/$#i', '/', PATH));
 preg_match_all('#\/([\w\-]+)\/$#i', PATH, $dir);
 $dir = str_replace('', '', $dir[1][0]);
 define('APP_NAME', $dir);
 
-if(!is_file(PATH.'../mzphp/mzphp.php')) {
-	show_message('没有找到 mzphp 目录，请确定应用和 mzphp 框架是在同一级目录');
+if (!is_file(PATH . '../mzphp/mzphp.php')) {
+    show_message('没有找到 mzphp 目录，请确定应用和 mzphp 框架是在同一级目录');
 }
 
 
-if(!APP_NAME){
-	show_message('错误的目录名，请重试');
+if (!APP_NAME) {
+    show_message('错误的目录名，请重试');
 }
 
-if(APP_NAME == 'mzphp_tool') {
-	show_message('请创建一个新目录，将本文件拷至新目录，然后通过URL访问此文件。');
+if (APP_NAME == 'mzphp_tool') {
+    show_message('请创建一个新目录，将本文件拷至新目录，然后通过URL访问此文件。');
 }
 
 $appname = APP_NAME;
@@ -66,16 +76,16 @@ $APP_PATH = strtoupper('ROOT_PATH');
 $app_url = get_url_path();
 
 
-$datadir = PATH.'data';
-$confdir = PATH.'conf';
-$logdir = $datadir.'/log';
-$tmpdir = $datadir.'/tmp';
-$cachedir = $datadir.'/cache';
-$viewdir = PATH.'view';
-$controldir = PATH.'control';
-$modeldir = PATH.'model';
-$coredir = PATH.'core';
-$staticdir = PATH.'static';
+$datadir = PATH . 'data';
+$confdir = PATH . 'conf';
+$logdir = $datadir . '/log';
+$tmpdir = $datadir . '/tmp';
+$cachedir = $datadir . '/cache';
+$viewdir = PATH . 'view';
+$controldir = PATH . 'control';
+$modeldir = PATH . 'model';
+$coredir = PATH . 'core';
+$staticdir = PATH . 'static';
 
 !is_dir($datadir) && mkdir($datadir, 0777);
 !is_dir($confdir) && mkdir($confdir, 0777);
@@ -88,18 +98,18 @@ $staticdir = PATH.'static';
 !is_dir($coredir) && mkdir($coredir, 0777);
 !is_dir($staticdir) && mkdir($staticdir, 0777);
 
-$conffile = PATH.'conf/conf.debug.php';
-$indexfile = PATH.'index.php';
-$view_header_file = PATH.'view/header.htm';
-$view_index_file = PATH.'view/index.htm';
-$view_footer_file = PATH.'view/footer.htm';
-$static_jquery_js = PATH.'static/jquery.js';
-$static_common_js = PATH.'static/common.js';
-$static_reset_css = PATH.'static/reset.css';
-$static_common_css = PATH.'static/common.css';
+$conffile = PATH . 'conf/conf.debug.php';
+$indexfile = PATH . 'index.php';
+$view_header_file = PATH . 'view/header.htm';
+$view_index_file = PATH . 'view/index.htm';
+$view_footer_file = PATH . 'view/footer.htm';
+$static_jquery_js = PATH . 'static/jquery.js';
+$static_common_js = PATH . 'static/common.js';
+$static_reset_css = PATH . 'static/reset.css';
+$static_common_css = PATH . 'static/common.css';
 
-if(!is_file($conffile)) {
-	$s = "<?php 
+if (!is_file($conffile)) {
+    $s = "<?php
  
 /**************************************************************************************************
  	【注意】：
@@ -151,34 +161,37 @@ return array(
 		),
 		*/
 		'file' => array(
-			'dir' => ROOT_PATH.'data/cache".md5(time())."/',
+			'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
 			'pre' => 'bbs_',
 		),
 	),
 
 	// 唯一识别ID
-	'app_id' => '".$appname."',
+	'app_id' => '" . $appname . "',
 	
 	//网站名称
-	'app_name' => '".$appname."',
+	'app_name' => '" . $appname . "',
 	
 	// cookie 前缀
-	'cookie_pre' => '".$appname."',
+	'cookie_pre' => '" . $appname . "',
 	
 	// cookie 域名
 	'cookie_domain' => '',
 	
 	//是否开启 gzip
 	'gzip' => 0,
+
+	//是否接受x_forwarded_for传过来的ip(反代的时候需要)
+	//'ip_x_forward' => 1,
 	
 	// 应用的绝对路径： 如: http://www.domain.com/bbs/
-	'app_url' => '".get_url_path()."',
+	'app_url' => '" . get_url_path() . "',
 	
 	// 应用的所在路径： 如: http://www.domain.com/bbs/
 	'app_dir' => \$app_dir,
 	
 	// CDN 缓存的静态域名，如 http://static.domain.com/
-	'static_url' => '".get_url_path()."static/',
+	'static_url' => '" . get_url_path() . "static/',
 	
 	// CDN 本地缓存的静态目录，如 http://static.domain.com/
 	'static_dir' => ROOT_PATH.'static/',
@@ -230,19 +243,19 @@ return array(
 	'reg_replace' => array(),
 );
 	";
-	
-	file_put_contents($conffile, $s);
-	
-	$conffile = str_replace('.debug', '.online', $conffile);
-	if(!is_file($conffile)){
-		file_put_contents($conffile, $s);
-	}
+
+    file_put_contents($conffile, $s);
+
+    $conffile = str_replace('.debug', '.online', $conffile);
+    if (!is_file($conffile)) {
+        file_put_contents($conffile, $s);
+    }
 }
 
 //str_replace('\\\\', '/', )
 
-if(!is_file($indexfile)) {
-	$s = "<?php
+if (!is_file($indexfile)) {
+    $s = "<?php
 \$_SERVER['ENV'] = isset(\$_SERVER['ENV']) ? \$_SERVER['ENV'] : 'debug';
 // 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
 define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
@@ -288,11 +301,11 @@ include FRAMEWORK_PATH.'mzphp.php';
 core::run(\$conf);
 
 ?>";
-	file_put_contents($indexfile, $s);
+    file_put_contents($indexfile, $s);
 }
 
-if(!is_file($view_header_file)) {
-	$s = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+if (!is_file($view_header_file)) {
+    $s = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>Title</title>
@@ -306,27 +319,27 @@ if(!is_file($view_header_file)) {
 <h3>mzPHP Framework</h3>
 <hr />
 ';
-	file_put_contents($view_header_file, $s);
+    file_put_contents($view_header_file, $s);
 }
 
-if(!is_file($view_index_file)) {
-	$s = '<!--{template header.htm}-->
+if (!is_file($view_index_file)) {
+    $s = '<!--{template header.htm}-->
 	<h1>Hello, mzPHP! Hello, $username.</h1>
 <!--{template footer.htm}-->';
-	file_put_contents($view_index_file, $s);
+    file_put_contents($view_index_file, $s);
 }
 
-if(!is_file($view_footer_file)) {
-	$s = '</body>
+if (!is_file($view_footer_file)) {
+    $s = '</body>
 </html>
 ';
-	file_put_contents($view_footer_file, $s);
+    file_put_contents($view_footer_file, $s);
 }
 
-$control_index_file = PATH.'control/index_control.class.php';
+$control_index_file = PATH . 'control/index_control.class.php';
 
-if(!is_file($control_index_file)) {
-	$s = "<?php
+if (!is_file($control_index_file)) {
+    $s = "<?php
 
 !defined('FRAMEWORK_PATH') && exit('FRAMEWORK_PATH not defined.');
 
@@ -346,34 +359,34 @@ class index_control extends base_control {
 }
 		
 ?>";
-	
-	file_put_contents($control_index_file, $s);
+
+    file_put_contents($control_index_file, $s);
 }
 
-if(!is_file($static_jquery_js)){
-	$s = '//jquery code
+if (!is_file($static_jquery_js)) {
+    $s = '//jquery code
 console.log("jquery Code");';
-	file_put_contents($static_jquery_js, $s);
+    file_put_contents($static_jquery_js, $s);
 }
 
-if(!is_file($static_common_js)){
-	$s = '//common code
+if (!is_file($static_common_js)) {
+    $s = '//common code
 console.log("common Code");';
-	file_put_contents($static_common_js, $s);
+    file_put_contents($static_common_js, $s);
 }
 
-if(!is_file($static_reset_css)){
-	$s = '/*reset code*/body{margin:0;padding:0}';
-	file_put_contents($static_reset_css, $s);
+if (!is_file($static_reset_css)) {
+    $s = '/*reset code*/body{margin:0;padding:0}';
+    file_put_contents($static_reset_css, $s);
 }
 
-if(!is_file($static_common_css)){
-	$s = '/*common code*/a{color:red}';
-	file_put_contents($static_common_css, $s);
+if (!is_file($static_common_css)) {
+    $s = '/*common code*/a{color:red}';
+    file_put_contents($static_common_css, $s);
 }
 
 
-$url = $app_url."?c=index-index";
+$url = $app_url . "?c=index-index";
 @unlink('./auto_create.php');
 show_message("<a href='{$url}'>应用框架代码生成完毕！ 发布时请记得带上同级目录的 mzphp 目录（本文件已删除）</a>");
 
