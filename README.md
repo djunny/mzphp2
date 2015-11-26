@@ -243,6 +243,8 @@ mzphp 中，控制器会自动加载并初始化对应的 model 层。
 另外：
 
 - mzphp 也支持原生查询 SQL，使用以下方法：
+
+
 ```
 // add table prefix
 
