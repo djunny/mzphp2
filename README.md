@@ -245,23 +245,42 @@ mzphp 中，控制器会自动加载并初始化对应的 model 层。
 - mzphp 也支持原生查询 SQL，使用以下方法：
 ```
 // add table prefix
+
 $table = DB::table('user');
+
 // build SQL
+
 $sql = sprintf("SELECT * FROM %s WHERE id=%d", $table, 1);
+
 // get query and return first row
+
 $first_row = DB::query($sql, 1);
+
 // get query 
+
 $query = DB::query($sql);
+
 while($val = DB::fetch($query)){
+
     log::info($val);
+
+
 }
+
 // select method
+
 // get first row from user where id =1
+
 $user = DB::select('user', array('id'=>1), ' id ASC', 0);
+
 // get all user array
+
 $user_list = DB::select('user');
+
 // get user count
+
 $user_count = DB::select('user', 0, 0, -2);
+
 ```
 
 
