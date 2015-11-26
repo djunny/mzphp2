@@ -1,6 +1,6 @@
 <?php
 if (!defined('FORM_HASH_KEY')) {
-    define('FORM_HASH_KEY', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'mzphp');
+    define('FORM_HASH_KEY', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'mzphp' . ($conf['app_id']));
 }
 
 class misc {
@@ -24,6 +24,13 @@ class misc {
      * @return string
      */
     public static function form_hash($auth_key = '') {
+        if (!$auth_key) {
+            static $form_hash_key;
+            if (!$form_hash_key) {
+                $form_hash_key = md5(core::$conf['app_id']);
+            }
+            $auth_key = $form_hash_key;
+        }
         return substr(md5(substr($_SERVER['time'], 0, -5) . $auth_key), 16);
     }
 
@@ -34,7 +41,7 @@ class misc {
      * @return bool
      */
     public static function form_submit($auth_key = '') {
-        $hash = core::gpc('FORM_HASH', 'R');
+        $hash = core::R('FORM_HASH');
         return $hash == self::form_hash($auth_key);
     }
 
@@ -105,6 +112,7 @@ class misc {
 
     /**
      * get human number
+     *
      * @param $num
      * @return string
      */
@@ -115,6 +123,7 @@ class misc {
 
     /**
      * get human size
+     *
      * @param $num
      * @return string
      */
@@ -132,6 +141,7 @@ class misc {
 
     /**
      * dump hex
+     *
      * @param        $data
      * @param string $newline
      */

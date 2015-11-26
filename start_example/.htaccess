@@ -5,5 +5,5 @@ RewriteCond %{REQUEST_FILENAME} !-f
 #control + action
 RewriteRule ^(\w+)(?:[/\-_\|\.,])(\w+)(?:[/\-_\|\.,])(.*)$ index.php\?c=$1-$2&rewrite=$3 [L]
 
-#control 
+#control
 RewriteRule ^(\w+)(?:[/\-_\|\.,])(.+)$ index.php\?c=$1&rewrite=$2 [L]

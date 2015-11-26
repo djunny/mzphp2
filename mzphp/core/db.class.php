@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class DB
+ */
 class DB {
     /**
      * type of database
@@ -73,7 +76,7 @@ class DB {
      * @return mixed
      */
     public static function query($sql, $fetch = 0) {
-        $query = call_user_func(array(self::instance(), 'query'), $sql);
+        $query = self::instance()->query($sql);
         if ($fetch) {
             return self::fetch($query);
         } else {
@@ -88,7 +91,7 @@ class DB {
      * @return mixed
      */
     public static function fetch($query) {
-        return call_user_func(array(self::instance(), 'fetch_array'), $query);
+        return self::instance()->fetch_array($query);
     }
 
     /**
@@ -101,7 +104,7 @@ class DB {
         if (is_string($query)) {
             $query = self::query($query);
         }
-        return call_user_func(array(self::instance(), 'fetch_all'), $query);
+        return self::instance()->fetch_all($query);
     }
 
     /**
@@ -144,7 +147,7 @@ class DB {
         if ($perpage == -2) {
             $fields = 'count(*) AS C';
         }
-        $result = call_user_func(array(self::instance(), 'select'), self::table($table), $where, $order, $perpage, $page, $fields);
+        $result = self::instance()->select(self::table($table), $where, $order, $perpage, $page, $fields);
         if ($perpage == -2) {
             return $result[0]['C'];
         } else {
@@ -161,7 +164,7 @@ class DB {
      * @return mixed
      */
     public static function insert($table, $data, $return_id = 0) {
-        return call_user_func(array(self::instance(), 'insert'), self::table($table), $data, $return_id);
+        return self::instance()->insert(self::table($table), $data, $return_id);
     }
 
     /**
@@ -172,7 +175,7 @@ class DB {
      * @return mixed
      */
     public static function replace($table, $data) {
-        return call_user_func(array(self::instance(), 'replace'), self::table($table), $data);
+        return self::instance()->replace(self::table($table), $data);
     }
 
     /**
@@ -184,7 +187,7 @@ class DB {
      * @return mixed
      */
     public static function update($table, $data, $where) {
-        return call_user_func(array(self::instance(), 'update'), self::table($table), $data, $where);
+        return self::instance()->update(self::table($table), $data, $where);
     }
 
     /**
@@ -195,12 +198,32 @@ class DB {
      * @return mixed
      */
     public static function delete($table, $where) {
-        return call_user_func(array(self::instance(), 'delete'), self::table($table), $where);
+        return self::instance()->delete(self::table($table), $where);
     }
 
+    /**
+     * get dynamic table model
+     *
+     * @param string $table       the table name that you want
+     * @param string $primary_key if you want to use model
+     *                            T()->get($primary_id)
+     *                            or T()->delete($primary_id)
+     *                            or T()->update(array(), $primary_id)
+     *                            your must set $primary_key
+     * @return mixed
+     */
+    public static function T($table, $primary_key = 'id') {
+        static $models = array();
+        $index = self::$db_table_pre . $table;
+        if (!$models[$index]) {
+            $models[$index] = new base_db($table, $primary_key);
+        }else{
+            // define primary key
+            if($models[$index]->primary_key != $primary_key){
+                $models[$index]->primary_key = $primary_key;
+            }
+        }
+        return $models[$index];
+    }
 }
-
-
-
-
 ?>

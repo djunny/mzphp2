@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class core
+ */
 class core {
     /**
      * config for core
@@ -614,8 +617,8 @@ class core {
             // control can run hook before on_cation
             $onaction = "on_" . self::G('a');
             if (method_exists($newcontrol, $onaction)) {
-                //$newcontrol->$onaction();
-                call_user_func(array($newcontrol, $onaction));
+                $newcontrol->$onaction();
+                //call_user_func(array($newcontrol, $onaction));
                 self::debug();
             } else {
                 throw new Exception("Invaild URL : $onaction method not exists.");
@@ -644,7 +647,7 @@ class core {
         if (isset($conf['cache']) && $conf['cache']) {
             CACHE::init_cache_config($conf['cache']);
         }
-        // GPC 安全过滤，关闭，数据的正确性可能会受到影响。
+        // check magic quotes
         if (get_magic_quotes_gpc()) {
             self::stripslashes($_GET);
             self::stripslashes($_POST);
@@ -737,6 +740,7 @@ class core {
         (!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
 
         self::init_get($conf);
+
     }
 
     /**

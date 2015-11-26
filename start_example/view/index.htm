@@ -1,11 +1,20 @@
-<!--{template header}-->
+<!--{template inc/header}-->
 
 <!--{if $_GET['a'] == 'spider'}-->
-	<!--{template spider}-->
+    <!--{template spider}-->
 <!--{elseif $_GET['a'] == 'fetch'}-->
-	<!--{template fetch}-->
+    <!--{template fetch}-->
 <!--{else}-->
-	<!--{template home}-->
+    <!--{template home}-->
 <!--{/if}-->
 
-<!--{template footer}-->
+
+<!-- define block for html-->
+<!--{block time($time)}-->
+<div>Current Time = {date('Y-m-d H:i:s', $time)}</div>
+<!--{/block}-->
+
+<!-- call block -->
+{block_time(core::S('time'))}
+
+<!--{template inc/footer}-->

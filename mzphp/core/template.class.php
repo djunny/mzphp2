@@ -1,6 +1,8 @@
 <?php
 
-
+/**
+ * Class template
+ */
 class template {
 
     /**
@@ -117,6 +119,15 @@ class template {
      * set_conf
      *
      * @param $conf
+     * $conf[app_dir] : appliation path ,for example /
+     * $conf[gzip] : gzip content for display
+     * $conf[tmp_path] : compile template temp directory
+     * $conf[html_no_compress] : close compress html feature
+     * $conf[url_rewrite] : to rewrite link
+     * $conf[app_id] : uniq app id for template cache build
+     * $conf[first_view_path] : Priority search the template find in directory
+     * $conf[view_path] : normal search the template find in directory
+     * $conf[tpl][plugins] : plugin setting
      */
     private function set_conf(&$conf) {
         $this->conf = &$conf;
@@ -180,7 +191,7 @@ class template {
             }
         }
         // old ob_start
-        core::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
+        core::ob_start(isset($this->conf['gzip']) && $this->conf['gzip'] ? $this->conf['gzip'] : false);
 
         if ($by_return) {
             return $body;
@@ -256,7 +267,7 @@ class template {
 
         $s = file_get_contents($view_file);
 
-        /* TODO 去掉JS中的注释  // ，否则JS传送会有错误 */
+        /* TODO 去掉JS中的注释  // ，否则压缩html时 JS 会有错误 */
         //$s = preg_replace('#\r\n\s*//[^\r\n]*#ism', '', $s);
         //$s = str_replace('{DIR}', $this->conf['app_dir'], $s);
 
@@ -314,7 +325,7 @@ class template {
         //$s = preg_replace_callback("/\{if\s+(.+?)\}/is", array($this, 'strip_vtag_callback'), $s);
 
         $s = preg_replace("/\{else\}/is", "<?}else { ?>", $s);
-        $s = preg_replace("/\{\/(if|for)\}/is", "<?}?>", $s);
+        $s = preg_replace("/\{\/(if|for|block)\}/is", "<?}?>", $s);
         //{else} 也符合常量格式，此处要注意先后顺??
         $s = preg_replace("/" . $this->const_regexp . "/", "<?=\\1?>", $s);
 
@@ -359,6 +370,8 @@ class template {
         $s = preg_replace("#<!--\#(.+?)-->#s", "", $s);
         // replace dynamic tag
         $s = preg_replace("#<!--{(.+?)}-->#s", "{\\1}", $s);
+        // replace block
+        $s = preg_replace_callback("#{block\s+(\w+[^\r\n]+)}#is", array($this, 'blocktag_callback'), $s);
         // replace function
         $s = preg_replace_callback('#{([\w\:]+\([^}]*?\);?)}#is', array($this, 'funtag_callback'), $s);
     }
@@ -373,7 +386,7 @@ class template {
         $chunks = preg_split('/(<pre.*?\/pre>)/ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
         // compress html : clean new line , clean tab, clean comment
-        foreach ($chunks as $index=>$c) {
+        foreach ($chunks as $index => $c) {
             if (stripos($c, '<pre') !== 0) {
                 while (strpos($c, "\r") !== false) {
                     $c = str_replace("\r", "\n", $c);
@@ -571,6 +584,19 @@ class template {
     }
 
     /**
+     * block tag callback
+     *
+     * @param $matchs
+     * @return string
+     */
+    private function blocktag_callback($matchs) {
+        $search = '<!--[block=' . count($this->tag_search) . ']-->';
+        $this->tag_search[] = $search;
+        $this->tag_replace[] = '<?php function block_' . $matchs[1] . '{?>';
+        return $search;
+    }
+
+    /**
      * for loop
      *
      * @param $matchs
@@ -598,15 +624,13 @@ class template {
 }
 
 /*
-
-Usage:
+Example :
 require_once 'lib/template.class.php';
 $this->view = new template($conf);
 $this->view->assign('page', $page);
 $this->view->assign('userlist', $userlist);
 $this->view->assign_value('totaluser', 123);
 $this->view->display("user_login.htm");
-
 */
 
 ?>

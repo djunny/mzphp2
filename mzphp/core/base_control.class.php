@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Class base_control
+ */
 class base_control {
 
     /**

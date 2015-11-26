@@ -316,7 +316,7 @@ if (!is_file($view_header_file)) {
 	<!--{static ../static/common.js _global.js}-->
 </head>
 <body>
-<h3>mzPHP Framework</h3>
+<h3>mzphp Framework</h3>
 <hr />
 ';
     file_put_contents($view_header_file, $s);

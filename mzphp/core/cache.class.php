@@ -124,6 +124,12 @@ class CACHE {
         return call_user_func(array(self::instance(), 'delete'), self::key($key));
     }
 
+    /**
+     * truncate cache
+     *
+     * @param string $pre
+     * @return mixed
+     */
     public static function truncate($pre = '') {
         return call_user_func(array(self::instance(), 'truncate'), $pre);
     }

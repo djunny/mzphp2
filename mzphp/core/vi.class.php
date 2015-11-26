@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class VI
+ */
 class VI {
     /**
      * instance for VI
