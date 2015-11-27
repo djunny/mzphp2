@@ -410,8 +410,8 @@ is_compress 参数可以为 0 或 1(默认 1)，为 1 时，source_file 压缩�
 	
 **规范**
 
-- 建议编译后的文件都使用 _ 开头命名，这样后期方便清理。
-- 编译后的 css 文件只能在原 css 目录（图片如果写成相对路径的话）
+- 建议编译后的缓存文件名都使用 _ 开头命名，这样后期方便清理。
+- 编译后的 css 文件只能在原 css 目录（否则相对路径的图片可能加载失败）
 - 编译后的 js 文件最好在原 js 目录（除非你的 js 文件没有对路径有依赖）
 
 **静态文件寻找先后顺序**
@@ -420,7 +420,7 @@ is_compress 参数可以为 0 或 1(默认 1)，为 1 时，source_file 压缩�
 2. view/
 
 
-**关于 css sprite***
+**关于 css sprite**
 
 当 source_file 以 * 结尾时, 识别为 css sprite 模式，程序将会对 source_file 目录中的所有文件进行合并，读取所有图片的 size ，生成对应的 scss 文件和合并的 png 文件：
 
@@ -441,7 +441,8 @@ is_compress 参数可以为 0 或 1(默认 1)，为 1 时，source_file 压缩�
 在以上例子中,系统做了以下处理：
 
 1. 先合并 scss/png/ 中所有图片为: scss/sprite.png，同时生成坐标 scss 文件：scss/sprite.scss
-2. scss/test.scss 中调用 @import 'sprite'; 然后用 scss 语法来继承对应的 icon 或 图片即可，例（图片路径中.变成-）：
+2. scss/test.scss 中调用 @import 'sprite'; 然后用 scss 语法来继承对应的 icon 或 图片即可，例（图片路径中.会变成-，更具体可以先成生一次后，打开生成后的sprite.scss看看）：
+
 ```
 .find{
     @extend .filename-extention;
@@ -456,4 +457,120 @@ is_compress 参数可以为 0 或 1(默认 1)，为 1 时，source_file 压缩�
 9. <!--{static js/test2.js js/_a.js 0}--> <!--{static js/test3.js js/_a.js 1}--> 均替换成空
 
 
-更多实例和 PHPDOC 敬请期待。
+
+### mzphp 地址重写
+
+地址重写规则：
+
+**.htaccess**
+```
+Options 
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#control + action
+RewriteRule ^(\w+)(?:[/\-_\|\.,])(\w+)(?:[/\-_\|\.,])(.*)$ index.php\?c=$1-$2&rewrite=$3 [L]
+
+#control 
+RewriteRule ^(\w+)(?:[/\-_\|\.,])(.+)$ index.php\?c=$1&rewrite=$2 [L]
+```
+
+**apache httpd.ini**
+```
+[ISAPI_Rewrite]
+RepeatLimit 32
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#control + action
+RewriteRule ^(\w+)(?:[/\-_\|\.,])(\w+)(?:[/\-_\|\.,])(.*)$ index.php\?c=$1-$2&rewrite=$3 [L]
+
+#control 
+RewriteRule ^(\w+)(?:[/\-_\|\.,])(.+)$ index.php\?c=$1&rewrite=$2 [L]
+```
+**nginx.conf**
+```
+#control + action
+rewrite ^(\w+)(?:[/\-_\|\.,])(\w+)(?:[/\-_\|\.,])(.*)$ index.php?c=$1-$2&rewrite=$3 last;
+#control 
+rewrite ^(\w+)(?:[/\-_\|\.,])(.+)$ index.php?c=$1&rewrite=$2 last;
+```
+
+**iis 7**
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+    <rewrite>
+       <rules>
+			<rule name="mzphp_1" stopProcessing="true">
+				<match url="(\w+)(?:[/\-_\|\.,])(\w+)(?:[/\-_\|\.,])(.*)$" />
+				<action type="Rewrite" url="index.php?c={R:1}-{R:2}&rewrite={R:3}" appendQueryString="true" />
+			</rule>
+			<rule name="mzphp_2" stopProcessing="true">
+				<match url="(\w+)(?:[/\-_\|\.,])(.+)$" />
+				<action type="Rewrite" url="index.php?c={R:1}&rewrite={R:2}" appendQueryString="true" />
+			</rule>
+        </rules>
+    </rewrite>
+    </system.webServer>
+</configuration>
+```
+
+### mzphp 自定义 URL
+
+**1.非地址重写链接：**
+
+```
+index.php?c=control-action&var=...
+```
+
+**2.系统地址重写(该地址中的 / 分隔符和 [.html] 均可在conf文件中配置):**
+
+```
+/control/action/param1/param1value/param2/param2value...[.html]
+```
+
+conf/conf.[env].php 配置文件：
+
+```
+    //url rewrite params
+	'rewrite_info' => array(
+		'comma' => '/', // options: / \ - _  | . , 
+		'ext' => '.html',// for example : .htm
+	),
+```
+
+使用系统地址重写时，您可以使用url方法，来生成url:
+```
+function url($control, $action, $params = array()) ;
+```
+例：
+```
+echo url('index', 'index', array('id'=>1));
+echo url('index-index', array('id'=>1));
+echo url('index-index', 'id=1&time=2015');
+```
+
+
+**3.自定义地址重写：**
+```
+index.php?c=control-action&rewrite=param1/param1value...
+```
+例如，我们需要使用：**/help/123/** 来映射 **index.php?c=article-help&id=123**
+
+
+可以在 urlrewrite 重写文件中配置（以 .htaccess 语法为例）：
+
+```
+RewriteRule ^(help)/(\d+)/?$ index.php\?c=article-$1&rewrite=id/$2 [L]
+```
+
+注：本例中 rewrite 参数传入的分割符（/），视 **rewrite_info** 中的 **comma** 而定。
+
+****
+****
+****
+
+更多实例敬请期待。
