@@ -456,13 +456,11 @@ class core {
                 $app_dir_regex = preg_quote($conf['app_dir']);
                 $init_replace = 1;
             }
-            $comma = $conf['rewrite_info']['comma'];
-
-            $reg_search[] = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
-            $reg_replace[] = 'core::rewrite("' . $conf['app_dir'] . '", "\\2' . $comma . '\\3", "\\4", "' . $comma . '", "' . $conf['rewrite_info']['ext'] . '")';
-
-            $reg_search[] = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)([^"]+?)\"#ie';
-            $reg_replace[] = 'core::rewrite("' . $conf['app_dir'] . '", "\\2", "\\3", "' . $comma . '", "' . $conf['rewrite_info']['ext'] . '")';
+            if (strpos($s, '?c=') !== false) {
+                $comma = $conf['rewrite_info']['comma'];
+                $reg_search[] = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
+                $reg_replace[] = 'core::rewrite("' . $conf['app_dir'] . '", "\\2' . $comma . '\\3", "\\4", "' . $comma . '", "' . $conf['rewrite_info']['ext'] . '")';
+            }
 
             if ($str_search) {
                 $s = str_replace($str_search, $str_replace, $s);
@@ -482,13 +480,14 @@ class core {
      * @param        $para
      * @param string $ds
      * @param string $ext
+     * @param string $tag
      * @return string
      */
-    public static function rewrite($path, $pre, $para, $ds = '_', $ext = '.htm') {
+    public static function rewrite($path, $pre, $para, $ds = '_', $ext = '.htm', $tag = 1) {
         if ($pre) {
             $pre .= $ds;
         }
-        if (substr($para, 0, 1) == '&') {
+        if ($para[0] == '&') {
             $para = substr($para, 1);
         }
         //a=
@@ -505,7 +504,11 @@ class core {
             // delete last comma
             $pre = substr($pre, 0, -1);
         }
-        return '<a href="' . $path . $pre . $para . $ext . ($anchor ? '#' . $anchor : '') . '"';
+        if ($tag) {
+            return '<a href="' . $path . $pre . $para . $ext . ($anchor ? '#' . $anchor : '') . '"';
+        } else {
+            return $path . $pre . $para . $ext . ($anchor ? '#' . $anchor : '');
+        }
     }
 
     /**
