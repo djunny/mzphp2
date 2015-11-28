@@ -131,8 +131,13 @@ class template {
      */
     private function set_conf(&$conf) {
         $this->conf = &$conf;
+        // relative path use in template
         if (!defined('DIR')) {
             define('DIR', $conf['app_dir']);
+        }
+        // static path use in template
+        if (!defined('STATIC')) {
+            define('STATIC', $conf['static_url']);
         }
         VI::assign('conf', $conf);
     }

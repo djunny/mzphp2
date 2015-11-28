@@ -48,7 +48,7 @@ class tpl_static {
     }
 
     /**
-     * process js / scss / sprite + diy block
+     * process js / scss / sprite
      *
      * @param $s template content
      */
@@ -108,8 +108,9 @@ class tpl_static {
         if ($mask == '*') {
             $dirname = substr($filename, 0, -1);
             $path = $this->get_template_path($dirname, 0);
-            $file = substr($path, 0, 0 - strlen($dirname)) . $compile;
+            $file = $this->static_dir . $compile;
             $scss_file = $file . '.scss';
+
             if ($this->conf['env'] == 'online' && $this->check_file_exists($scss_file)) {
 
             } else {
@@ -119,6 +120,7 @@ class tpl_static {
                     'output' => $file,
                 );
                 $result = sprite::process($sprite_conf);
+
                 file_put_contents($scss_file, $result['css']);
                 // to copy img file
                 if ($result['img']) {
@@ -203,23 +205,20 @@ class tpl_static {
                 if (($check_file && is_file($path . $filename)) ||
                     (!$check_file && is_dir($path . $filename))
                 ) {
-                    $file = $path . $filename;
-                    break;
+                    return $path . $filename;
                 }
             }
         }
-        if (empty($file)) {
-            foreach ($this->conf['view_path'] as $path) {
-                if (($check_file && is_file($path . $filename)) ||
-                    (!$check_file && is_dir($path . $filename))
-                ) {
-                    $file = $path . $filename;
-                    break;
-                }
+        foreach ($this->conf['view_path'] as $path) {
+            if (($check_file && is_file($path . $filename)) ||
+                (!$check_file && is_dir($path . $filename))
+            ) {
+                return $path . $filename;
             }
         }
         return $file;
     }
+
 
     /**
      * check file exists

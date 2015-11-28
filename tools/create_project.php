@@ -58,10 +58,18 @@ preg_match_all('#\/([\w\-]+)\/$#i', PATH, $dir);
 $dir = str_replace('', '', $dir[1][0]);
 define('APP_NAME', $dir);
 
-if (!is_file(PATH . '../mzphp/mzphp.php')) {
-    show_message('没有找到 mzphp 目录，请确定应用和 mzphp 框架是在同一级目录');
+$init_path = '../mzphp/';
+$init_file = PATH . '../mzphp/mzphp.php';
+if (!is_file($init_file)) {
+    $init_file = PATH . './mzphp/mzphp.php';
+    $init_path = './mzphp/';
+    if (!is_file($init_file)) {
+        $init_file = '';
+    }
 }
-
+if (!$init_file) {
+    show_message('没有找到 mzphp 目录，请确定：本应用和 mzphp 框架是在同一级目录，或者 mzphp 在当前同级目录');
+}
 
 if (!APP_NAME) {
     show_message('错误的目录名，请重试');
@@ -110,137 +118,136 @@ $static_common_css = PATH . 'static/common.css';
 
 if (!is_file($conffile)) {
     $s = "<?php
- 
-/**************************************************************************************************
- 	【注意】：
- 		1. 请不要使用 Windows 的记事本编辑此文件！此文件的编码为UTF-8编码，不带有BOM头！
- 		2. 建议使用UEStudio, Notepad++ 类编辑器编辑此文件！
-***************************************************************************************************/
+/*
+********请不尽量不要使用记事本编辑本文件，请务必移除 BOM 头*****
+*/
 
 function get_url_abpath(){
-	return substr(\$_SERVER['PHP_SELF'], 0, strrpos(\$_SERVER['PHP_SELF'], '/'));
+    return substr(\$_SERVER['PHP_SELF'], 0, strrpos(\$_SERVER['PHP_SELF'], '/'));
 }
 \$app_dir = get_url_abpath().'/';
 \$app_dir_reg = preg_quote(\$app_dir);
 
 return array(
-	//db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
-	'db' => array(
-			'mysql' => array(
-				'host' => '127.0.0.1',
-				'user' => 'root',
-				'pass' => '',
-				'name' =>  'test',
-				'charset' => 'utf8',
-				'tablepre' => 'bbs_',
-				'engine'=> 'MYISAM',
-			),
-			//other example 
-			/*
-			'pdo_mysql' => array(
-				'host' => '127.0.0.1',
-				'user' => 'root',
-				'pass' => '',
-				'name' =>  'test',
-				'charset' => 'utf8',
-				'tablepre' => 'bbs_',
-				'engine'=> 'MYISAM',
-			),
-			'pdo_sqlite' => array(
-				'host' => ROOT_PATH.'data/tmp/sqlite_test.db',			
-				'tablepre' => 'bbs_',	
-			),
-			*/
-		),
-	// cache support: memcache/file(缓存支持：memcache/文件缓存)
-	'cache' => array(
-		/*
-		'memcache' => array(
-			'host' => '127.0.0.1:11211',
-			'pre' => 'bbs_',
-		),
-		*/
-		'file' => array(
-			'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
-			'pre' => 'bbs_',
-		),
-	),
+    //db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
+    'db' => array(
+        'mysql' => array(
+            'host' => '127.0.0.1',
+            'user' => 'root',
+            'pass' => '',
+            'name' =>  'test',
+            'charset' => 'utf8',
+            'tablepre' => 'bbs_',
+            'engine'=> 'MYISAM',
+        ),
+        //other example
+        /*
+        'pdo_mysql' => array(
+            'host' => '127.0.0.1',
+            'user' => 'root',
+            'pass' => '',
+            'name' =>  'test',
+            'charset' => 'utf8',
+            'tablepre' => 'bbs_',
+            'engine'=> 'MYISAM',
+        ),
+        'pdo_sqlite' => array(
+            'host' => ROOT_PATH.'data/tmp/sqlite_test.db',
+            'tablepre' => 'bbs_',
+        ),
+        */
+    ),
+    // cache support: memcache/file(缓存支持：memcache/文件缓存)
+    'cache' => array(
+        /*
+        'memcache' => array(
+            'host' => '127.0.0.1:11211',
+            'pre' => 'bbs_',
+        ),
+        */
+        'file' => array(
+            'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
+            'pre' => 'bbs_',
+        ),
+    ),
 
-	// 唯一识别ID
-	'app_id' => '" . $appname . "',
-	
-	//网站名称
-	'app_name' => '" . $appname . "',
-	
-	// cookie 前缀
-	'cookie_pre' => '" . $appname . "',
-	
-	// cookie 域名
-	'cookie_domain' => '',
-	
-	//是否开启 gzip
-	'gzip' => 0,
+    // 唯一识别ID
+    'app_id' => '" . $appname . "',
 
-	//是否接受x_forwarded_for传过来的ip(反代的时候需要)
-	//'ip_x_forward' => 1,
-	
-	// 应用的绝对路径： 如: http://www.domain.com/bbs/
-	'app_url' => '" . get_url_path() . "',
-	
-	// 应用的所在路径： 如: http://www.domain.com/bbs/
-	'app_dir' => \$app_dir,
-	
-	// CDN 缓存的静态域名，如 http://static.domain.com/
-	'static_url' => '" . get_url_path() . "static/',
-	
-	// CDN 本地缓存的静态目录，如 http://static.domain.com/
-	'static_dir' => ROOT_PATH.'static/',
+    //网站名称
+    'app_name' => '" . $appname . "',
 
-	// 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
-	'core_path' => $APP_PATH.'core/',
-	
-	// 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 tmp/bbs_xxx.htm.php
-	'view_path' => array($APP_PATH.'view/'), 
-	
-	// 数据模块的路径，按照数组顺序搜索目录
-	'model_path' => array($APP_PATH.'model/'),
-	
-	// 自动加载 model 的配置， 在 model_path 中未找到 modelname 的时候尝试扫描此项, modelname=>array(tablename, primarykey, maxcol)
-	'model_map' => array(),
-	
-	// 业务控制层的路径，按照数组顺序搜索目录，结果缓存在 tmp/bbs_xxx_control.class.php
-	'control_path' => array($APP_PATH.'control/'),
-	
-	// 临时目录，需要可写，可以指定为 linux /dev/shm/ 目录提高速度, 支持 file_put_contents() file_get_contents(), 不支持 fseek(),  SAE: saekv://
-	'tmp_path' => $APP_PATH.'data/tmp/',
+    // cookie 前缀
+    'cookie_pre' => '" . $appname . "',
 
-	// 日志目录，需要可写
-	'log_path' => $APP_PATH.'data/log/',
-	
-	// 服务器所在的时区
-	'timeoffset' => '+8',
-	
-	// 模板支持 static 插件，支持 scss、css、js 打包
-	'tpl' => array(
-		'plugins' => array(
-			'tpl_static' => FRAMEWORK_PATH.'plugin/tpl_static.class.php',
-		),
-	),
-	
-	// 开启rewrite
-	'url_rewrite' => 1,
+    // cookie 域名
+    'cookie_domain' => '',
 
-	// 是否不压缩 html代码(如果不开启，html中的<script>片段不能有//行注释，只能用块注释/**/)
-	'html_no_compress' => 0,
-	
-	//url rewrite params
-	'rewrite_info' => array(
-		'comma' => '/', // options: / \ - _  | . , 
-		'ext' => '.html',// for example : .htm
-	),
-	'str_replace' => array(),
-	
-	'reg_replace' => array(),
+    //是否开启 gzip
+    'gzip' => 0,
+
+    //是否接受 x_forwarded_for 传过来的ip(反代的时候需要)
+    //正常单机外网运行下，建议关掉，因为能伪造 ip
+    //'ip_x_forward' => 1,
+
+    // 应用的绝对路径： 如: http://www.domain.com/app/
+    'app_url' => '" . get_url_path() . "',
+
+    // 应用的所在路径： 如: http://www.domain.com/app/
+    'app_dir' => \$app_dir,
+
+    // CDN 缓存的静态域名，如 http://static.domain.com/
+    'static_url' => '" . get_url_path() . "static/',
+
+    // CDN 本地缓存的静态目录，如 http://static.domain.com/
+    'static_dir' => ROOT_PATH.'static/',
+
+    // 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
+    'core_path' => $APP_PATH.'core/',
+
+    // 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 tmp/bbs_xxx.htm.php
+    'view_path' => array($APP_PATH.'view/'),
+
+    // 数据模块的路径，按照数组顺序搜索目录
+    'model_path' => array($APP_PATH.'model/'),
+
+    // 自动加载 model 的映射表， 在 model_path 中未找到 model 的时, modelname=>array(tablename, primarykey, maxcol)
+    'model_map' => array(),
+
+    // 控制器的路径，按照数组顺序搜索目录
+    'control_path' => array($APP_PATH.'control/'),
+
+    // 临时目录，需要可写，可以指定为 linux /dev/shm/ 目录提高速度,
+    'tmp_path' => $APP_PATH.'data/tmp/',
+
+    // 日志目录，需要可写
+    'log_path' => $APP_PATH.'data/log/',
+
+    // 服务器所在的时区
+    'timeoffset' => '+8',
+
+    // 模板插件
+    'tpl' => array(
+        'plugins' => array(
+        	// 支持 static 语法插件，支持 scss、css、js 打包
+            'tpl_static' => FRAMEWORK_PATH.'plugin/tpl_static.class.php',
+        ),
+    ),
+
+    // 开启rewrite
+    'url_rewrite' => 1,
+
+    // 是否不压缩 html代码(如果不开启，html中的<script>片段不能有//行注释，只能用块注释/**/)
+    'html_no_compress' => 0,
+
+    // 地址重写的分隔符和后缀设置
+    'rewrite_info' => array(
+        'comma' => '/', // options: / \ - _  | . ,
+        'ext' => '.html',// for example : .htm
+    ),
+    'str_replace' => array(),
+
+    'reg_replace' => array(),
 );
 	";
 
@@ -252,38 +259,39 @@ return array(
     }
 }
 
-//str_replace('\\\\', '/', )
 
 if (!is_file($indexfile)) {
     $s = "<?php
 \$_SERVER['ENV'] = isset(\$_SERVER['ENV']) ? \$_SERVER['ENV'] : 'debug';
 // 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
+// 线上请务必将此参数修改复杂不可猜出
 define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
 // 站点根目录
 define('ROOT_PATH', dirname(__FILE__).'/');
 // 框架的物理路径
-define('FRAMEWORK_PATH', $APP_PATH.'../mzphp/');
-// 404
+define('FRAMEWORK_PATH', $APP_PATH.'$init_path');
+// 定义 404，如果 PHP < 5.3 请修改 404 为静态 function
 \$page_setting = array(
-	404 => function(\$control = ''){
-		header(\$_SERVER['SERVER_PROTOCOL'].' 404 Not Found');
+    404 => function(\$control = ''){
+    header(\$_SERVER['SERVER_PROTOCOL'].' 404 Not Found');
 		include('404.htm');
 		exit;
 	},
 );
 
 if(!(\$conf = include(ROOT_PATH.'conf/conf.'.\$_SERVER['ENV'].'.php'))) {
-	\$page_setting[404]();
+    \$page_setting[404]();
 }
 
 // 错误页面设置
 \$conf['page_setting'] = isset(\$conf['page_setting']) ? array_merge(\$page_setting, \$conf['page_setting']) : \$page_setting;
 
+//定义运行环境
 \$conf['env'] = \$_SERVER['ENV'];
 
 // 核心扩展目录
 if(isset(\$conf['core_path'])){
-	define('FRAMEWORK_EXTEND_PATH', \$conf['core_path']);
+    define('FRAMEWORK_EXTEND_PATH', \$conf['core_path']);
 }
 
 // 临时目录
@@ -308,12 +316,13 @@ if (!is_file($view_header_file)) {
     $s = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>Title</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<!--{static ../static/reset.css _global.css}-->
-	<!--{static ../static/common.css _global.css}-->
-	<!--{static ../static/jquery.js _global.js}-->
-	<!--{static ../static/common.js _global.js}-->
+    <title>mzphp</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- static 第一个参数是相对当前模板的路径 第二个是基于 static 目录的路径 -->
+    <!--{static ../static/reset.css _global.css}-->
+    <!--{static ../static/common.css _global.css}-->
+    <!--{static ../static/jquery.js _global.js}-->
+    <!--{static ../static/common.js _global.js}-->
 </head>
 <body>
 <h3>mzphp Framework</h3>
@@ -324,7 +333,12 @@ if (!is_file($view_header_file)) {
 
 if (!is_file($view_index_file)) {
     $s = '<!--{template header.htm}-->
-	<h1>Hello, mzPHP! Hello, $username.</h1>
+<!--{block hello($name,$username)}-->
+<h1>Hello, $name! Hello, $username.</h1>
+<!--{/block}-->
+
+{block_hello(\'mzphp\', $username)}
+
 <!--{template footer.htm}-->';
     file_put_contents($view_index_file, $s);
 }
@@ -341,23 +355,23 @@ $control_index_file = PATH . 'control/index_control.class.php';
 if (!is_file($control_index_file)) {
     $s = "<?php
 
-!defined('FRAMEWORK_PATH') && exit('FRAMEWORK_PATH not defined.');
+!defined('FRAMEWORK_PATH') && exit('Access Deined.');
 
 class index_control extends base_control {
-	
-	function __construct(&\$conf) {
+
+    function __construct(&\$conf) {
 		parent::__construct(\$conf);
 	}
-	
-	public function on_index() {
-		
-		\$username = 'Jobs';
-		VI::assign('username', \$username);
-		VI::display(\$this, 'index.htm');
-	
-	}
+
+public function on_index() {
+
+    \$username = 'Jobs';
+    VI::assign('username', \$username);
+    VI::display(\$this, 'index.htm');
+
 }
-		
+}
+
 ?>";
 
     file_put_contents($control_index_file, $s);
@@ -385,9 +399,8 @@ if (!is_file($static_common_css)) {
     file_put_contents($static_common_css, $s);
 }
 
-
 $url = $app_url . "?c=index-index";
-@unlink('./auto_create.php');
+@unlink('./create_project.php');
 show_message("<a href='{$url}'>应用框架代码生成完毕！ 发布时请记得带上同级目录的 mzphp 目录（本文件已删除）</a>");
 
 
