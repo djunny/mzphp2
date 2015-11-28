@@ -50,17 +50,17 @@ git clone git@git.oschina.net:mz/mzphp2.git
 
 请在项目目录建立一个hello_world(与 mzphp 目录同级)
 
-复制 mzphp_tool 目录下的 auto_create.php 到　hello_world 目录。
+复制 tools 目录下的 create_project.php 到　hello_world 目录。
 
 提供两种方法生成项目结构：
 
-- 第一种：打开浏览器访问 auto_create.php ，生成
+- 第一种：打开浏览器访问 create_project.php ，生成
 - 第二种：在命令行下 
 
 ```
 cd hello_world
 
-php auto_create.php
+php create_project.php
 ```
 
 
