@@ -14,7 +14,7 @@ class mysql_db {
      */
     function __construct(&$db_conf) {
         if (!function_exists('mysql_connect')) {
-            die('mysql extension was not installed!');
+            throw new Exception('mysql extension was not installed!');
         }
         $this->connect($db_conf);
     }
@@ -383,7 +383,7 @@ class mysql_db {
                     }
                 }
             }
-        } else if ($where) {
+        } elseif ($where) {
             $where_sql = ' AND ' . $where;
         }
         return $where_sql ? ' WHERE 1 ' . $where_sql . ' ' : '';

@@ -17,7 +17,7 @@ class pdo_mysql_db {
      */
     function __construct(&$db_conf) {
         if (!class_exists('PDO')) {
-            die('PDO extension was not installed!');
+            throw new Exception('PDO extension was not installed!');
         }
         $this->connect($db_conf);
     }
