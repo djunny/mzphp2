@@ -1,6 +1,6 @@
 gitbook 帮助文档：
 
-[https://djunny.gitbooks.io/mzphp/content/index.html](http://https://djunny.gitbooks.io/mzphp/content/index.html)
+[https://djunny.gitbooks.io/mzphp/content/index.html](https://djunny.gitbooks.io/mzphp/content/index.html)
 
 
 ### 序
