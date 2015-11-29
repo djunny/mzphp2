@@ -440,21 +440,21 @@ is_compress 参数可以为 0 或 1(默认 1)，为 1 时，source_file 压缩�
 
 在以上例子中,系统做了以下处理：
 
-1. 先合并 scss/png/ 中所有图片为: scss/sprite.png，同时生成坐标 scss 文件：scss/sprite.scss
-2. scss/test.scss 中调用 @import 'sprite'; 然后用 scss 语法来继承对应的 icon 或 图片即可，例（图片路径中.会变成-，更具体可以先成生一次后，打开生成后的sprite.scss看看）：
+1.先合并 scss/png/ 中所有图片为: scss/sprite.png，同时生成坐标 scss 文件：scss/sprite.scss
+2.scss/test.scss 中调用 @import 'sprite'; 然后用 scss 语法来继承对应的 icon 或 图片即可，例（图片路径中.会变成-，更具体可以先成生一次后，打开生成后的sprite.scss看看）：
 
 ```
 .find{
     @extend .filename-extention;
 }
 ```
-3. 开启合并文件 js/_a.js ，并将 js/test1.js 写入。
-4. 读取 js/test2.js，写入 js/_a.js 尾部。
-5. 读取 js/test3.js，并压缩，写入 js/_a.js
-6. <!--{static scss/png/* scss/sprite}--> 替换成 空
-7. <!--{static scss/test.scss scss/_a.css}--> 替换成 <link rel="stylesheet" href="scss/_a.css">
-8. <!--{static js/test1.js js/_a.js}--> 替换成 <script src="js/_a.js"></script>
-9. <!--{static js/test2.js js/_a.js 0}--> <!--{static js/test3.js js/_a.js 1}--> 均替换成空
+3.开启合并文件 js/_a.js ，并将 js/test1.js 写入。
+4.读取 js/test2.js，写入 js/_a.js 尾部。
+5.读取 js/test3.js，并压缩，写入 js/_a.js
+6.<!--{static scss/png/* scss/sprite}--> 替换成 空
+7.<!--{static scss/test.scss scss/_a.css}--> 替换成 < link rel="stylesheet" href="scss/_a.css">
+8.<!--{static js/test1.js js/_a.js}--> 替换成 < script src="js/_a.js"></ script>
+9.<!--{static js/test2.js js/_a.js 0}--> <!--{static js/test3.js js/_a.js 1}--> 均替换成空
 
 
 
