@@ -1,3 +1,8 @@
+gitbook 帮助文档：
+
+[https://djunny.gitbooks.io/mzphp/content/index.html](http://https://djunny.gitbooks.io/mzphp/content/index.html)
+
+
 ### 序
 
 很久以来，楼主开发站点无数，一直希望能有一个枚，日开数站的 PHP 框架出现。
