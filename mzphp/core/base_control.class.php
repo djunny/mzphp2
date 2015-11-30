@@ -24,20 +24,19 @@ class base_control {
      * @throws Exception
      */
     public function __get($var) {
-        if ($var == 'view') {
-            // 传递 全局的 $conf
-            $this->view = new template($this->conf);
-            return $this->view;
-        } else if (class_exists($var)) {
+        // class_exists 会自动去取 spl_autoload_register 注册的方法
+        if (class_exists($var)) {
             $this->$var = new $var();
             return $this->$var;
         } else {
-            // 遍历全局的 conf，包含 model
+            // 如果没有取到 model
+            // 读取 $conf['model_map'] 中配置了对应的 model 映射
             $this->$var = core::model($this->conf, $var);
             if (!$this->$var) {
-                throw new Exception('Not found model:' . $var);
+                throw new Exception('Not Found Model:' . $var);
+            }else {
+                return $this->$var;
             }
-            return $this->$var;
         }
     }
 
@@ -47,7 +46,7 @@ class base_control {
      * @throws Exception
      */
     public function __call($method, $args) {
-        throw new Exception('base_control.class.php: Not implement method：' . $method . ': (' . var_export($args, 1) . ')');
+        throw new Exception('base_control.class.php Not implement method：' . $method . ': (' . var_export($args, 1) . ')');
     }
 
     /**
@@ -58,22 +57,6 @@ class base_control {
     public function show($template = '', $make_file = '', $charset = '') {
         $template = $template ? $template : core::R('c') . '_' . core::R('a') . '.htm';
         return VI::display($this, $template, $make_file, $charset);
-    }
-
-    /**
-     * @param $var
-     * @param $val
-     */
-    public function assign($var, &$val) {
-        VI::assign($var, $val);
-    }
-
-    /**
-     * @param $var
-     * @param $val
-     */
-    public function assign_value($var, $val) {
-        VI::assign_value($var, $val);
     }
 }
 

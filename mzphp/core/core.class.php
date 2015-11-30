@@ -125,11 +125,7 @@ class core {
                 $domain = $_SERVER['cookie_domain'];
             }
 
-            if (version_compare(PHP_VERSION, '5.2.0') >= 0) {
-                setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
-            } else {
-                setcookie($key, $value, $time, $path, $domain, FALSE);
-            }
+            return setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
         }
     }
 
@@ -378,31 +374,16 @@ class core {
      * @throws Exception
      */
     public static function autoload_handle($classname) {
-        $libclasses = array('db', 'template', 'base_control');
-        if (substr($classname, 0, 3) == 'db_') {
-            include FRAMEWORK_PATH . 'db/' . $classname . '.class.php';
-            return class_exists($classname, false);
-        } elseif (substr($classname, 0, 6) == 'cache_') {
-            include FRAMEWORK_PATH . 'cache/' . $classname . '.class.php';
-            return class_exists($classname, false);
-
-        } elseif (in_array($classname, $libclasses)) {
-            include FRAMEWORK_PATH . 'core/' . $classname . '.class.php';
-            return class_exists($classname, false);
-        } elseif ($classname == 'debug') {
-            include FRAMEWORK_PATH . 'debug/debug.class.php';
-            return class_exists($classname, false);
-        } else {
-            global $conf;
-            if (!class_exists($classname)) {
-                $modelfile = self::model_file($conf, $classname);
-                if ($modelfile && is_file($modelfile)) {
-                    include_once $modelfile;
-                }
+        static $model_loaded = array();
+        $conf = &core::$conf;
+        if (!class_exists($classname)) {
+            $modelfile = self::model_file($conf, $classname);
+            if ($modelfile) {
+                include $modelfile;
             }
-            if (!class_exists($classname, false)) {
-                throw new Exception('class ' . $classname . ' does not exists');
-            }
+        }
+        if (!class_exists($classname, false)) {
+            throw new Exception('class ' . $classname . ' does not exists');
         }
         return true;
     }
@@ -415,16 +396,43 @@ class core {
      * @return string
      */
     public static function model_file($conf, $model) {
-        $modelname = 'model_' . $model . '.class.php';
         //search model file
-        $orgfile = '';
+        $model_file = '';
         foreach ($conf['model_path'] as &$path) {
             if (is_file($path . $model . '.class.php')) {
-                $orgfile = $path . $model . '.class.php';
+                $model_file = $path . $model . '.class.php';
                 break;
             }
         }
-        return $orgfile;
+        return $model_file;
+    }
+
+    /**
+     * load model
+     *
+     * @param        $conf
+     * @param        $model
+     * @return base_model
+     * @throws Exception
+     * example :
+     * self::model($conf, 'user');
+     */
+    public static function model(&$conf, $model) {
+        $model_data = $conf['model_map'][$model];
+        if (!$model_data) {
+            return false;
+        }
+        //
+        if (is_string($model_data)) {
+            // 别名方式
+            if (class_exists($model_data)) {
+                return new $model_data();
+            }
+            // 主键方式
+            return DB::T($model, $model_data);
+        }
+        throw new Exception('Not found model: ' . $model);
+
     }
 
     /**
@@ -527,65 +535,6 @@ class core {
         }
         sort($arr);// 根据名称从低到高排序
         return $arr;
-
-    }
-
-    /**
-     * load model
-     *
-     * @param        $conf
-     * @param        $model
-     * @param array  $primarykey
-     * @param string $maxcol
-     * @return base_model
-     * @throws Exception
-     * example :
-     * self::model($conf, 'userext');
-     * self::model($conf, 'userext', 'uid', 'uid');
-     */
-    public static function model(&$conf, $model, $primarykey = array(), $maxcol = '') {
-        if (class_exists($model)) {
-            $new = new $model();
-            return $new;
-        }
-        $modelname = 'model_' . $model . '.class.php';
-        if (isset($_SERVER['models'][$modelname])) {
-            return $_SERVER['models'][$modelname];
-        }
-
-        // 隐式加载 model，从配置文件中加载
-        if (empty($primarykey)) {
-            // 自动配置 model, 不再以来 model/xxx.class.php
-            if (isset($conf['model_map'][$model])) {
-                $arr = $conf['model_map'][$model];
-                $new = new base_model($conf);
-                $new->table = $arr[0];
-                $new->primarykey = (array)$arr[1];
-                $new->maxcol = isset($arr[2]) ? $arr[2] : '';
-                $_SERVER['models'][$modelname] = $new;
-                return $new;
-                // 搜索 model_path, plugin_path
-            } else {
-                $modelfile = self::model_file($conf, $model);
-                if ($modelfile) {
-                    include_once $modelfile;
-                    $new = new $model($conf);
-                    $_SERVER['models'][$modelname] = $new;
-                    return $new;
-                } else {
-                    throw new Exception("Not found model: $model.");
-                }
-            }
-            //throw new Exception("$model 在配置文件中的 model_map 中没有定义过。");
-            // 显式加载 model
-        } else {
-            $new = new base_model($conf);
-            $new->table = $model;
-            $new->primarykey = (array)$primarykey;
-            $new->maxcol = $maxcol;
-            $_SERVER['models'][$modelname] = $new;
-            return $new;
-        }
     }
 
     /**

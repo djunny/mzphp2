@@ -344,7 +344,9 @@ if (!is_file($view_index_file)) {
 }
 
 if (!is_file($view_footer_file)) {
-    $s = '</body>
+    $s = '<br>processTime: {print_r(core::usedtime())}ms
+<Br><br><a href="?'.$appname.'_debug">[Open Debug]</a>
+</body>
 </html>
 ';
     file_put_contents($view_footer_file, $s);
