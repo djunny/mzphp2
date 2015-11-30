@@ -2,6 +2,60 @@ gitbook 帮助文档：
 
 [https://djunny.gitbooks.io/mzphp/content/index.html](https://djunny.gitbooks.io/mzphp/content/index.html)
 
+### 性能评测
+
+既然大家都对性能这么有疑问，那么我拿最简单 Hello World 来做一个简单的评测：
+
+**如何评测性能？**
+
+XDEBUG 后能产生一个 profile
+通过 wincachegrind 能直观看到框架每一行的性能损耗。
+
+**测试环境**
+
+Windows 虚拟机，i7 2核 + 1G内存。PHP 最基础环境。
+
+
+
+**测试框架**
+
+1. mzphp 最新版本（2015.11.30）
+2. TP 最新版本（2015.11.30）
+
+
+**测试结果**
+
+为了最佳性能，会让两个框架连续运行 20 次，然后输出 XDEB 的 profile：
+
+跑出来的 profile 文件大小对比：
+
+![PROFILE 对比](http://static.oschina.net/uploads/space/2015/1130/191415_zqyH_130215.jpg "在这里输入图片标题")
+
+**mzphp结果**
+
+mzphp 的 profile line-by-line结果：
+![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191415_eURD_130215.jpg "在这里输入图片标题")
+
+mzphp 的 profile overall结果：
+![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191415_5XqX_130215.png "在这里输入图片标题")
+
+**TP结果**
+
+TP 的 profile line-by-line结果：
+![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191726_JDUS_130215.jpg "在这里输入图片标题")
+
+
+TP 的 profile overall结果：
+![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191726_RBVC_130215.jpg "在这里输入图片标题")
+
+
+mzphp 跑热后，项目加载以及调取的时间为 **1.6ms**
+而 TP 跑热后，项目的加载时间为：**5.5ms**
+
+
+具体的 profile 数据，大家可以下载自行查看（window 下使用 [wincachegrind](https://github.com/ceefour/wincachegrind/releases/tag/1.1) 查看）：
+
+传送地址：[profile下载](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18030&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB5%2FfMqNk1ZcM52ALi1XAAAvR4KUI0E424.rar%3Ftoken%3Dbea927e70f52c4dde2ed7901222ffe18%26ts%3D1448883042%26attname%3Dprofile-xdebug.rar)
 
 ### 序
 
