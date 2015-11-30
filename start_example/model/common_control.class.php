@@ -1,4 +1,5 @@
 <?php
+!defined('FRAMEWORK_PATH') && exit('Access Denied.');
 
 /*
 因为 common_control 需要依赖 base_common 

@@ -1,4 +1,5 @@
 <?php
+!defined('FRAMEWORK_PATH') && exit('Access Denied.');
 
 /*
 common_control from external core path = FRAMEWORK_EXTEND_PATH

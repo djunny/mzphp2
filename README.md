@@ -217,11 +217,11 @@ class user_control extends base_control {
 
 此方法用于简单的 DAO 层调用。
 
-第二种，在项目 model 目录中，新建一个 user.class.php 定义 user 继承自 base_db， 
+第二种，在项目 model 目录中，新建一个 user.class.php 定义 user 继承自 base_model， 
 ```
 <?php
 !defined('FRAMEWORK_PATH') && exit('Accesss Deined');
-class user extends base_db {
+class user extends base_model {
 	function __construct() {
 		parent::__construct('user', 'id');
 	}

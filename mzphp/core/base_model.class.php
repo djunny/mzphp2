@@ -1,8 +1,9 @@
 <?php
+
 /**
- * Class base_db
+ * Class base_model
  */
-class base_db {
+class base_model {
 
     public $table;
     public $primary_key;
@@ -18,6 +19,13 @@ class base_db {
         $this->primary_key = $primary_key;
     }
 
+    /**
+     * update $data by $id
+     *
+     * @param $data
+     * @param $id
+     * @return mixed
+     */
     public function update($data, $id) {
         if (is_array($id)) {
             return DB::update($this->table, $data, $id);
@@ -26,22 +34,56 @@ class base_db {
         }
     }
 
+    /**
+     * insert data
+     *
+     * @param     $data
+     * @param int $return_id
+     * @return mixed
+     */
     public function insert($data, $return_id = 0) {
         return DB::insert($this->table, $data, $return_id);
     }
 
+    /**
+     * replace $data
+     *
+     * @param $data
+     * @return mixed
+     */
     public function replace($data) {
         return DB::replace($this->table, $data);
     }
 
+    /**
+     * db select method
+     *
+     * @param     $where
+     * @param int $order
+     * @param int $perpage
+     * @param int $page
+     * @return mixed
+     */
     public function select($where, $order = 0, $perpage = -1, $page = 1) {
         return DB::select($this->table, $where, $order, $perpage, $page);
     }
 
+    /**
+     * get recode
+     *
+     * @param $id id or id array
+     * @return array array or single record
+     */
     public function get($id) {
         return DB::select($this->table, array($this->primary_key => $id), 0, 0);
     }
 
+    /**
+     * delete record by id or id array
+     *
+     * @param $id
+     * @return int|mixed
+     */
     public function delete($id) {
         if (is_array($id)) {
             if (isset($id[0])) {
@@ -49,12 +91,13 @@ class base_db {
                 foreach ($id as $_id) {
                     self::delete($_id);
                 }
+                return 1;
             } else {
                 //delete by where
-                DB::delete($this->table, $id);
+                return DB::delete($this->table, $id);
             }
         } else {
-            DB::delete($this->table, array($this->primary_key => $id));
+            return DB::delete($this->table, array($this->primary_key => $id));
         }
     }
 }

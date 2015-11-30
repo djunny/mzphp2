@@ -1,4 +1,5 @@
 <?php
+!defined('FRAMEWORK_PATH') && exit('Access Denied.');
 
 class base_common extends base_control {
     function __construct(&$conf) {

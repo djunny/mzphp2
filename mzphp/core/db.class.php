@@ -216,14 +216,15 @@ class DB {
         static $models = array();
         $index = self::$db_table_pre . $table;
         if (!$models[$index]) {
-            $models[$index] = new base_db($table, $primary_key);
-        }else{
+            $models[$index] = new base_model($table, $primary_key);
+        } else {
             // define primary key
-            if($models[$index]->primary_key != $primary_key){
+            if ($models[$index]->primary_key != $primary_key) {
                 $models[$index]->primary_key = $primary_key;
             }
         }
         return $models[$index];
     }
 }
+
 ?>
