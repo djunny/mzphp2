@@ -136,8 +136,8 @@ class template {
             define('DIR', $conf['app_dir']);
         }
         // static path use in template
-        if (!defined('STATIC')) {
-            define('STATIC', $conf['static_url']);
+        if (!defined('CDN')) {
+            define('CDN', $conf['static_url']);
         }
         VI::assign('conf', $conf);
     }
