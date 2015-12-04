@@ -4,7 +4,7 @@ gitbook 帮助文档：
 
 ### 性能评测
 
-既然大家都对性能这么有疑问，那么我拿最简单 Hello World 来做一个简单的评测：
+既然大家都对性能这么有疑问，那么我拿 Hello World 来做一个简单的评测：
 
 **如何评测性能？**
 
@@ -21,36 +21,50 @@ Windows 虚拟机，i7 2核 + 1G内存。PHP 最基础环境。
 
 1. mzphp 最新版本（2015.11.30）
 2. TP 最新版本（2015.11.30）
+3. CI 最新版本（3.02）
 
 
 **测试结果**
 
-为了最佳性能，会让两个框架连续运行 20 次，然后输出 XDEB 的 profile：
+为了最佳性能，会让三个框架连续运行 20 次，然后输出 XDEBUG 的 profile：
 
-跑出来的 profile 文件大小对比：
+最终的 profile 文件大小对比：
 
-![PROFILE 对比](http://static.oschina.net/uploads/space/2015/1130/191415_zqyH_130215.jpg "在这里输入图片标题")
+![PROFILE 对比](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18173&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVkuAAOJOAADvjy59-E0513.jpg%3Ftoken%3D0f9dd836320cc91141c88be8c8fce6fe%26ts%3D1449219503%26attname%3Dxdebug-filesize.jpg "在这里输入图片标题")
 
-**mzphp结果**
+
+**结果对比**
 
 mzphp 的 profile line-by-line结果：
+
 ![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191415_eURD_130215.jpg "在这里输入图片标题")
 
+TP 的 profile line-by-line结果：
+
+![tp overall](http://static.oschina.net/uploads/space/2015/1130/191726_JDUS_130215.jpg "在这里输入图片标题")
+
+CI 的 profile line-by-line结果：
+
+![ci overall](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18171&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVhmANV_TAADauH66e8o360.jpg%3Ftoken%3Dc2314ec37110909913955c3549dfeacb%26ts%3D1449219503%26attname%3Dci-linebyline.jpg "在这里输入图片标题")
+
 mzphp 的 profile overall结果：
+
 ![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191415_5XqX_130215.png "在这里输入图片标题")
 
-**TP结果**
-
-TP 的 profile line-by-line结果：
-![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191726_JDUS_130215.jpg "在这里输入图片标题")
-
-
 TP 的 profile overall结果：
-![mzphp overall](http://static.oschina.net/uploads/space/2015/1130/191726_RBVC_130215.jpg "在这里输入图片标题")
+
+![tp overall](http://static.oschina.net/uploads/space/2015/1130/191726_RBVC_130215.jpg "在这里输入图片标题")
 
 
-mzphp 跑热后，项目加载以及调取的时间为 **1.6ms**
-而 TP 跑热后，项目的加载时间为：**5.5ms**
+CI 的 profile overall结果：
+
+![ci overall](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18172&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVj6Ab9nzAAMmGu2tB7s458.jpg%3Ftoken%3Def8f9eb025fe250290569839abc994b8%26ts%3D1449219503%26attname%3Dci-overall.jpg "在这里输入图片标题")
+
+mzphp 跑热后，项目加载以及页面运行的时间为 **1.6ms**
+
+CI 跑热后，项目加载以及页面运行的时间为 **2.7ms**
+
+而 TP 跑热后，页面运行时间为：**5.5ms**
 
 
 具体的 profile 数据，大家可以下载自行查看（window 下使用 [wincachegrind](https://github.com/ceefour/wincachegrind/releases/tag/1.1) 查看）：
@@ -68,7 +82,7 @@ PHP 开发框架 mzphp，拥有特点：
 
 - 性能，高性能极致加载、高效率编译和读取！
 - 清晰，大量注释及实例，几分钟就上马进门！
-- 小巧，整个框架 400k，几乎没有冗余代码！
+- 小巧，整个框架 100k，几乎没有冗余代码！
 - 奔放，支持 http 和 cli 双运行，php index.php {$control} {$action} 就能体验 PHP 在命令行下的奔放。（可用于后台常驻内存、爬虫等）
 - 易用，优化过的 discuz 模板引擎，使模板调用更加简约（兼容 php 标签，支持static、block、{method()}等标签）
 - 安全，简单又安全的取参数过程，有效防止 xss，封装的 SQL 防注入过程，确保系统安全。
