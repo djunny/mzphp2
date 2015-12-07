@@ -6,9 +6,9 @@ define('PDO_MYSQL_FETCH_ASSOC', 2);
 class pdo_mysql_db {
 
     var $querynum = 0;
-    var $link;
     var $charset;
-    var $init_db = 0;
+
+    var $conf = array();
 
     /**
      * __construct
@@ -19,7 +19,43 @@ class pdo_mysql_db {
         if (!class_exists('PDO')) {
             throw new Exception('PDO extension was not installed!');
         }
-        $this->connect($db_conf);
+        $this->conf = $db_conf;
+    }
+
+
+    /**
+     * get link
+     *
+     * @param $var
+     * @return PDO|void
+     */
+    public function __get($var) {
+        if ($var == 'write_link') {
+            // 默认带 master 下标
+            if (isset($this->conf['master'])) {
+                $conf = $this->conf['master'];
+            } else {
+                $conf = $this->conf;
+            }
+
+            empty($conf['engine']) && $conf['engine'] = '';
+            $this->write_link = $this->connect($conf, 'master');
+
+            return $this->write_link;
+        } else if ($var == 'read_link') {
+            $slave_count = count($this->conf['slaves']);
+            // 指定主库
+            if (!$slave_count) {
+                $this->read_link = $this->write_link;
+                return $this->read_link;
+            }
+            // 随机拿从库
+            $slaves = $this->conf['slaves'];
+            $slave = $slaves[rand(0, $slave_count - 1)];
+            empty($slave['engine']) && $slave['engine'] = '';
+            $this->read_link = $this->connect($slave, 'slave');
+            return $this->read_link;
+        }
     }
 
     /**
@@ -28,10 +64,7 @@ class pdo_mysql_db {
      * @param $db_conf
      * @return PDO|void
      */
-    function connect(&$db_conf) {
-        if ($this->init_db) {
-            return;
-        }
+    function connect(&$db_conf, $server) {
         $host = $db_conf['host'];
         if (strpos($host, ':') !== FALSE) {
             list($host, $port) = explode(':', $host);
@@ -44,8 +77,7 @@ class pdo_mysql_db {
         } catch (Exception $e) {
             exit('[pdo_mysql]Cant Connect Pdo_mysql:' . $e->getMessage());
         }
-        $link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
-        $this->link = $link;
+        //$link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 
         if ($db_conf['charset']) {
             $link->query('SET NAMES ' . $db_conf['charset'] . ', sql_mode=""');
@@ -55,6 +87,27 @@ class pdo_mysql_db {
         return $link;
     }
 
+    /**
+     * get master or slave link  by sql
+     *
+     * @param $sql
+     * @return resource
+     */
+    function get_link($sql) {
+        return $this->is_slave($sql) ? $this->read_link : $this->write_link;
+    }
+
+    /**
+     * check is slave
+     *
+     * @param $sql
+     * @return bool
+     */
+    function is_slave($sql) {
+        // select / set / show
+        $slave_array = array('sele', 'set ', 'show');
+        return in_array(strtolower(substr($sql, 0, 4)), $slave_array);
+    }
 
     /**
      * execute sql
@@ -64,7 +117,7 @@ class pdo_mysql_db {
      * @return mixed
      */
     public function exec($sql, $link = NULL) {
-        empty($link) && $link = $this->link;
+        $link = $link ? $link : $this->get_link($sql);
         $n = $link->exec($sql);
         return $n;
     }
@@ -76,13 +129,13 @@ class pdo_mysql_db {
      * @return mixed
      * @throws Exception
      */
-    function query($sql) {
+    function query($sql, $link) {
         if (DEBUG) {
             $sqlendttime = 0;
             $mtime = explode(' ', microtime());
             $sqlstarttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
         }
-        $link = &$this->link;
+        $link = $link ? $link : $this->get_link($sql);
 
         $type = strtolower(substr(trim($sql), 0, 4));
         if ($type == 'sele' || $type == 'show') {
@@ -97,16 +150,17 @@ class pdo_mysql_db {
             $sqltime = round(($sqlendttime - $sqlstarttime), 3);
             $explain = array();
             $info = array();
-            //$info = mysql_info();
             if ($result && $type == 'sele') {
-                $explain = $this->fetch_array($link->query('EXPLAIN ' . $sql));
+                $explain_query = $link->query('EXPLAIN ' . $sql);
+                $explain = $this->fetch_array($explain_query);
             }
+            $sql = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
             $_SERVER['sqls'][] = array('sql' => $sql, 'type' => 'mysql', 'time' => $sqltime, 'info' => $info, 'explain' => $explain);
         }
 
         if ($result === FALSE) {
-            $error = $this->error();
-            throw new Exception('[pdo_mysql]Query Error:' . $sql . ' ' . (isset($error[2]) ? "Errstr: $error[2]" : ''));
+            $error = $this->error($link);
+            throw new Exception('[pdo_mysql]Query Error:' . (isset($error[2]) ? "$error[2]" : '') . ',' . (DEBUG ? $sql : ''));
         }
         $this->querynum++;
 
@@ -151,7 +205,7 @@ class pdo_mysql_db {
      * @return mixed
      */
     function affected_rows() {
-        return $this->link->rowCount();
+        return $this->write_link->rowCount();
     }
 
 
@@ -160,8 +214,8 @@ class pdo_mysql_db {
      *
      * @return int
      */
-    function error() {
-        return (($this->link) ? $this->link->errorInfo() : 0);
+    function error($link) {
+        return (($link) ? $link->errorInfo() : 0);
     }
 
     /**
@@ -169,8 +223,8 @@ class pdo_mysql_db {
      *
      * @return int
      */
-    function errno() {
-        return intval(($this->link) ? $this->link->errorCode() : 0);
+    function errno($link) {
+        return intval(($link) ? $link->errorCode() : 0);
     }
 
 
@@ -181,7 +235,8 @@ class pdo_mysql_db {
      * @throws Exception
      */
     function insert_id() {
-        return ($id = $this->link->lastInsertId()) >= 0 ? $id : $this->result($this->query("SELECT last_insert_id()"), 0);
+        $link = $this->write_link;
+        return ($id = $link->lastInsertId()) >= 0 ? $id : $this->result($this->query("SELECT last_insert_id()", $link), 0);
     }
 
     /**

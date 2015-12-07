@@ -132,28 +132,54 @@ return array(
     //db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
     'db' => array(
         'mysql' => array(
-            'host' => '127.0.0.1',
-            'user' => 'root',
-            'pass' => '',
-            'name' =>  'test',
-            'charset' => 'utf8',
-            'tablepre' => 'bbs_',
-            'engine'=> 'MYISAM',
+            'tablepre' => '".$appname."_',
+            'master' => array(
+                'host' => '127.0.0.1',
+                'user' => 'root',
+                'pass' => '',
+                'name' => '".$appname."',
+                'charset' => 'utf8',
+                'engine' => 'MYISAM',
+            ),
+    		/*
+            'slaves' => array(
+                array(
+                    'host' => '127.0.0.1:3066',
+                    'user' => 'root',
+                    'pass' => '',
+                    'name' => '".$appname."',
+                    'charset' => 'utf8',
+                    'engine' => 'MYISAM',
+                ),
+            ),
+    		*/
         ),
         //other example
         /*
         'pdo_mysql' => array(
-            'host' => '127.0.0.1',
-            'user' => 'root',
-            'pass' => '',
-            'name' =>  'test',
-            'charset' => 'utf8',
-            'tablepre' => 'bbs_',
-            'engine'=> 'MYISAM',
+            'master' => array(
+                'host' => '127.0.0.1',
+                'user' => 'root',
+                'pass' => '',
+                'name' => '".$appname."',
+                'charset' => 'utf8',
+                'engine' => 'MYISAM',
+            ),
+            'slaves' => array(
+                array(
+                    'host' => '127.0.0.1',
+                    'user' => 'root',
+                    'pass' => '',
+                    'name' => '".$appname."',
+                    'charset' => 'utf8',
+                    'engine' => 'MYISAM',
+                ),
+            ),
+            'tablepre' => '".$appname."_',
         ),
         'pdo_sqlite' => array(
             'host' => ROOT_PATH.'data/tmp/sqlite_test.db',
-            'tablepre' => 'bbs_',
+            'tablepre' => '".$appname."_',
         ),
         */
     ),
@@ -162,12 +188,12 @@ return array(
         /*
         'memcache' => array(
             'host' => '127.0.0.1:11211',
-            'pre' => 'bbs_',
+            'pre' => '".$appname."_',
         ),
         */
         'file' => array(
             'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
-            'pre' => 'bbs_',
+            'pre' => '".$appname."_',
         ),
     ),
 

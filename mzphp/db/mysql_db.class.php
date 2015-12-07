@@ -3,9 +3,10 @@
 class mysql_db {
 
     var $queries = 0;
-    var $link;
+    //var $link;
     var $charset;
-    var $init_db = 0;
+
+    var $conf = array();
 
     /**
      * __construct
@@ -16,49 +17,107 @@ class mysql_db {
         if (!function_exists('mysql_connect')) {
             throw new Exception('mysql extension was not installed!');
         }
-        $this->connect($db_conf);
+        $this->conf = $db_conf;
+        //$this->connect($db_conf);
     }
+
+    public function __get($var) {
+        if ($var == 'write_link') {
+            // 默认带 master 下标
+            if (isset($this->conf['master'])) {
+                $conf = $this->conf['master'];
+            } else {
+                $conf = $this->conf;
+            }
+
+            empty($conf['engine']) && $conf['engine'] = '';
+            $this->write_link = $this->connect($conf, 'master');
+
+            return $this->write_link;
+        } else if ($var == 'read_link') {
+            $slave_count = count($this->conf['slaves']);
+            // 指定主库
+            if (!$slave_count) {
+                $this->read_link = $this->write_link;
+                return $this->read_link;
+            }
+            // 随机拿从库
+            $slaves = $this->conf['slaves'];
+            $slave = $slaves[rand(0, $slave_count - 1)];
+            empty($slave['engine']) && $slave['engine'] = '';
+            $this->read_link = $this->connect($slave, 'slave');
+            return $this->read_link;
+        }
+    }
+
 
     /**
      * connect db
      *
      * @param $db_conf
      */
-    function connect(&$db_conf) {
-        if ($this->init_db) {
-            return;
-        }
+    function connect(&$db_conf, $server = '') {
         if (isset($db_conf['pconnect']) && $db_conf['pconnect']) {
-            $this->link = @mysql_pconnect($db_conf['host'], $db_conf['user'], $db_conf['pass']);
+            $link = mysql_pconnect($db_conf['host'], $db_conf['user'], $db_conf['pass']);
         } else {
-            $this->link = @mysql_connect($db_conf['host'], $db_conf['user'], $db_conf['pass'], 1);
+            $link = mysql_connect($db_conf['host'], $db_conf['user'], $db_conf['pass'], 1);
         }
-        if (!$this->link) {
-            exit('[mysql]Can not connect to MySQL server, error=' . $this->errno() . ':' . $this->error());
+        if (!$link) {
+            throw new Exception('[mysql]Can not connect to MySQL server, error=' . $this->errno() . ':' . $this->error());
         }
 
         //INNODB
         if (strtoupper($db_conf['engine']) == 'INNODB') {
-            $this->query("SET innodb_flush_log_at_trx_commit=no", $this->link);
+            $this->query("SET innodb_flush_log_at_trx_commit=no", '', $link);
         }
 
-        $version = $this->version();
+        $version = $this->version($link);
         if ($version > '4.1') {
             if (isset($db_conf['charset'])) {
-                $this->query("SET character_set_connection={$db_conf['charset']}, character_set_results={$db_conf['charset']}, character_set_client=binary", $this->link);
+                $this->query("SET character_set_connection={$db_conf['charset']}, character_set_results={$db_conf['charset']}, character_set_client=binary", '', $link);
             }
             if ($version > '5.0.1') {
-                //mysql_query("SET sql_mode=''", $link);
+                $this->query("SET sql_mode=''", '', $link);
             }
         }
-        $this->select_db($db_conf['name'], $this->link);
-        $this->init_db = 1;
+        $this->select_db($db_conf['name'], $link);
+        return $link;
+
     }
 
-    function select_db($dbname) {
-        return mysql_select_db($dbname, $this->link);
+    /**
+     * select db
+     *
+     * @param $dbname
+     * @param $link
+     * @return bool
+     */
+    function select_db($dbname, $link) {
+        return mysql_select_db($dbname, $link);
     }
 
+
+    /**
+     * get master or slave link  by sql
+     *
+     * @param $sql
+     * @return resource
+     */
+    function get_link($sql) {
+        return $this->is_slave($sql) ? $this->read_link : $this->write_link;
+    }
+
+    /**
+     * check is slave
+     *
+     * @param $sql
+     * @return bool
+     */
+    function is_slave($sql) {
+        // select / set / show
+        $slave_array = array('sele', 'set ', 'show');
+        return in_array(strtolower(substr($sql, 0, 4)), $slave_array);
+    }
 
     /**
      * execute sql
@@ -68,9 +127,8 @@ class mysql_db {
      * @return mixed
      */
     function exec($sql) {
-        empty($link) && $link = $this->link;
-        $n = $link->exec($sql);
-        return $n;
+        $link = $this->get_link($sql);
+        return mysql_query($sql, $link);
     }
 
     /**
@@ -80,7 +138,7 @@ class mysql_db {
      * @return mixed
      * @throws Exception
      */
-    function query($sql, $type = '') {
+    function query($sql, $type = '', $link = false) {
         if (DEBUG) {
             $sqlendttime = 0;
             $mtime = explode(' ', microtime());
@@ -91,9 +149,10 @@ class mysql_db {
             $unbuffered_exists = function_exists('mysql_unbuffered_query') ? 1 : 0;
         }
         $func = ($type == 'UNBUFFERED' && $unbuffered_exists) ? 'mysql_unbuffered_query' : 'mysql_query';
-        $query = $func($sql, $this->link);
+        $link = $link ? $link : $this->get_link($sql);
+        $query = $func($sql, $link);
         if ($query === false) {
-            throw new Exception('MySQL Query Error, error=' . $this->errno() . ':' . $this->error() . "\r\n" . $sql);
+            throw new Exception('MySQL Query Error, error=' . $this->errno($link) . ':' . $this->error($link) . "\r\n" . (DEBUG ? $sql : ''));
         }
         if (DEBUG) {
             $mtime = explode(' ', microtime());
@@ -102,8 +161,9 @@ class mysql_db {
             $explain = array();
             $info = mysql_info();
             if ($query && preg_match("/^(select )/i", $sql)) {
-                $explain = mysql_fetch_assoc(mysql_query('EXPLAIN ' . $sql, $this->link));
+                $explain = mysql_fetch_assoc(mysql_query('EXPLAIN ' . $sql, $link));
             }
+            $sql = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
             $_SERVER['sqls'][] = array('sql' => $sql, 'type' => 'mysql', 'time' => $sqltime, 'info' => $info, 'explain' => $explain);
         }
         $this->queries++;
@@ -142,7 +202,7 @@ class mysql_db {
      * @return int
      */
     function affected_rows() {
-        return mysql_affected_rows($this->link);
+        return mysql_affected_rows($this->write_link);
     }
 
     /**
@@ -150,8 +210,8 @@ class mysql_db {
      *
      * @return string
      */
-    function error() {
-        return ($this->link ? mysql_error($this->link) : mysql_error());
+    function error($link) {
+        return ($link ? mysql_error($link) : mysql_error());
     }
 
     /**
@@ -159,8 +219,8 @@ class mysql_db {
      *
      * @return int
      */
-    function errno() {
-        return intval($this->link ? mysql_errno($this->link) : mysql_errno());
+    function errno($link) {
+        return intval($link ? mysql_errno($link) : mysql_errno());
     }
 
     /**
@@ -191,7 +251,8 @@ class mysql_db {
      * @throws Exception
      */
     function insert_id() {
-        return ($id = mysql_insert_id($this->link)) >= 0 ? $id : $this->result($this->query("SELECT last_insert_id()"), 0);
+        $link = $this->write_link;
+        return ($id = mysql_insert_id($link)) >= 0 ? $id : $this->result($this->query("SELECT last_insert_id()", '', $link), 0);
     }
 
 
@@ -199,12 +260,12 @@ class mysql_db {
         return mysql_fetch_field($query);
     }
 
-    function version() {
-        return mysql_get_server_info($this->link);
+    function version($link) {
+        return mysql_get_server_info($link);
     }
 
-    function close() {
-        return mysql_close($this->link);
+    function close($link) {
+        return mysql_close($link);
     }
 
 

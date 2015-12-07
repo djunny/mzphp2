@@ -325,12 +325,12 @@ class template {
             $s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loop_section'), $s);
             $s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loop_section'), $s);
         }
-        $s = preg_replace_callback("/\{(if|elseif|for)\s+(.*?)\}/is", array($this, 'stripvtag_callback'), $s);
+        $s = preg_replace_callback("/\{(if|elseif)\s+(.*?)\}/is", array($this, 'stripvtag_callback'), $s);
 
         //$s = preg_replace_callback("/\{if\s+(.+?)\}/is", array($this, 'strip_vtag_callback'), $s);
 
         $s = preg_replace("/\{else\}/is", "<?}else { ?>", $s);
-        $s = preg_replace("/\{\/(if|for|block)\}/is", "<?}?>", $s);
+        $s = preg_replace("/\{\/(if|block)\}/is", "<?}?>", $s);
         //{else} 也符合常量格式，此处要注意先后顺??
         $s = preg_replace("/" . $this->const_regexp . "/", "<?=\\1?>", $s);
 
