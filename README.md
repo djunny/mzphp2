@@ -216,11 +216,11 @@ class user_control extends base_control {
         // assign variables
         VI::assign('user', $user);
         // default template path is view/user_index.htm
-        $this->display();
+        $this->show();
     }
 }
 ```
-**$this->display** 调用显示模板，
+**$this->show** 调用显示模板，
 
 可以自动识别为 view/user_index.htm,
 
@@ -251,7 +251,7 @@ php index.php user index
 - 在命令行下，你可以 core 中建立一个 cmd_control，在析构方法中做一些限制，例如判断是否 cmd 下运行（可以用 core::is_cmd() 方法）, user_control 继承 cmd_control，能有效的防止 control 被 http 请求到。
 - 在命令行下，不建议使用 echo 来输出 log，可以使用帮助类 log::info($output) 来输入出 log。$output 可以为字符串、数字、数组、MAP。
 - VI::assign 是传**引用**绑定变量、VI::assign_value 是**传值**绑定变量
-- 如果调用 $this->display('user/index')，代表渲染 view/user/index.htm 模板文件。
+- 如果调用 $this->show('user/index')，代表渲染 view/user/index.htm 模板文件。
 
 
 ### mzphp DAO 数据层
