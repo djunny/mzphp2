@@ -231,7 +231,7 @@ return array(
     // 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
     'core_path' => $APP_PATH.'core/',
 
-    // 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 tmp/bbs_xxx.htm.php
+    // 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 data/tmp
     'view_path' => array($APP_PATH.'view/'),
 
     // 数据模块的路径，按照数组顺序搜索目录
