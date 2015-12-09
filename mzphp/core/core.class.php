@@ -538,6 +538,23 @@ class core {
     }
 
     /**
+     * load conf by per domain
+     *
+     * @param $conf
+     * @return string
+     */
+    public static function init_conf_by_domain(&$conf) {
+        if (!$_SERVER['HTTP_HOST'] || !$conf['domain_path']) {
+            return;
+        }
+        $host = preg_replace('#^[\w\-\.]$#is', '', $_SERVER['HTTP_HOST']);
+        $domain_file = $conf['domain_path'] . $host . '.php';
+        if (is_file($domain_file) && $domain_conf = include($domain_file)) {
+            $conf = array_merge($conf, $domain_conf);
+        }
+    }
+
+    /**
      * core run
      *
      * @param $conf
@@ -587,7 +604,8 @@ class core {
      *
      * @param array $conf
      */
-    public static function init($conf = array()) {
+    public static function init(&$conf) {
+        self::init_conf_by_domain($conf);
         self::$conf = $conf;
         // init
         self::init_timezone($conf);

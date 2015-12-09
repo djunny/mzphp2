@@ -243,6 +243,21 @@ return array(
     // 控制器的路径，按照数组顺序搜索目录
     'control_path' => array($APP_PATH.'control/'),
 
+    // 站群域名配置文件
+    // 'domain_path' => ROOT_PATH.'domain/',
+    // 用于站群不同域名指向不同的 view / model / control 目录
+    /*
+        domain/admin.".$appname.".com.php 例子：
+        return array(
+            // 最好重新定义 app_id ， 因为模板引擎会根据 app_id 生成前缀
+            // 否则两个站模板一旦有同样名字会覆盖
+            'app_id' => '".$appname."_admin',
+            'control_path' => array(ROOT_PATH . 'control/admin/'),
+            'model_path' => array(ROOT_PATH . 'model/'),
+            'view_path' => array(ROOT_PATH . 'view/admin/'),
+        ),
+    */
+
     // 临时目录，需要可写，可以指定为 linux /dev/shm/ 目录提高速度,
     'tmp_path' => $APP_PATH.'data/tmp/',
 
@@ -315,7 +330,7 @@ if(!(\$conf = include(ROOT_PATH.'conf/conf.'.\$_SERVER['ENV'].'.php'))) {
 //定义运行环境
 \$conf['env'] = \$_SERVER['ENV'];
 
-// 核心扩展目录
+// 扩展核心目录（该目录文件会一起打包入 runtime.php 文件）
 if(isset(\$conf['core_path'])){
     define('FRAMEWORK_EXTEND_PATH', \$conf['core_path']);
 }
@@ -325,9 +340,6 @@ define('FRAMEWORK_TMP_PATH', \$conf['tmp_path']);
 
 // 日志目录
 define('FRAMEWORK_LOG_PATH', \$conf['log_path']);
-
-//扩展核心目录（该目录文件会一起打包入 runtime.php 文件）
-//define('FRAMEWORK_EXTEND_PATH', ROOT_PATH.'model/');
 
 // 包含核心框架文件，转交给框架进行处理。
 include FRAMEWORK_PATH.'mzphp.php';
