@@ -36,7 +36,7 @@ class template {
      * $abc[a][b][$c] 合法
      * $abc[$a[b]]   不合法
      */
-    private $var_regexp = "\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\$]+\])*";
+    private $var_regexp = "\@?\\\$[a-zA-Z_]\w*(?:\[[\w\.\"\'\-\$]+\])*";
     /**
      * variable tag regexp
      *

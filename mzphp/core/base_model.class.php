@@ -75,7 +75,18 @@ class base_model {
      * @return array array or single record
      */
     public function get($id) {
-        return DB::select($this->table, array($this->primary_key => $id), 0, 0);
+        $where = array($this->primary_key => $id);
+        $perpage = 0;
+        if (is_array($id)) {
+            if (isset($id[0])) {
+                $id = array_map('addslashes', $id);
+                $where = $this->primary_key . ' IN (\'' . implode("','", $id) . '\')';
+                $perpage = -1;
+            } else {
+                $where = $id;
+            }
+        }
+        return DB::select($this->table, $where, 0, $perpage);
     }
 
     /**
