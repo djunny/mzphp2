@@ -200,15 +200,6 @@ class tpl_static {
      */
     private function get_template_path($filename, $check_file = 1) {
         $file = '';
-        if (!empty($this->conf['first_view_path'])) {
-            foreach ($this->conf['first_view_path'] as $path) {
-                if (($check_file && is_file($path . $filename)) ||
-                    (!$check_file && is_dir($path . $filename))
-                ) {
-                    return $path . $filename;
-                }
-            }
-        }
         foreach ($this->conf['view_path'] as $path) {
             if (($check_file && is_file($path . $filename)) ||
                 (!$check_file && is_dir($path . $filename))

@@ -77,6 +77,9 @@ class template {
      */
     private $sub_tpl = array();
 
+    /**
+     * construct template engine
+     */
     function __construct() {
     }
 
@@ -222,20 +225,10 @@ class template {
         $exists_file = is_file($obj_file);
         // 模板目录搜索顺序：view_xxx/, view/, plugin/*/
         $file = '';
-        if (!empty($this->conf['first_view_path'])) {
-            foreach ($this->conf['first_view_path'] as $path) {
-                if (is_file($path . $filename)) {
-                    $file = $path . $filename;
-                    break;
-                }
-            }
-        }
-        if (empty($file)) {
-            foreach ($this->conf['view_path'] as $path) {
-                if (is_file($path . $filename)) {
-                    $file = $path . $filename;
-                    break;
-                }
+        foreach ($this->conf['view_path'] as $path) {
+            if (is_file($path . $filename)) {
+                $file = $path . $filename;
+                break;
             }
         }
         if (empty($file)) {
@@ -254,7 +247,7 @@ class template {
 
         if (!$exists_file || $file_mtime_old < $file_mtime || DEBUG > 0) {
             // create tmp path
-            !is_dir($this->conf['tmp_path']) && mkdir($this->conf['tmp_path'], 0777, 1);
+            !is_dir($this->conf['tmp_path']) && mkdir($this->conf['tmp_path'], 0755, 1);
             $this->compile($file, $obj_file);
         }
         return $obj_file;
@@ -296,47 +289,33 @@ class template {
 
         $this->do_tpl($s);
 
-
-        /*$s = preg_replace("/(?:\{?)($this->var_regexp)(?(1)\}|)/", "<?=\\1?>", $s);*/
-        /*
-        $s = preg_replace("/($this->var_regexp|\{$this->var_regexp\})/", "<?=\\1?>", $s);
-        $s = preg_replace("/\<\?=\{(.+?)\}\?\>/", "<?=\\1?>", $s);//
-        $s = preg_replace("/\{($this->const_regexp)\}/", "<?=\\1?>", $s);
-        */
-
-        $s = preg_replace("#(\{" . $this->var_regexp . "\}|" . $this->var_regexp . ")#", "<?=\\1?>", $s);
+        $s = preg_replace("#(\{" . $this->var_regexp . "\}|" . $this->var_regexp . ")#i", "<?=\\1?>", $s);
         if (strpos($s, '<?={') !== false) {
-            $s = preg_replace("/\<\?={(.+?)}\?\>/", "<?=\\1?>", $s);//
+            $s = preg_replace("#\<\?={(.+?)}\?\>#", "<?=\\1?>", $s);//
         }
 
 
         // 修正 $data[key] -> $data['key']
-        $s = preg_replace_callback("/\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>/is", array($this, 'array_index'), $s);
+        $s = preg_replace_callback("#\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>#is", array($this, 'array_index'), $s);
 
-        /*$s = preg_replace("/(?<!\<\?\=|\\\\)$this->var_regexp/", "<?=\\0?>", $s);*/
-
-        // 分布式部署 http://www.static.com/plugin/view_xxx/common.css
-        //$s = preg_replace('#([\'"])(plugin/view\w*)/#i', '\\1'.$this->conf['static_url'].'\\2/', $s);
-
-        /*$isset = '<\?php echo isset(?:+*?) ? (?:+*?) : ;\?>';*/
-        //$s = preg_replace_callback("/\{for (.*?)\}/is", array($this, 'stripvtag_callback'), $s); //  "\$this->stripvtag('<? for(\\1) {
-
+        // loop
         for ($i = 0; $i < 4; $i++) {
-            $s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loop_section'), $s);
-            $s = preg_replace_callback("/\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}/is", array($this, 'loop_section'), $s);
+            $s = preg_replace_callback("#\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}#is", array($this, 'loop_section'), $s);
+            $s = preg_replace_callback("#\{loop\s+$this->vtag_regexp\s+$this->vtag_regexp\}(.+?)\{\/loop\}#is", array($this, 'loop_section'), $s);
         }
-        $s = preg_replace_callback("/\{(if|elseif)\s+(.*?)\}/is", array($this, 'stripvtag_callback'), $s);
+        // if / elseif
+        $s = preg_replace_callback("#\{(if|elseif)\s+(.*?)\}#is", array($this, 'stripvtag_callback'), $s);
 
-        //$s = preg_replace_callback("/\{if\s+(.+?)\}/is", array($this, 'strip_vtag_callback'), $s);
-
-        $s = preg_replace("/\{else\}/is", "<?}else { ?>", $s);
-        $s = preg_replace("/\{\/(if|block)\}/is", "<?}?>", $s);
+        // else
+        $s = preg_replace("#\{else\}#is", "<?}else { ?>", $s);
+        // end if or block
+        $s = preg_replace("#\{\/(if|block)\}#is", "<?}?>", $s);
         //{else} 也符合常量格式，此处要注意先后顺??
-        $s = preg_replace("/" . $this->const_regexp . "/", "<?=\\1?>", $s);
+        $s = preg_replace("#" . $this->const_regexp . "#", "<?=\\1?>", $s);
 
         // 给数组KEY加上判断
-        $s = preg_replace_callback("/\<\?=\@(\\\$[a-zA-Z_]\w*)((\[[\\$\[\]\w\']+\])+)\?\>/is", array($this, 'array_keyexists'), $s);
-        //
+        $s = preg_replace_callback("#\<\?=\@(\\\$[a-zA-Z_]\w*)((\[[\\$\[\]\w\']+\])+)\?\>#is", array($this, 'array_keyexists'), $s);
+        // 将特殊标签替换回来
         if ($this->tag_search) {
             $s = str_replace($this->tag_search, $this->tag_replace, $s);
             // 可能js中还有eval
@@ -345,17 +324,16 @@ class template {
             }
         }
 
-        // 翻译段标签为全标签
-        $s = preg_replace('#<\?=(\$\w+.*?)\?>#', "<?php echo isset(\\1) ? \\1 : '';?>", $s); // 变量
-        // static 目录 前面增加 static_url
+        // 替换成原始标签（暂时不需要了）
+        // $s = preg_replace('#<\?=(\$\w+.*?)\?'.'>#', "<"."?php echo isset(\\1) ? \\1 : '';?".">", $s);
+        // static 目录前面增加 static_url
         if ($this->conf['static_url']) {
             $s = preg_replace('#([\'"])(static\w*)/#i', '\\1' . $this->conf['static_url'] . '\\2/', $s);
         }
-        $s = "<?php !defined('FRAMEWORK_PATH') && exit('Access Denied');" .
+        // 添加头，用于判断所有子模板改过后模板重新编译
+        $s = "<?php !defined('ROOT_PATH') && exit('Access Denied');" .
             "\$this->sub_tpl_check('" . implode('|', $this->sub_tpl) . "', '{$_SERVER['starttime']}', '$view_file', '$obj_file');?>$s";
 
-        // 此处不锁，多个进程并发写入可能会有问题。
-        // PHP 5.1 以后加入了 LOCK_EX 参数
         file_put_contents($obj_file, $s);
         return true;
     }
@@ -388,7 +366,7 @@ class template {
      * @return string
      */
     private function compress_html($html_source) {
-        $chunks = preg_split('/(<pre.*?\/pre>)/ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks = preg_split('#(<pre.*?\/pre>)#ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
         // compress html : clean new line , clean tab, clean comment
         foreach ($chunks as $index => $c) {
@@ -402,8 +380,8 @@ class template {
                 // remove inter-tag newline
                 $c = preg_replace('#>\\n<(/?\w)#is', '><$1', $c);
                 // remove extra whitespace
-                $c = preg_replace('/\\n[\\t ]+/is', "\n", $c);
-                $c = preg_replace('/[\\t ]{2,}/', ' ', $c);
+                $c = preg_replace('#\\n[\\t ]+#is', "\n", $c);
+                $c = preg_replace('#[\\t ]{2,}#', ' ', $c);
                 // remove CSS & JS comments
                 if (strpos($c, '/*') !== false) {
                     $c = preg_replace('#/\*[\s\S]*?\*/#i', '', $c);
@@ -430,6 +408,7 @@ class template {
      * @param $obj_file    object template
      */
     function sub_tpl_check($sub_files, $make_time, $tpl, $obj_file) {
+        // 随机种子，如果转到了，重新检测
         if (mt_rand(1, 5) == 1) {
             $sub_files = explode('|', $sub_files);
             foreach ($sub_files as $tpl_file) {
@@ -457,20 +436,10 @@ class template {
             $filename .= '.htm';
         }
         $file = '';
-        if (!empty($this->conf['first_view_path'])) {
-            foreach ($this->conf['first_view_path'] as $path) {
-                if (is_file($path . $filename)) {
-                    $file = $path . $filename;
-                    break;
-                }
-            }
-        }
-        if (empty($file)) {
-            foreach ($this->conf['view_path'] as $path) {
-                if (is_file($path . $filename)) {
-                    $file = $path . $filename;
-                    break;
-                }
+        foreach ($this->conf['view_path'] as $path) {
+            if (is_file($path . $filename)) {
+                $file = $path . $filename;
+                break;
             }
         }
 
@@ -491,11 +460,11 @@ class template {
         $name = $matches[1];
         $items = $matches[2];
         if (strpos($items, '$') === FALSE) {
-            $items = preg_replace("/\[([\$a-zA-Z_][\w\$]*)\]/is", "['\\1']", $items);
+            $items = preg_replace("#\[([\$a-zA-Z_][\w\$]*)\]#is", "['\\1']", $items);
         } else {
-            $items = preg_replace("/\[([\$a-zA-Z_][\w\$]*)\]/is", "[\"\\1\"]", $items);
+            $items = preg_replace("#\[([\$a-zA-Z_][\w\$]*)\]#is", "[\"\\1\"]", $items);
         }
-        return "<?=$name$items?>";
+        return '<?='.$name.$items.'?>';
     }
 
     /**
@@ -506,7 +475,7 @@ class template {
      * @return string
      */
     private function array_keyexists($name, $items) {
-        return "<?php echo isset($name$items)?$name$items:'';?>";
+        return "<? echo isset($name$items)?$name$items:'';?>";
     }
 
     /**
@@ -519,9 +488,6 @@ class template {
         $pre = $matchs[1];
         $s = $matchs[2];
         switch ($pre) {
-            case 'for':
-                $s = '<? for(' . $s . ') {?>';
-            break;
             case 'eval':
                 $s = '<? ' . $s . '?' . '>';
                 $search = '<!--[eval=' . count($this->tag_search) . ']-->';
@@ -546,7 +512,7 @@ class template {
      */
     private function stripvtag($s, $instring = FALSE) {
         if (strpos($s, '<? echo isset') !== false) {
-            $s = preg_replace('#<\? echo isset\((.*?)\) \? (\\1) : \'\';\?>#', $instring ? '{\\1}' : '\\1', $s);
+            $s = preg_replace('#<\? echo isset\((.*?)\) \? (\\1) : \'\';\?>#is', $instring ? '{\\1}' : '\\1', $s);
         }
         return preg_replace("/" . $this->vtag_regexp . "/is", "\\1", str_replace("\\\"", '"', $s));
     }
@@ -559,6 +525,7 @@ class template {
         if (trim($matches[2]) == '') {
             return $matches[0];
         } else {
+            // skip script type is tpl
             if (stripos($matches[1], ' type="tpl"') !== false) {
                 return $matches[0];
             }
@@ -584,7 +551,7 @@ class template {
     private function funtag_callback($matchs) {
         $search = '<!--[func=' . count($this->tag_search) . ']-->';
         $this->tag_search[] = $search;
-        $this->tag_replace[] = '<?php if(false !== ($_val=' . $matchs[1] . '))echo $_val;?>';
+        $this->tag_replace[] = '<? if(false !== ($_val=' . $matchs[1] . '))echo $_val;?>';
         return $search;
     }
 
@@ -597,7 +564,7 @@ class template {
     private function blocktag_callback($matchs) {
         $search = '<!--[block=' . count($this->tag_search) . ']-->';
         $this->tag_search[] = $search;
-        $this->tag_replace[] = '<?php function block_' . $matchs[1] . '{?>';
+        $this->tag_replace[] = '<? function block_' . $matchs[1] . '{?>';
         return $search;
     }
 
@@ -627,15 +594,5 @@ class template {
         return $k ? "<? if(!empty($arr)) { foreach($arr as $k=>&$v) {?>$statement<? }}?>" : "<? if(!empty($arr)) { foreach($arr as &$v) {?>$statement<? }} ?>";
     }
 }
-
-/*
-Example :
-require_once 'lib/template.class.php';
-$this->view = new template($conf);
-$this->view->assign('page', $page);
-$this->view->assign('userlist', $userlist);
-$this->view->assign_value('totaluser', 123);
-$this->view->display("user_login.htm");
-*/
 
 ?>
