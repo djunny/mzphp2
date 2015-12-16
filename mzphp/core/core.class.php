@@ -538,23 +538,6 @@ class core {
     }
 
     /**
-     * load conf by per domain
-     *
-     * @param $conf
-     * @return string
-     */
-    public static function init_conf_by_domain(&$conf) {
-        if (!$_SERVER['HTTP_HOST'] || !$conf['domain_path']) {
-            return;
-        }
-        $host = preg_replace('#^[\w\-\.]$#is', '', $_SERVER['HTTP_HOST']);
-        $domain_file = $conf['domain_path'] . $host . '.php';
-        if (is_file($domain_file) && $domain_conf = include($domain_file)) {
-            $conf = array_merge($conf, $domain_conf);
-        }
-    }
-
-    /**
      * core run
      *
      * @param $conf
@@ -633,6 +616,23 @@ class core {
             //	header("Pragma: no-cache");
             //	header('Content-Type: text/html; charset=UTF-8');
             self::ob_start(isset($conf['gzip']) && $conf['gzip'] ? $conf['gzip'] : false);
+        }
+    }
+
+    /**
+     * load conf by per domain
+     *
+     * @param $conf
+     * @return string
+     */
+    public static function init_conf_by_domain(&$conf) {
+        if (!isset($_SERVER['HTTP_HOST']) || !$_SERVER['HTTP_HOST'] || !isset($conf['domain_path']) || !$conf['domain_path']) {
+            return;
+        }
+        $host = preg_replace('#^[\w\-\.]$#is', '', $_SERVER['HTTP_HOST']);
+        $domain_file = $conf['domain_path'] . $host . '.php';
+        if (is_file($domain_file) && $domain_conf = include($domain_file)) {
+            $conf = array_merge($conf, $domain_conf);
         }
     }
 
