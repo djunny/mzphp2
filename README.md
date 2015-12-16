@@ -30,7 +30,7 @@ Windows 虚拟机，i7 2核 + 1G内存。PHP 最基础环境。
 
 最终的 profile 文件大小对比：
 
-![PROFILE 对比](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18173&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVkuAAOJOAADvjy59-E0513.jpg%3Ftoken%3D0f9dd836320cc91141c88be8c8fce6fe%26ts%3D1449219503%26attname%3Dxdebug-filesize.jpg "在这里输入图片标题")
+![PROFILE 对比](http://static.oschina.net/uploads/space/2015/1216/135255_ScCR_130215.jpg "在这里输入图片标题")
 
 
 **结果对比**
@@ -45,7 +45,7 @@ TP 的 profile line-by-line结果：
 
 CI 的 profile line-by-line结果：
 
-![ci overall](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18171&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVhmANV_TAADauH66e8o360.jpg%3Ftoken%3Dc2314ec37110909913955c3549dfeacb%26ts%3D1449219503%26attname%3Dci-linebyline.jpg "在这里输入图片标题")
+![ci overall](http://static.oschina.net/uploads/space/2015/1216/135255_buEP_130215.jpg "在这里输入图片标题")
 
 mzphp 的 profile overall结果：
 
@@ -58,7 +58,7 @@ TP 的 profile overall结果：
 
 CI 的 profile overall结果：
 
-![ci overall](http://git.oschina.net/mz/mzphp2/attach_files/download?i=18172&u=http%3A%2F%2Ffiles.git.oschina.net%2Fgroup1%2FM00%2F00%2FB7%2FfMqNk1ZhVj6Ab9nzAAMmGu2tB7s458.jpg%3Ftoken%3Def8f9eb025fe250290569839abc994b8%26ts%3D1449219503%26attname%3Dci-overall.jpg "在这里输入图片标题")
+![ci overall](http://static.oschina.net/uploads/space/2015/1216/135558_aIk4_130215.jpg "在这里输入图片标题")
 
 mzphp 跑热后，项目加载以及页面运行的时间为 **1.6ms**
 
