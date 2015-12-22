@@ -738,6 +738,8 @@ class spider {
             curl_setopt($ch, CURLOPT_HEADER, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
+            // fix IN PHP 5.6
+            curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
             //多ip下，设置出口ip
             if (isset($defheaders['ip'])) {
                 curl_setopt($ch, CURLOPT_INTERFACE, $defheaders['ip']);
@@ -822,7 +824,12 @@ class spider {
             }
             //for debug request header
             //print_r($defheaders);
-            // $info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo http_build_query($post);exit;
+//            if(strpos($url, 'qrcode') == 0) {
+//                $info = curl_getinfo($ch, CURLINFO_HEADER_OUT);
+//                print_r($info);
+//                echo http_build_query($post);
+//                exit;
+//            }
             $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             self::$last_response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             self::$url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
