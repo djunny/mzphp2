@@ -138,7 +138,7 @@ class DB {
      *                     (page - 1) * perpage
      * @return mixed
      */
-    public static function select($table, $where, $order, $perpage = -1, $page = 1) {
+    public static function select($table, $where, $order = array(), $perpage = -1, $page = 1) {
         if (strpos($table, ':') === false) {
             $fields = '*';
         } else {
