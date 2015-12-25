@@ -667,7 +667,7 @@ class spider {
         unset($headers['curl'], $headers['charset']);
         // merge headers
         if (is_array($headers) && $headers) {
-            foreach($headers as $key=>$val){
+            foreach ($headers as $key => $val) {
                 $defheaders[$key] = $val;
             }
         }
@@ -812,22 +812,45 @@ class spider {
                     unset($defheaders[CURLOPT_CAPATH]);
                 }
                 // 严格检查证书
-                if(isset($defheaders[CURLOPT_SSL_VERIFYPEER])) {
+                if (isset($defheaders[CURLOPT_SSL_VERIFYPEER])) {
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $defheaders[CURLOPT_SSL_VERIFYPEER]);
                     unset($defheaders[CURLOPT_SSL_VERIFYPEER]);
-                }else {
+                } else {
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl_verifypeer);
                 }
                 // 从证书中检查SSL加密算法是否存在
-                if(isset($defheaders[CURLOPT_SSL_VERIFYHOST])){
+                if (isset($defheaders[CURLOPT_SSL_VERIFYHOST])) {
                     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $defheaders[CURLOPT_SSL_VERIFYHOST]);
                     unset($defheaders[CURLOPT_SSL_VERIFYHOST]);
-                }else {
+                } else {
                     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
                 }
             }
             // fix IN PHP 5.6
             curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
+
+            // post
+            if ($post) {
+                curl_setopt($ch, CURLOPT_POST, 1);
+                //find out post file use multipart/form-data
+                $is_multi_part = 0;
+                if (is_array($post)) {
+                    $is_curl_file = version_compare(phpversion(), '5.5.0') >= 0 && class_exists('CURLFile') ? true : false;
+                    foreach ($post as $index => $value) {
+                        if ($value[0] == '@') {
+                            if ($is_curl_file) {
+                                $post[$index] = new CURLFile(realpath(substr($value, 1)));
+                            }
+                            $is_multi_part = 2;
+                        }
+                    }
+                } else {
+                    //is string
+                    $is_multi_part = 1;
+                }
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $is_multi_part ? $post : http_build_query($post));
+            }
+
             //多ip下，设置出口ip
             if (isset($defheaders['ip'])) {
                 curl_setopt($ch, CURLOPT_INTERFACE, $defheaders['ip']);
@@ -838,6 +861,7 @@ class spider {
                 curl_setopt($ch, CURLOPT_ENCODING, $defheaders['Accept-Encoding']);
                 unset($defheaders['Accept-Encoding']);
             }
+
 
             //使用代理
             /*
@@ -872,29 +896,7 @@ class spider {
                 $header_array[] = $key . ': ' . $val;
             }
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header_array);
-            if ($https) {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // 对认证证书来源的检查
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 从证书中检查SSL加密算法是否存在
-            }
 
-
-            if ($post) {
-                curl_setopt($ch, CURLOPT_POST, 1);
-                //find out post file use multipart/form-data
-                $multipart = 0;
-                if (is_array($post)) {
-                    foreach ($post as $v) {
-                        if ($v[0] == '@') {
-                            $multipart = 1;
-                            break;
-                        }
-                    }
-                } else {
-                    //is string
-                    $multipart = 1;
-                }
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $multipart ? $post : http_build_query($post));
-            }
             $data = curl_exec($ch);
 
             if (curl_errno($ch)) {
@@ -905,8 +907,7 @@ class spider {
                 return '';
             }
             //for debug request header
-            //print_r($defheaders);
-            //$info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo http_build_query($post);exit;
+            //print_r($defheaders);$info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo is_array($post) ? http_build_query($post) : $post;exit;
             $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             self::$last_response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             self::$url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
