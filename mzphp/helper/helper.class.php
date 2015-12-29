@@ -13,7 +13,7 @@
  * @param       $action  action name
  * @param array $params  other params if control has '-', params will bind action value
  */
-function url($control, $action, $params = array()) {
+function url($control, $action = '', $params = array()) {
     if (strpos($control, '-') === false) {
         $control_action = $control . '-' . $action;
     } else {
