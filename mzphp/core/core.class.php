@@ -755,14 +755,30 @@ class core {
                 for ($rw_i = 0; $rw_i < $rw_count; $rw_i = $rw_i + 2) {
                     $key = $rws[$rw_i];
                     // support url : &arr[query]=1&arr[dateline]=1
+                    // fix support url : $arr[where][query]=1
                     $pos = strpos($key, '[');
                     if ($pos !== false) {
-                        $arr = substr($key, $pos + 1, -1);
-                        if ($arr) {
-                            $get[substr($key, 0, $pos)][$arr] = $rws[$rw_i + 1];
-                        } else {
-                            $get[substr($key, 0, $pos)][] = $rws[$rw_i + 1];
+                        // get array index
+                        $index_key = substr($key, 0, $pos);
+                        if (!$index_key) {
+                            continue;
                         }
+                        if (!isset($get[$index_key])) {
+                            $get[$index_key] = array();
+                        }
+                        // get [where][query] etc.
+                        $arr = substr($key, $pos);
+                        preg_match_all('#\[([\w]*)\]#is', $arr, $array_match);
+
+                        $array_point = &$get[$index_key];
+                        foreach ($array_match[1] as $array_index => $value) {
+                            if (!$value) {
+                                $value = 0;
+                            }
+                            !isset($array_point[$value]) && $array_point[$value] = array();
+                            $array_point = &$array_point[$value];
+                        }
+                        $array_point = $rws[$rw_i + 1];
                     } else {
                         $get[$key] = empty($rws[$rw_i + 1]) ? '' : $rws[$rw_i + 1];
                     }

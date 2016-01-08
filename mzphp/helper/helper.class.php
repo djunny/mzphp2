@@ -27,10 +27,16 @@ function url($control, $action = '', $params = array()) {
             foreach ($params as $query => $value) {
                 if (is_array($value)) {
                     foreach ($value as $key => $val) {
-                        $queries[] = $query . '[' . $key . ']=' . urlencode($val);
+                        if(is_array($val)){
+                            foreach ($val as $son_key => $son_val) {
+                                $queries[] = $query.'['.$key.']['.$son_key.']='.rawurldecode($son_val);
+                            }
+                        }else {
+                            $queries[] = $query . '[' . $key . ']=' . rawurlencode($val);
+                        }
                     }
                 } else {
-                    $queries[] = $query . '=' . urlencode($value);
+                    $queries[] = $query . '=' . rawurlencode($value);
                 }
             }
             $queries = '&' . implode('&', $queries);
