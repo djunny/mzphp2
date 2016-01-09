@@ -130,6 +130,7 @@ class template {
      * $conf[app_id] : uniq app id for template cache build
      * $conf[first_view_path] : Priority search the template find in directory
      * $conf[view_path] : normal search the template find in directory
+     * $conf[tpl_prefix] : prefix for compile template filename
      * $conf[tpl][plugins] : plugin setting
      */
     private function set_conf(&$conf) {
@@ -194,7 +195,7 @@ class template {
                 CACHE::set($key, $save_body, $time);
             } else {
                 $dir = dirname($makefile);
-                !is_dir($dir) && mkdir($dir, 0777, 1);
+                !is_dir($dir) && mkdir($dir, 0755, 1);
                 file_put_contents($makefile, $save_body);
             }
         }
@@ -219,11 +220,11 @@ class template {
             $filename .= '.htm';
         }
         $fix_filename = strtr($filename, array('/' => '#', '\\' => '#'));
-        $obj_file = $this->conf['tmp_path'] . $this->conf['app_id'] . '_view_' . $fix_filename . '.php';
+        $obj_file = $this->conf['tmp_path'] . (isset($this->conf['tpl_prefix']) ? $this->conf['tpl_prefix'] : $this->conf['app_id']) . '_view_' . $fix_filename . '.php';
         if (!$this->force) return $obj_file;
 
         $exists_file = is_file($obj_file);
-        // 模板目录搜索顺序：view_xxx/, view/, plugin/*/
+        // 搜索目录
         $file = '';
         foreach ($this->conf['view_path'] as $path) {
             if (is_file($path . $filename)) {
@@ -263,6 +264,7 @@ class template {
     public function compile($view_file, $obj_file) {
         $this->sub_tpl = array();
 
+        // 加载模板正文，load template content
         $s = file_get_contents($view_file);
 
         /* TODO 去掉JS中的注释  // ，否则压缩html时 JS 会有错误 */
@@ -275,7 +277,7 @@ class template {
             $s = preg_replace_callback("#<!--{template\s+([^}]*?)}-->#i", array($this, 'get_tpl'), $s);
         }
 
-        // load plugin to complie
+        // 加载插件开始执行，load plugin to complie
         if (!empty($this->conf['tpl']['plugins'])) {
             //$this->conf['tpl']['plugins'] = array('class' => 'class_real_path');
             foreach ($this->conf['tpl']['plugins'] as $plugin => $plugin_file) {
@@ -287,13 +289,14 @@ class template {
             }
         }
 
-        $this->do_tpl($s);
+        // 替换区块元素，compile block from template
+        $this->compile_block($s);
 
+        // replace variable by regexp
         $s = preg_replace("#(\{" . $this->var_regexp . "\}|" . $this->var_regexp . ")#i", "<?=\\1?>", $s);
         if (strpos($s, '<?={') !== false) {
             $s = preg_replace("#\<\?={(.+?)}\?\>#", "<?=\\1?>", $s);//
         }
-
 
         // 修正 $data[key] -> $data['key']
         $s = preg_replace_callback("#\<\?=(\@?\\\$[a-zA-Z_]\w*)((\[[^\]]+\])+)\?\>#is", array($this, 'array_index'), $s);
@@ -343,7 +346,7 @@ class template {
      *
      * @param $s
      */
-    private function do_tpl(&$s) {
+    private function compile_block(&$s) {
         //优化eval tag 先替换成对应标签，稍后再换回(eval中的变量会和下边变量替换冲突)
         $s = preg_replace_callback($this->eval_regexp, array($this, 'stripvtag_callback'), $s);
         /*
@@ -435,17 +438,13 @@ class template {
         if (strpos($filename, '.') === false) {
             $filename .= '.htm';
         }
-        $file = '';
         foreach ($this->conf['view_path'] as $path) {
             if (is_file($path . $filename)) {
                 $file = $path . $filename;
+                $this->sub_tpl[$file] = $file;
+                return file_get_contents($file);
                 break;
             }
-        }
-
-        if ($file) {
-            $this->sub_tpl[$file] = $file;
-            return file_get_contents($file);
         }
         return '';
     }
@@ -464,7 +463,7 @@ class template {
         } else {
             $items = preg_replace("#\[([\$a-zA-Z_][\w\$]*)\]#is", "[\"\\1\"]", $items);
         }
-        return '<?='.$name.$items.'?>';
+        return '<?=' . $name . $items . '?>';
     }
 
     /**

@@ -244,6 +244,8 @@ return array(
     'control_path' => array($APP_PATH.'control/'),
 
     // 站群域名配置文件
+    // 生成模板前缀，站群模式需要用到，子域名可以重新定义一个前缀用于区分不同目录下，相同文件的问题
+    // 'tpl_prefix' => '".$appname."_',
     // 'domain_path' => ROOT_PATH.'domain/',
     // 用于站群不同域名指向不同的 view / model / control 目录
     /*
