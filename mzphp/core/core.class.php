@@ -355,7 +355,6 @@ class core {
      * @throws Exception
      */
     public static function autoload_handle($classname) {
-        static $model_loaded = array();
         $conf = &core::$conf;
         if (!class_exists($classname)) {
             $modelfile = self::model_file($conf, $classname);
@@ -527,37 +526,36 @@ class core {
     public static function run(&$conf) {
         self::init($conf);
         $control = str_replace(array('.', '\\', '/'), '', self::R('c'));
-        $obj_file = '';
         // find control file
-        foreach ($conf['control_path'] as $control_dir) {
-            $tmp_file = $control_dir . $control . '_control.class.php';
-            if (is_file($tmp_file)) {
-                $obj_file = $tmp_file;
-                break;
+        $control_class = $control . '_control';
+        $control_exists = class_exists($control_class, false);
+        if (!$control_exists) {
+            foreach ($conf['control_path'] as $control_dir) {
+                $control_file = $control_dir . $control . '_control.class.php';
+                if (is_file($control_file)) {
+                    include $control_file;
+                    $control_exists = class_exists($control_class, false);
+                    break;
+                }
             }
-        }
 
-        if (empty($obj_file)) {
+        }
+        if (!$control_exists) {
             if ($conf['page_setting'][404]) {
                 $conf['page_setting'][404]($control);
             }
             throw new Exception("Invaild URL : {$control} control not exists.");
         }
-
-        if (include $obj_file) {
-            $controlclass = "{$control}_control";
-            $newcontrol = new $controlclass($conf);
-            // control can run hook before on_cation
-            $onaction = "on_" . self::G('a');
-            if (method_exists($newcontrol, $onaction)) {
-                $newcontrol->$onaction();
-                //call_user_func(array($newcontrol, $onaction));
-                self::debug();
-            } else {
-                throw new Exception("Invaild URL : $onaction method not exists.");
-            }
+        $controlclass = "{$control}_control";
+        $newcontrol = new $controlclass($conf);
+        // control can run hook before on_cation
+        $onaction = "on_" . self::G('a');
+        if (method_exists($newcontrol, $onaction)) {
+            $newcontrol->$onaction();
+            //call_user_func(array($newcontrol, $onaction));
+            self::debug();
         } else {
-            throw new Exception("Invaild URL : {$control} control file not exists");
+            throw new Exception("Invaild URL : $onaction method not exists.");
         }
 
         unset($newcontrol, $control, $action);
