@@ -861,7 +861,13 @@ class core {
         if (DEBUG) {
             debug::init();
         } else {
-            error_reporting(0);
+            error_reporting(E_ALL & ~E_STRICT & ~E_NOTICE & ~E_WARNING);
+            /*
+            set_error_handler(array('core', 'error_handler'));
+            if (function_exists('set_exception_handler')) {
+                set_exception_handler(array('core', 'error_handler'));
+            }
+            */
             //error_reporting(E_ALL ^ E_DEPRECATED);
             //error_reporting(E_ALL & ~(E_NOTICE | E_STRICT));
             //@ini_set('display_errors', 'E_ALL & ~E_NOTICE & ~E_DEPRECATED');
@@ -948,6 +954,22 @@ class core {
         if (DEBUG || (defined('DEBUG_INFO') && DEBUG_INFO)) {
             debug::process();
         }
+    }
+
+
+    /**
+     * exception
+     */
+    public static function error_handler($e) {
+        //$e = error_get_last();
+
+        echo '<html><head>' .
+            '<meta content="text/html; charset=utf-8" http-equiv="Content-Type">' .
+            '<title>System Error</title>' .
+            '</head><body>' .
+            '<h1>' . $e['message'] . '</h1>' .
+            'System Error:' . print_R($e, 1) . '</body></html>';
+        exit;
     }
 }
 

@@ -16,8 +16,19 @@ class log {
      * @param $file
      */
     public static function set_logfile($file) {
+        if ($file == 1) {
+            $file = ROOT_PATH.'data/log/'.date('Y-m-d').'.log';
+        }
         self::$log_file = $file;
         self::$log_fp = fopen($file, 'a+');
+    }
+    /**
+     * alias set log file
+     *
+     * @param $file
+     */
+    public static function set_file($file) {
+        self::set_logfile($file);
     }
 
     /**
@@ -48,18 +59,46 @@ class log {
      * @param mixed
      */
     public static function info() {
-        $arg_list = func_get_args();
+        self::add_log('info', func_get_args(), func_num_args());
+    }
+
+    /**
+     * log::error($arg1,$arg2....$argn);
+     *
+     * @param mixed
+     */
+    public static function error() {
+        self::add_log('error', func_get_args(), func_num_args());
+        throw new Exception('error');
+    }
+
+    /**
+     * add log
+     *
+     * @param $type
+     * @param $arg_list
+     * @param $arg_count
+     */
+    private static function add_log($type, $arg_list, $arg_count) {
         $log = '';
-        for ($i = 0, $l = func_num_args(); $i < $l; $i++) {
+        for ($i = 0, $l = $arg_count; $i < $l; $i++) {
             $log .= self::dump_var($arg_list[$i]);
         }
         $log .= '[' . core::usedtime() . "ms]";
         $log = "[" . date('H:i:s') . "]" . $log . "\r\n";
-        if (core::is_cmd()) {
-            echo $log;
-        }
         if (self::$log_fp) {
             fputs(self::$log_fp, $log);
+        }
+        if (core::is_cmd()) {
+            echo $log;
+        } else {
+            if (isset($_SERVER['log'])) {
+                $_SERVER['log'] = array(
+                    'info' => array(),
+                    'error' => array(),
+                );
+            }
+            $_SERVER['log'][$type][] = $log;
         }
     }
 }

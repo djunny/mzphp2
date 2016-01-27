@@ -144,6 +144,11 @@ class pdo_mysql_db {
             $result = $this->exec($sql, $link);
         }
 
+        if ($result === FALSE) {
+            $error = $this->error($link);
+            throw new Exception('[pdo_mysql]Query Error:' . (isset($error[2]) ? "$error[2]" : '') . ',' . (DEBUG ? $sql : ''));
+        }
+
         if (DEBUG) {
             $mtime = explode(' ', microtime());
             $sqlendttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
@@ -158,10 +163,6 @@ class pdo_mysql_db {
             $_SERVER['sqls'][] = array('sql' => $sql, 'type' => 'mysql', 'time' => $sqltime, 'info' => $info, 'explain' => $explain);
         }
 
-        if ($result === FALSE) {
-            $error = $this->error($link);
-            throw new Exception('[pdo_mysql]Query Error:' . (isset($error[2]) ? "$error[2]" : '') . ',' . (DEBUG ? $sql : ''));
-        }
         $this->querynum++;
 
         return $result;

@@ -9,7 +9,6 @@ class debug {
         register_shutdown_function(array('debug', 'shutdown_handler'));    // 程序关闭时执行
         set_error_handler(array('debug', 'error_handler'));    // 设置错误处理方法
         set_exception_handler(array('debug', 'exception_handler'));    // 设置异常处理方法
-
     }
 
 
@@ -55,7 +54,7 @@ class debug {
     public static function exception_handler($e) {
         DEBUG && $_SERVER['_exception'] = 1;    // 只输出一次
 
-        // 第1步正确定位
+        // 取得错误信息
         $trace = $e->getTrace();
         if (!empty($trace) && $trace[0]['function'] == 'error_handler' && $trace[0]['class'] == 'debug') {
             $message = $e->getMessage();
@@ -68,8 +67,6 @@ class debug {
         }
         $message = strip_tags($message);
 
-        // 第2步写日志 (暂不使用 error_log() )
-        //log::write("$message File: $file [$line]");
 
         // 第3步根据情况输出错误信息
         try {
@@ -117,7 +114,6 @@ class debug {
         $s = "[$errno_str] : $errstr";
         // 线上模式放宽一些，只记录日志，不中断程序执行
         if (!in_array($errno, array(E_WARNING, E_NOTICE, E_USER_NOTICE, E_DEPRECATED))) {
-            //log::write($s);
             throw new Exception($s);
         }
     }
@@ -147,13 +143,13 @@ class debug {
             switch ($type) {
                 case 0:
                     $k = '';
-                    break;
+                break;
                 case 1:
                     $k = "$k ";
-                    break;
+                break;
                 case 2:
                     $k = "<span>$k</span>";
-                    break;
+                break;
                 default:
                     $k = "$k = ";
             }
@@ -227,8 +223,6 @@ class debug {
                                 } else {
                                     $arg = '$conf';
                                 }
-                                //$arg = str_replace(array("\t", ' '), array('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', '&nbsp;'), $arg);
-                                //$arg = nl2br($arg);
                                 $args .= $comma . $arg;
                             } else {
                                 $args .= $comma . '' . ($arg === NULL ? 'NULL' : $arg);
@@ -270,6 +264,12 @@ class debug {
         );
     }
 
+    /**
+     * 取得代码信息
+     * @param $file 文件
+     * @param $line 行数
+     * @return array
+     */
     public static function get_code($file, $line) {
         $arr = file($file);
         $arr2 = array_slice($arr, max(0, $line - 5), 10, true);

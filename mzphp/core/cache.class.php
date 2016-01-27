@@ -87,6 +87,9 @@ class CACHE {
      * @return mixed
      */
     public static function get($key) {
+        if(DEBUG){
+            $_SERVER['cache']['get'][] = $key;
+        }
         return call_user_func(array(self::instance(), 'get'), self::key($key));
     }
 
@@ -99,6 +102,9 @@ class CACHE {
      * @return mixed
      */
     public static function set($key, $val, $expire = 0) {
+        if(DEBUG){
+            $_SERVER['cache']['set'][] = func_get_args();
+        }
         return call_user_func(array(self::instance(), 'set'), self::key($key), $val, $expire);
     }
 
@@ -111,6 +117,9 @@ class CACHE {
      * @return mixed
      */
     public static function update($key, $val, $expire) {
+        if(DEBUG){
+            $_SERVER['cache']['update'][] = func_get_args();
+        }
         return call_user_func(array(self::instance(), 'update'), self::key($key), $val, $expire);
     }
 
@@ -121,6 +130,9 @@ class CACHE {
      * @return mixed
      */
     public static function delete($key) {
+        if(DEBUG){
+            $_SERVER['cache']['delete'][] = func_get_args();
+        }
         return call_user_func(array(self::instance(), 'delete'), self::key($key));
     }
 
@@ -131,6 +143,9 @@ class CACHE {
      * @return mixed
      */
     public static function truncate($pre = '') {
+        if(DEBUG){
+            $_SERVER['cache']['truncate'][] = func_get_args();
+        }
         return call_user_func(array(self::instance(), 'truncate'), $pre);
     }
 }
