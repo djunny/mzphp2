@@ -1,6 +1,28 @@
-gitbook 帮助文档：
+gitbook 在线文档：
 
 [https://djunny.gitbooks.io/mzphp/content/index.html](https://djunny.gitbooks.io/mzphp/content/index.html)
+
+### 更新历史
+
+[2016.1.27]
+
+新增：
+   1. 支持从入口文件中加载 control
+   2. 新增独创的 EnPHP 工具：可将 PHP 项目混淆加密，欢迎试用
+   3. 模板引擎新增编译前缀，用于站群模式多个站点可复用不同目录下相同文件名的模板
+   4. 新增地址重写支持多级数组，例：/where[time][0]/20120102/where[time][1]/20120103/
+   5. url 方法 action 增加默认值
+   6. spider 类在 HTTPS 请求时支持 SSL 证书
+   7. 模板引擎新变量{CDN}，用于绑定 CDN 路径
+
+修复：
+   1. core::json_encode 不支持部分中文字符集的 BUG
+   2. spider 在 5.6 版本中无法支持 @ 上传文件的问题
+   3. 在某些环境下的 warning 提示
+
+优化：
+   1. 优化模板引擎，去除兼容变量，部分无用注释
+
 
 ### 性能评测
 
