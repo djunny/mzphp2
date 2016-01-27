@@ -677,4 +677,24 @@ RewriteRule ^(help)/(\d+)/?$ index.php\?c=article-$1&rewrite=id/$2 [L]
 ****
 ****
 
+
+
+### EnPHP 加密工具的说明
+
+EnPHP 工具的路径：tools/enphp_project.php
+
+EnPHP 是一款可以加密混淆 PHP 5-7 的工具，现内置于 mzphp Framework 中。
+EnPHP 经多方测试已经支持加密混淆 99% 以上的 PHP 代码，欢迎测试反馈。
+
+使用方法：
+
+1. 将 enphp_project.php 拷至您的项目中
+2. 修改 enphp 中适合你的 option 参数（选）
+3. 修改 enphp_control 中 on_index 方法里需要加密的文件(选)
+4. 在浏览器中访问本文件，或者使用 php enphp_project.php 命令行模式执行加密
+
+P.S. 重要的事情说三遍：备份！备份！备份！请在加密前备份好您的源码文件，通过 EnPHP 加密的文件均无法恢复！否则请不要使用。
+
+P.S.S. 您也可以将 enphp 类与 spider 类拷出去单独使用，EnPHP 的后台服务第一版暂时搭在 MoPaaS 中(速度有点慢请见谅)。
+
 更多实例敬请期待。
