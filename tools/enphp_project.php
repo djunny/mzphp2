@@ -63,7 +63,7 @@ class enphp {
         $header = array(
             'User-Agent' => 'mzphp_encode',
             // proxy for debug
-            'proxy' => array('host' => '127.0.0.1:8888'),
+            //'proxy' => array('host' => '127.0.0.1:8888'),
         );
         //
         $retry = 3;
