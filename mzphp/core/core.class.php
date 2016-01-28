@@ -538,11 +538,16 @@ class core {
                     break;
                 }
             }
-
         }
         if (!$control_exists) {
             if ($conf['page_setting'][404]) {
-                $conf['page_setting'][404]($control);
+                // check 404 file exists
+                if (is_file(ROOT_PATH . $conf['page_setting'][404])) {
+                    include ROOT_PATH . $conf['page_setting'][404];
+                } else {
+                    $conf['page_setting'][404]($control);
+                }
+                exit;
             }
             throw new Exception("Invaild URL : {$control} control not exists.");
         }

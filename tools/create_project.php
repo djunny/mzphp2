@@ -115,6 +115,7 @@ $static_jquery_js = PATH . 'static/jquery.js';
 $static_common_js = PATH . 'static/common.js';
 $static_reset_css = PATH . 'static/reset.css';
 $static_common_css = PATH . 'static/common.css';
+$static_404_file = PATH . 'static/404.htm';
 
 if (!is_file($conffile)) {
     $s = "<?php
@@ -132,12 +133,12 @@ return array(
     //db support： mysql/pdo_mysql/pdo_sqlite(数据库支持:mysql/pdo_mysql/pdo_sqlite)
     'db' => array(
         'mysql' => array(
-            'tablepre' => '".$appname."_',
+            'tablepre' => '" . $appname . "_',
             'master' => array(
                 'host' => '127.0.0.1',
                 'user' => 'root',
                 'pass' => '',
-                'name' => '".$appname."',
+                'name' => '" . $appname . "',
                 'charset' => 'utf8',
                 'engine' => 'MYISAM',
             ),
@@ -147,7 +148,7 @@ return array(
                     'host' => '127.0.0.1:3066',
                     'user' => 'root',
                     'pass' => '',
-                    'name' => '".$appname."',
+                    'name' => '" . $appname . "',
                     'charset' => 'utf8',
                     'engine' => 'MYISAM',
                 ),
@@ -161,7 +162,7 @@ return array(
                 'host' => '127.0.0.1',
                 'user' => 'root',
                 'pass' => '',
-                'name' => '".$appname."',
+                'name' => '" . $appname . "',
                 'charset' => 'utf8',
                 'engine' => 'MYISAM',
             ),
@@ -170,16 +171,16 @@ return array(
                     'host' => '127.0.0.1',
                     'user' => 'root',
                     'pass' => '',
-                    'name' => '".$appname."',
+                    'name' => '" . $appname . "',
                     'charset' => 'utf8',
                     'engine' => 'MYISAM',
                 ),
             ),
-            'tablepre' => '".$appname."_',
+            'tablepre' => '" . $appname . "_',
         ),
         'pdo_sqlite' => array(
             'host' => ROOT_PATH.'data/tmp/sqlite_test.db',
-            'tablepre' => '".$appname."_',
+            'tablepre' => '" . $appname . "_',
         ),
         */
     ),
@@ -188,12 +189,12 @@ return array(
         /*
         'memcache' => array(
             'host' => '127.0.0.1:11211',
-            'pre' => '".$appname."_',
+            'pre' => '" . $appname . "_',
         ),
         */
         'file' => array(
             'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
-            'pre' => '".$appname."_',
+            'pre' => '" . $appname . "_',
         ),
     ),
 
@@ -222,6 +223,11 @@ return array(
     // 应用的所在路径： 如: http://www.domain.com/app/
     'app_dir' => \$app_dir,
 
+    // 404 等错误设置
+    'page_setting' => array(
+        '404' => '" . $static_404_file . "',
+    ),
+
     // CDN 缓存的静态域名，如 http://static.domain.com/
     'static_url' => '" . get_url_path() . "static/',
 
@@ -229,51 +235,51 @@ return array(
     'static_dir' => ROOT_PATH.'static/',
 
     // 应用内核扩展目录，一些公共的库需要打包进 _runtime.php （减少io）
-    'core_path' => $APP_PATH.'core/',
+    'core_path' => $APP_PATH.'core / ',
 
     // 模板使用的目录，按照顺序搜索，这样可以支持风格切换,结果缓存在 data/tmp
-    'view_path' => array($APP_PATH.'view/'),
+    'view_path' => array($APP_PATH.'view / '),
 
     // 数据模块的路径，按照数组顺序搜索目录
-    'model_path' => array($APP_PATH.'model/'),
+    'model_path' => array($APP_PATH.'model / '),
 
     // 自动加载 model 的映射表， 在 model_path 中未找到 model 的时, modelname=>array(tablename, primarykey, maxcol)
     'model_map' => array(),
 
     // 控制器的路径，按照数组顺序搜索目录
-    'control_path' => array($APP_PATH.'control/'),
+    'control_path' => array($APP_PATH.'control / '),
 
     // 站群域名配置文件
     // 生成模板前缀，站群模式需要用到，子域名可以重新定义一个前缀用于区分不同目录下，相同文件的问题
-    // 'tpl_prefix' => '".$appname."_',
-    // 'domain_path' => ROOT_PATH.'domain/',
+    // 'tpl_prefix' => '" . $appname . "_',
+    // 'domain_path' => ROOT_PATH.'domain / ',
     // 用于站群不同域名指向不同的 view / model / control 目录
     /*
-        domain/admin.".$appname.".com.php 例子：
+        domain/admin." . $appname . ".com.php 例子：
         return array(
             // 最好重新定义 app_id ， 因为模板引擎会根据 app_id 生成前缀
             // 否则两个站模板一旦有同样名字会覆盖
-            'app_id' => '".$appname."_admin',
-            'control_path' => array(ROOT_PATH . 'control/admin/'),
-            'model_path' => array(ROOT_PATH . 'model/'),
-            'view_path' => array(ROOT_PATH . 'view/admin/'),
+            'app_id' => '" . $appname . "_admin',
+            'control_path' => array(ROOT_PATH . 'control / admin / '),
+            'model_path' => array(ROOT_PATH . 'model / '),
+            'view_path' => array(ROOT_PATH . 'view / admin / '),
         ),
     */
 
     // 临时目录，需要可写，可以指定为 linux /dev/shm/ 目录提高速度,
-    'tmp_path' => $APP_PATH.'data/tmp/',
+    'tmp_path' => $APP_PATH.'data / tmp / ',
 
     // 日志目录，需要可写
-    'log_path' => $APP_PATH.'data/log/',
+    'log_path' => $APP_PATH.'data / log / ',
 
     // 服务器所在的时区
-    'timeoffset' => '+8',
+    'timeoffset' => ' + 8',
 
     // 模板插件
     'tpl' => array(
         'plugins' => array(
         	// 支持 static 语法插件，支持 scss、css、js 打包
-            'tpl_static' => FRAMEWORK_PATH.'plugin/tpl_static.class.php',
+            'tpl_static' => FRAMEWORK_PATH.'plugin / tpl_static .class.php',
         ),
     ),
 
@@ -285,8 +291,8 @@ return array(
 
     // 地址重写的分隔符和后缀设置
     'rewrite_info' => array(
-        'comma' => '/', // options: / \ - _  | . ,
-        'ext' => '.html',// for example : .htm
+        'comma' => ' / ', // options: / \ - _  | . ,
+        'ext' => ' . html',// for example : .htm
     ),
     'str_replace' => array(),
 
@@ -296,7 +302,7 @@ return array(
 
     file_put_contents($conffile, $s);
 
-    $conffile = str_replace('.debug', '.online', $conffile);
+    $conffile = str_replace(' . debug', ' . online', $conffile);
     if (!is_file($conffile)) {
         file_put_contents($conffile, $s);
     }
@@ -308,26 +314,12 @@ if (!is_file($indexfile)) {
 \$_SERVER['ENV'] = isset(\$_SERVER['ENV']) ? \$_SERVER['ENV'] : 'debug';
 // 调试模式: 0:关闭; 1:调试模式; 参数开启调试, URL中带上：{$appname}_debug
 // 线上请务必将此参数修改复杂不可猜出
-define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{$appname}_debug')) ? 1:0);
+define('DEBUG', ((isset(\$argc) && \$argc) || strstr(\$_SERVER['REQUEST_URI'], '{
+        $appname}_debug')) ? 1:0);
 // 站点根目录
-define('ROOT_PATH', dirname(__FILE__).'/');
+define('ROOT_PATH', dirname(__FILE__).' / ');
 // 框架的物理路径
 define('FRAMEWORK_PATH', $APP_PATH.'$init_path');
-// 定义 404，如果 PHP < 5.3 请修改 404 为静态 function
-\$page_setting = array(
-    404 => function(\$control = ''){
-    header(\$_SERVER['SERVER_PROTOCOL'].' 404 Not Found');
-		include('404.htm');
-		exit;
-	},
-);
-
-if(!(\$conf = include(ROOT_PATH.'conf/conf.'.\$_SERVER['ENV'].'.php'))) {
-    \$page_setting[404]();
-}
-
-// 错误页面设置
-\$conf['page_setting'] = isset(\$conf['page_setting']) ? array_merge(\$page_setting, \$conf['page_setting']) : \$page_setting;
 
 //定义运行环境
 \$conf['env'] = \$_SERVER['ENV'];
@@ -344,7 +336,7 @@ define('FRAMEWORK_TMP_PATH', \$conf['tmp_path']);
 define('FRAMEWORK_LOG_PATH', \$conf['log_path']);
 
 // 包含核心框架文件，转交给框架进行处理。
-include FRAMEWORK_PATH.'mzphp.php';
+include FRAMEWORK_PATH.'mzphp . php';
 
 core::run(\$conf);
 
@@ -353,31 +345,40 @@ core::run(\$conf);
 }
 
 if (!is_file($view_header_file)) {
-    $s = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>mzphp</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <!-- static 第一个参数是相对当前模板的路径 第二个是基于 static 目录的路径 -->
-    <!--{static ../static/reset.css _global.css}-->
-    <!--{static ../static/common.css _global.css}-->
-    <!--{static ../static/jquery.js _global.js}-->
-    <!--{static ../static/common.js _global.js}-->
-</head>
-<body>
-<h3>mzphp Framework</h3>
+    $s = ' < !DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html xmlns = "http://www.w3.org/1999/xhtml" >
+<head >
+    <title > mzphp</title >
+    <meta http - equiv = "Content-Type" content = "text/html; charset=UTF-8" />
+    <!-- static 第一个参数是相对当前模板的路径 第二个是基于 static 目录的路径-->
+    <!--{
+        static ../static/reset . css _global . css}-->
+    <!--{
+        static ../static/common . css _global . css}-->
+    <!--{
+        static ../static/jquery . js _global . js}-->
+    <!--{
+        static ../static/common . js _global . js}-->
+</head >
+<body >
+<h3 > mzphp Framework </h3 >
 <hr />
 ';
     file_put_contents($view_header_file, $s);
 }
 
 if (!is_file($view_index_file)) {
-    $s = '<!--{template header.htm}-->
-<!--{block hello($name,$username)}-->
-<h1>Hello, $name! Hello, $username.</h1>
-<!--{/block}-->
+    $s = '<!--{
+        template header . htm}-->
+<!--{
+        block hello($name, $username)}-->
+<h1 > Hello, $name!Hello, $username .</h1 >
+<!--{
+        /
+        block}-->
 
-{block_hello(\'mzphp\', $username)}
+{
+    block_hello(\'mzphp\', $username)}
 
 <!--{template footer.htm}-->';
     file_put_contents($view_index_file, $s);
@@ -385,11 +386,33 @@ if (!is_file($view_index_file)) {
 
 if (!is_file($view_footer_file)) {
     $s = '<br>processTime: {print_r(core::usedtime())}ms
-<Br><br><a href="?'.$appname.'_debug">[Open Debug]</a>
+<Br><br><a href="?' . $appname . '_debug">[Open Debug]</a>
 </body>
 </html>
 ';
     file_put_contents($view_footer_file, $s);
+}
+
+if (!is_file($static_404_file)) {
+    $s = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="author" content="mzPHP Framework" />
+    <style>html,body{margin:0 auto;padding:0;text-align: center}.pages{margin:10px auto;padding:10px;border:1px solid #CCC;background:#DEDEDE;}h1{font-size:36px;margin:10px;}.copyright{color:#999;}</style>
+</head>
+<body>
+<div class="pages">
+    <h1>Page Not Found (Error:404)</h1>
+    <div class="copyright">
+    &copy; mzPHP Framework
+    </div>
+</div>
+</body>
+</html>';
+    file_put_contents($static_404_file, $s);
 }
 
 $control_index_file = PATH . 'control/index_control.class.php';
