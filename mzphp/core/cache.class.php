@@ -18,7 +18,7 @@ class CACHE {
      *
      * @var string
      */
-    private static $cache_conf = '';
+    private static $cache_conf = array();
     /**
      * instance of cache
      *
