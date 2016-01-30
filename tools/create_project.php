@@ -191,11 +191,17 @@ return array(
             'host' => '127.0.0.1:11211',
             'pre' => '" . $appname . "_',
         ),
-        */
         'file' => array(
             'dir' => ROOT_PATH.'data/cache" . md5(time()) . "/',
             'pre' => '" . $appname . "_',
         ),
+		'redis' => array(
+			'host' => '127.0.0.1',
+			'port' => 19000,
+			'table' => 'www',
+			'pre' => '" . $appname . "_',
+		),
+        */
     ),
 
     // 唯一识别ID

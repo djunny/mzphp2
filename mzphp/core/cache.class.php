@@ -153,23 +153,25 @@ class CACHE {
      *  lock by cache provider
      *
      * @param     $key
-     * @param int $expire        expire time form lock
-     * @param int $max_lock_time max lock time
+     * @param int $expire         expire time form lock
+     * @param int $max_lock_count max lock count
+     * @param int $lock_step_time lock step time
      * @return bool
      */
-    public static function lock($key, $expire = 10000, $max_lock_time = 1000) {
+    public static function lock($key, $expire = 10000, $max_lock_count = 1000, $lock_step_time = 5000) {
         $key = '_lock_' . $key;
-        $sleep_time = 5000;
         $sleep_count = 0;
+        !$lock_step_time && $lock_step_time = 5000;
+
         if (self::get($key)) {
             while (true) {
-                usleep($sleep_time);
+                usleep($lock_step_time);
                 // until lock
                 if (!self::get($key)) {
                     break;
                 }
-                $sleep_count += $sleep_time / 1000;
-                if ($max_lock_time && $max_lock_time >= $sleep_count) {
+                $sleep_count++;
+                if ($max_lock_count && $max_lock_count <= $sleep_count) {
                     return false;
                 }
             }
