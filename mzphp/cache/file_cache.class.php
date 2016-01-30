@@ -16,7 +16,7 @@ class file_cache {
         //.$this->conf['pre']
         $dir = $this->conf['dir'];
         if (!is_dir($dir)) {
-            @mkdir($dir, 0777, true);
+            @mkdir($dir, 0755, true);
             if (!is_dir($dir)) {
                 throw new Exception('FileCache Dir cant created!');
             }

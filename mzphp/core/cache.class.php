@@ -87,7 +87,7 @@ class CACHE {
      * @return mixed
      */
     public static function get($key) {
-        if(DEBUG){
+        if (DEBUG) {
             $_SERVER['cache']['get'][] = $key;
         }
         return call_user_func(array(self::instance(), 'get'), self::key($key));
@@ -102,7 +102,7 @@ class CACHE {
      * @return mixed
      */
     public static function set($key, $val, $expire = 0) {
-        if(DEBUG){
+        if (DEBUG) {
             $_SERVER['cache']['set'][] = func_get_args();
         }
         return call_user_func(array(self::instance(), 'set'), self::key($key), $val, $expire);
@@ -117,7 +117,7 @@ class CACHE {
      * @return mixed
      */
     public static function update($key, $val, $expire) {
-        if(DEBUG){
+        if (DEBUG) {
             $_SERVER['cache']['update'][] = func_get_args();
         }
         return call_user_func(array(self::instance(), 'update'), self::key($key), $val, $expire);
@@ -130,7 +130,7 @@ class CACHE {
      * @return mixed
      */
     public static function delete($key) {
-        if(DEBUG){
+        if (DEBUG) {
             $_SERVER['cache']['delete'][] = func_get_args();
         }
         return call_user_func(array(self::instance(), 'delete'), self::key($key));
@@ -143,10 +143,49 @@ class CACHE {
      * @return mixed
      */
     public static function truncate($pre = '') {
-        if(DEBUG){
+        if (DEBUG) {
             $_SERVER['cache']['truncate'][] = func_get_args();
         }
         return call_user_func(array(self::instance(), 'truncate'), $pre);
+    }
+
+    /**
+     *  lock by cache provider
+     *
+     * @param     $key
+     * @param int $expire        expire time form lock
+     * @param int $max_lock_time max lock time
+     * @return bool
+     */
+    public static function lock($key, $expire = 10000, $max_lock_time = 1000) {
+        $key = '_lock_' . $key;
+        $sleep_time = 5000;
+        $sleep_count = 0;
+        if (self::get($key)) {
+            while (true) {
+                usleep($sleep_time);
+                // until lock
+                if (!self::get($key)) {
+                    break;
+                }
+                $sleep_count += $sleep_time / 1000;
+                if ($max_lock_time && $max_lock_time >= $sleep_count) {
+                    return false;
+                }
+            }
+        }
+        self::set($key, 1, $expire);
+        return true;
+    }
+
+    /**
+     * unlock by cache
+     *
+     * @param $key
+     */
+    public static function unlock($key) {
+        $key = '_lock_' . $key;
+        return self::delete($key);
     }
 }
 
