@@ -327,7 +327,7 @@ define('ROOT_PATH', dirname(__FILE__).' / ');
 // 框架的物理路径
 define('FRAMEWORK_PATH', $APP_PATH.'$init_path');
 
-\$conf = include(ROOT_PATH . 'conf/conf.' \$_SERVER['ENV'] . '.php';
+\$conf = include(ROOT_PATH . 'conf/conf.' . \$_SERVER['ENV'] . '.php');
 //定义运行环境
 \$conf['env'] = \$_SERVER['ENV'];
 
