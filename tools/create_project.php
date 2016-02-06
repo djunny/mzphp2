@@ -352,28 +352,28 @@ core::run(\$conf);
 }
 
 if (!is_file($view_header_file)) {
-    $s = ' < !DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+    $s = ' <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns = "http://www.w3.org/1999/xhtml" >
-<head >
-    <title > mzphp</title >
-    <meta http - equiv = "Content-Type" content = "text/html; charset=UTF-8" />
+<head>
+    <title>mzphp</title >
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <!-- static 第一个参数是相对当前模板的路径 第二个是基于 static 目录的路径-->
     <!--{static ../static/reset.css _global.css}-->
     <!--{static ../static/common.css _global.css}-->
     <!--{static ../static/jquery.js _global.js}-->
     <!--{static ../static/common.js _global.js}-->
-</head >
-<body >
-<h3 > mzphp Framework </h3 >
-<hr />
+</head>
+<body>
+<h3> mzphp Framework </h3>
+<hr/>
 ';
     file_put_contents($view_header_file, $s);
 }
 
 if (!is_file($view_index_file)) {
-    $s = '<!--{template header . htm}-->
+    $s = '<!--{template header.htm}-->
 <!--{block hello($name, $username)}-->
-<h1 > Hello, $name!Hello, $username .</h1 >
+<h1> Hello, $name!Hello, $username .</h1>
 <!--{/block}-->
 
 {block_hello(\'mzphp\', $username)}
