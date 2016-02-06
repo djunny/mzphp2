@@ -439,7 +439,7 @@ public function on_index() {
 
     \$username = 'Jobs';
     VI::assign('username', \$username);
-    $this->show('index.htm');
+    \$this->show('index.htm');
 
 }
 }
