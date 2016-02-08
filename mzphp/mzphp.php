@@ -41,7 +41,7 @@ if (DEBUG > 0) {
     if (!(@include($runtimefile))) {
         $content = '';
         if (!is_dir(FRAMEWORK_TMP_PATH)) {
-            mkdir(FRAMEWORK_TMP_PATH, 0777, 1);
+            mkdir(FRAMEWORK_TMP_PATH, 0755, 1);
         }
         // 最低版本需求判断
         PHP_VERSION < '5.0' && exit('Required PHP version 5.0.* or later.');
