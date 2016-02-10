@@ -125,7 +125,11 @@ class core {
                 $domain = $_SERVER['cookie_domain'];
             }
 
-            return setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
+            if (defined('IN_WORKERMAN')) {
+                return HTTP::setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
+            } else {
+                return setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
+            }
         }
     }
 
@@ -667,6 +671,24 @@ class core {
     }
 
     /**
+     * send header
+     *
+     * @param $string
+     * @param $code
+     */
+    public static function header($string, $code = 0) {
+        if (defined('IN_WORKERMAN')) {
+            if ($code && isset(HttpCache::$codes[$code])) {
+                $header = sprintf('HTTP/1.1 %s %s', $code, HttpCache::$codes[$code]);
+                HTTP::header($header);
+            }
+            HTTP::header($string);
+        } else if (!self::is_cmd()) {
+            header($string);
+        }
+    }
+
+    /**
      * init super variable
      *
      * @param $conf
@@ -828,30 +850,27 @@ class core {
      * @return null|string
      */
     public static function ip($format = 0) {
-        static $ip = '';
-        if (empty($ip)) {
+        if (empty($_SERVER['IP'])) {
             $server_addr = self::gpc('REMOTE_ADDR', 'S');
-
             if (isset(core::$conf['ip_x_forward']) && core::$conf['ip_x_forward'] && getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
-                $ip = getenv('HTTP_X_FORWARDED_FOR');
+                $_SERVER['IP'] = getenv('HTTP_X_FORWARDED_FOR');
             } elseif (getenv('REMOTE_ADDR') && strcasecmp(getenv('REMOTE_ADDR'), 'unknown')) {
-                $ip = getenv('REMOTE_ADDR');
+                $_SERVER['IP'] = getenv('REMOTE_ADDR');
             } elseif ($server_addr && strcasecmp($server_addr, 'unknown')) {
-                $ip = $server_addr;
+                $_SERVER['IP'] = $server_addr;
             }
-            preg_match("/[\d\.]{7,15}/", $ip, $ipmatches);
-            $ip = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
-            $_SERVER['REMOTE_ADDR'] = &$ip;
-            $_SERVER['IP'] = &$ip;
+            preg_match("/[\d\.]{7,15}/", $_SERVER['IP'], $ipmatches);
+            $_SERVER['IP'] = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
+            $_SERVER['REMOTE_ADDR'] = &$_SERVER['IP'];
         }
         if ($format) {
-            $ips = explode('.', $ip);
+            $ips = explode('.', $_SERVER['IP']);
             for ($i = 0; $i < 3; $i++) {
                 $ips[$i] = intval($ips[$i]);
             }
             return sprintf('%03d%03d%03d', $ips[0], $ips[1], $ips[2]);
         } else {
-            return $ip;
+            return $_SERVER['IP'];
         }
     }
 

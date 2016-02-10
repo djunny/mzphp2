@@ -14,6 +14,7 @@ defined('ROOT_PATH') || exit;
         box-shadow: -2px 2px 20px #555;
         background: #fff;
         border: 1px solid #ccc;
+        text-align: left;
     }
 
     #mzphp_trace_win, #mzphp_trace_win, #mzphp_trace_win div, #mzphp_trace_win h6, #mzphp_trace_win ol, #mzphp_trace_win li {
@@ -188,7 +189,7 @@ defined('ROOT_PATH') || exit;
     </div>
     <div id="mzphp_trace_cont">
         <ol>
-            <li><span>当前时间:</span> <?php echo date('Y-m-d H:i:s', core::S('time')); ?></li>
+            <li><span>当前时间:</span> <?php echo date('Y-m-d H:i:s', time()); ?></li>
             <li><span>当前页面:</span> <?php echo $_SERVER['SCRIPT_FILENAME']; ?></li>
             <li><span>控制文件:</span> <font color="red"><?php echo $_GET['c']; ?>_control.class.php</font></li>
             <li><span>当前网协:</span> <?php echo core::ip(); ?></li>

@@ -311,8 +311,10 @@ class template {
 
         // else
         $s = preg_replace("#\{else\}#is", "<?}else { ?>", $s);
-        // end if or block
-        $s = preg_replace("#\{\/(if|block)\}#is", "<?}?>", $s);
+        // end if
+        $s = preg_replace("#\{\/(if)\}#is", "<?}?>", $s);
+        // end block
+        $s = preg_replace("#\{\/(block)\}#is", "<?}}?>", $s);
         //{else} 也符合常量格式，此处要注意先后顺??
         $s = preg_replace("#" . $this->const_regexp . "#", "<?=\\1?>", $s);
 
@@ -562,8 +564,9 @@ class template {
      */
     private function blocktag_callback($matchs) {
         $search = '<!--[block=' . count($this->tag_search) . ']-->';
+        $func = 'block_' . $matchs[1];
         $this->tag_search[] = $search;
-        $this->tag_replace[] = '<? function block_' . $matchs[1] . '{?>';
+        $this->tag_replace[] = '<? if(!function_exists(\'' . substr($func, 0, strpos($func, '(')) . '\')){function ' . $func . '{?>';
         return $search;
     }
 

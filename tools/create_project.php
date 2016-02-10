@@ -5,9 +5,17 @@
 	
 	1、create a new directory(创建一个新目录)
 	2、move this file in new directory(将本文件移至新目录)
-	3、open browser and request this file(打开浏览器运行本文件)
-	
+	3、run:
+		php create_project.php www.xxx.com 80
+	   or open this file in browser
+	4、modify host:
+	127.0.0.1 www.xxx.com
 */
+
+if(php_sapi_name() == 'cli'){
+	$_SERVER['HTTP_HOST'] = isset($argv[1]) ? $argv[1] : 'localhost';
+	$_SERVER['SERVER_PORT'] = isset($argv[2]) ? $argv[2] : 80;
+}
 
 function gpc($k, $var = 'G') {
     switch ($var) {
@@ -58,14 +66,21 @@ preg_match_all('#\/([\w\-]+)\/$#i', PATH, $dir);
 $dir = str_replace('', '', $dir[1][0]);
 define('APP_NAME', $dir);
 
-$init_path = '../mzphp/';
-$init_file = PATH.'../mzphp/mzphp.php';
-if (!is_file($init_file)) {
-    $init_file = PATH.'./mzphp/mzphp.php';
-    $init_path = './mzphp/';
-    if (!is_file($init_file)) {
-        $init_file = '';
-    }
+// find mzphp from deep path
+$init_file = '';
+foreach(range(0,3) as $i){
+	$init_path = str_repeat('../', $i).'mzphp/';
+	if(is_dir($init_path)){
+		break;
+	}else{
+		$init_path = '';
+	}
+}
+if($init_path){
+	$init_file = $init_path.'mzphp.php';
+	if (!is_file($init_file)) {
+	   $init_file = '';
+	}
 }
 if (!$init_file) {
     show_message('没有找到 mzphp 目录，请确定：本应用和 mzphp 框架是在同一级目录，或者 mzphp 在当前同级目录');
@@ -279,7 +294,7 @@ return array(
     'log_path' => $APP_PATH.'data/log/',
 
     // 服务器所在的时区
-    'timeoffset' => ' + 8',
+    'timeoffset' => '+8',
 
     // 模板插件
     'tpl' => array(
