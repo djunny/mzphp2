@@ -827,8 +827,9 @@ class spider {
                 }
             }
             // fix IN PHP 5.6
-            curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
-
+            if (defined('CURLOPT_SAFE_UPLOAD')) {
+                curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
+            }
             // post
             if ($post) {
                 curl_setopt($ch, CURLOPT_POST, 1);

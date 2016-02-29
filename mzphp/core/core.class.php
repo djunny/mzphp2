@@ -126,7 +126,7 @@ class core {
             }
 
             if (defined('IN_WORKERMAN')) {
-                return HTTP::setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
+                return \Workerman\Protocols\Http::setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
             } else {
                 return setcookie($key, $value, $time, $path, $domain, FALSE, $httponly);
             }
@@ -581,7 +581,7 @@ class core {
         // init
         self::init_timezone($conf);
         self::init_supevar($conf);
-        self::init_ip();
+        //self::init_ip();
         self::init_set();
         self::init_handle();
         DB::init_db_config($conf['db']);
@@ -614,14 +614,25 @@ class core {
      * @return string
      */
     public static function init_conf_by_domain(&$conf) {
+        static $domain_conf = array();
+        // keep origin conf
+        static $origin_conf = array();
+        if (!$origin_conf) {
+            $origin_conf = $conf;
+        }
         if (!isset($_SERVER['HTTP_HOST']) || !$_SERVER['HTTP_HOST'] || !isset($conf['domain_path']) || !$conf['domain_path']) {
             return;
         }
-        $host = preg_replace('#^[\w\-\.]$#is', '', $_SERVER['HTTP_HOST']);
-        $domain_file = $conf['domain_path'] . $host . '.php';
-        if (is_file($domain_file) && $domain_conf = include($domain_file)) {
-            $conf = array_merge($conf, $domain_conf);
+        $host = preg_replace('#(\:\d+$|[^a-zA-Z\d\-\.]+)#is', '', $_SERVER['HTTP_HOST']);
+        if (!isset($domain_conf[$host])) {
+            $domain_file = $conf['domain_path'] . $host . '.php';
+            if (is_file($domain_file)) {
+                $domain_conf[$host] = include($domain_file);
+            } else {
+                $domain_conf[$host] = array();
+            }
         }
+        $conf = array_merge($origin_conf, $domain_conf[$host]);
     }
 
     /**
@@ -678,11 +689,11 @@ class core {
      */
     public static function header($string, $code = 0) {
         if (defined('IN_WORKERMAN')) {
-            if ($code && isset(HttpCache::$codes[$code])) {
-                $header = sprintf('HTTP/1.1 %s %s', $code, HttpCache::$codes[$code]);
-                HTTP::header($header);
+            if ($code && isset(\Workerman\Protocols\HttpCache::$codes[$code])) {
+                $header = sprintf('HTTP/1.1 %s %s', $code, \Workerman\Protocols\HttpCache::$codes[$code]);
+                \Workerman\Protocols\Http::header($header);
             }
-            HTTP::header($string);
+            \Workerman\Protocols\Http::header($string);
         } else if (!self::is_cmd()) {
             header($string);
         }
@@ -834,23 +845,13 @@ class core {
     }
 
     /**
-     * init ip
-     *
-     * @param int $format
-     * @return null|string
-     */
-    public static function init_ip($format = 0) {
-        return self::ip($format);
-    }
-
-    /**
      * get ip by format
      *
      * @param int $format
      * @return null|string
      */
     public static function ip($format = 0) {
-        if (empty($_SERVER['IP'])) {
+        if (!isset($_SERVER['IP']) || empty($_SERVER['IP'])) {
             $server_addr = self::gpc('REMOTE_ADDR', 'S');
             if (isset(core::$conf['ip_x_forward']) && core::$conf['ip_x_forward'] && getenv('HTTP_X_FORWARDED_FOR') && strcasecmp(getenv('HTTP_X_FORWARDED_FOR'), 'unknown')) {
                 $_SERVER['IP'] = getenv('HTTP_X_FORWARDED_FOR');
@@ -858,6 +859,8 @@ class core {
                 $_SERVER['IP'] = getenv('REMOTE_ADDR');
             } elseif ($server_addr && strcasecmp($server_addr, 'unknown')) {
                 $_SERVER['IP'] = $server_addr;
+            } else {
+                $_SERVER['IP'] = '';
             }
             preg_match("/[\d\.]{7,15}/", $_SERVER['IP'], $ipmatches);
             $_SERVER['IP'] = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
@@ -883,7 +886,7 @@ class core {
         if (DEBUG) {
             debug::init();
         } else {
-            error_reporting(E_ALL & ~E_STRICT & ~E_NOTICE & ~E_WARNING);
+            error_reporting(E_ALL & ~E_STRICT & ~E_NOTICE & ~E_WARNING & ~E_DEPRECATED);
             /*
             set_error_handler(array('core', 'error_handler'));
             if (function_exists('set_exception_handler')) {

@@ -15,8 +15,7 @@ $_GET['c'] = 'enphp-index';
  * Class enphp
  */
 class enphp {
-    public static $server = 'http://enphp.oschina.mopaasapp.com/api/';
-    //'http://localhost/enphp/api/';
+    public static $server = 'http://enphp.djunny.com/api/';
     public static $option = array(
         //混淆方法名 1=字母混淆 2=乱码混淆 0=不混淆
         'ob_function' => 2,
