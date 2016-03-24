@@ -12,6 +12,12 @@ class spider {
     public static $url = '';
 
     /**
+     * @var array last response header
+     */
+    public static $last_header = array();
+
+
+    /**
      * remove all html tag
      *
      * @param $html
@@ -30,7 +36,7 @@ class spider {
     public static function html2txt($html) {
         // html_entity_decode 中 &nbsp; 会导致乱码
         $html = strtr($html, array(
-            '&nbsp;' => ' ',
+            '&nbsp;'  => ' ',
             '&rdquo;' => '”',
             '&ldquo;' => '“',
             //"\xA0" => ' ',
@@ -63,17 +69,17 @@ class spider {
      */
     public static function strip_tags($text, $tags = '') {
         preg_match_all('/<([\w\-\.]+)[\s]*\/?[\s]*>/si', strtolower(trim($tags)), $tags);
-        $tags = array_unique($tags[1]);
+        $tags     = array_unique($tags[1]);
         $searches = array();
         static $block_set = array(
-            'head' => 1,
-            'script' => 1,
-            'iframe' => 1,
-            'frame' => 1,
+            'head'     => 1,
+            'script'   => 1,
+            'iframe'   => 1,
+            'frame'    => 1,
             'noscript' => 1,
             'noframes' => 1,
-            'option' => 1,
-            'style' => 1,
+            'option'   => 1,
+            'style'    => 1,
         );
         //注释
         $searches[] = '#<!--[\s\S]*?-->#is';
@@ -90,13 +96,13 @@ class spider {
                 }
                 $line_tags .= $tag . '|';
             }
-            $block_set = array_keys($block_set);
+            $block_set  = array_keys($block_set);
             $block_tags = implode('|', $block_set);
             if ($block_tags) {
                 $searches[] = '#<(' . $block_tags . ')\b[\s\S]*?</\1>#is';
             }
             if ($line_tags) {
-                $line_tags = substr($line_tags, 0, -1);
+                $line_tags  = substr($line_tags, 0, -1);
                 $searches[] = '#<(?!(?:' . $line_tags . ')|\/(?:' . $line_tags . ')\b)[^>]*?>#si';
             }
             return preg_replace($searches, '', $text);
@@ -271,7 +277,7 @@ class spider {
             unset($patterns['_replace']);
         }
         $extractor = NULL;
-        $dom = NULL;
+        $dom       = NULL;
         //next fetch
         $fetchqueue = array();
         foreach ($patterns as $key => $val) {
@@ -373,8 +379,8 @@ class spider {
         //next fetch
         if ($fetchqueue) {
             foreach ($fetchqueue as $url) {
-                $html = self::fetch_url($url['url']);
-                $matches = self::match($html, $url['patterns']);
+                $html                                           = self::fetch_url($url['url']);
+                $matches                                        = self::match($html, $url['patterns']);
                 $tmplist[$url['key']][$url['index']]['fetched'] = $matches;
             }
         }
@@ -534,7 +540,7 @@ class spider {
             return $src_url;
         }
         $base_info = parse_url($base_url);
-        $url = $base_info['scheme'] . '://' . $base_info['host'];
+        $url       = $base_info['scheme'] . '://' . $base_info['host'];
         if (!isset($src_info['path'])) {
             $src_info['path'] = '';
         }
@@ -553,7 +559,7 @@ class spider {
                 }
             }
         }
-        $rst = array();
+        $rst        = array();
         $path_array = explode('/', $path);
         if (!$path_array[0]) {
             $rst[] = '';
@@ -634,25 +640,25 @@ class spider {
         $HTTP_USER_AGENT = $_SERVER['HTTP_USER_AGENT'];
         empty($HTTP_USER_AGENT) && $HTTP_USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)';
 
-        $matches = parse_url($url);
-        $host = $matches['host'];
-        $path = isset($matches['path']) ? $matches['path'] . (!empty($matches['query']) ? '?' . $matches['query'] : '') : '/';
-        $port = !empty($matches['port']) ? $matches['port'] : 80;
-        $https = $matches['scheme'] == 'https' ? true : false;
-        $charset = '';
+        $matches    = parse_url($url);
+        $host       = $matches['host'];
+        $path       = isset($matches['path']) ? $matches['path'] . (!empty($matches['query']) ? '?' . $matches['query'] : '') : '/';
+        $port       = !empty($matches['port']) ? $matches['port'] : 80;
+        $https      = $matches['scheme'] == 'https' ? true : false;
+        $charset    = '';
         $defheaders = array(
-            'Accept' => '*/*',
-            'User-Agent' => $HTTP_USER_AGENT,
+            'Accept'          => '*/*',
+            'User-Agent'      => $HTTP_USER_AGENT,
             'Accept-Encoding' => 'gzip, deflate',
-            'Host' => $host,
-            'Connection' => 'Close',
+            'Host'            => $host,
+            'Connection'      => 'Close',
             'Accept-Language' => 'zh-cn',
         );
 
 
         if (!empty($post)) {
             $defheaders['Cache-Control'] = 'no-cache';
-            $out = "POST {$path} HTTP/1.0\r\n";
+            $out                         = "POST {$path} HTTP/1.0\r\n";
         } else {
             $out = "GET {$path} HTTP/1.0\r\n";
         }
@@ -673,13 +679,13 @@ class spider {
         }
 
         if ($fetchmode == 'socket') {
-            $limit = 1024000000;
-            $ip = '';
-            $return = '';
+            $limit                      = 1024000000;
+            $ip                         = '';
+            $return                     = '';
             $defheaders['Content-Type'] = 'application/x-www-form-urlencode';
             // build post
             if (is_array($post)) {
-                $boundary = '';
+                $boundary  = '';
                 $post_body = '';
                 foreach ($post as $k => $v) {
                     if ($v[0] == '@') {
@@ -701,8 +707,8 @@ class spider {
                             $post_body .= "\r\n" . 'Content-Disposition: form-data; name="' . $k . '"' . "\r\n\r\n" . $v . "\r\n--" . $boundary;
                         }
                     }
-                    $post_body = '--' . $boundary . $post_body . '--';
-                    $post = $post_body;
+                    $post_body                  = '--' . $boundary . $post_body . '--';
+                    $post                       = $post_body;
                     $defheaders['Content-Type'] = 'multipart/form-data; boundary=' . $boundary;
                 } else {
                     $post = http_build_query($post);
@@ -727,7 +733,7 @@ class spider {
                 stream_set_timeout($fp, $timeout);
                 @fwrite($fp, $out);
                 $status = stream_get_meta_data($fp);
-                $gzip = false;
+                $gzip   = false;
                 if (!$status['timed_out']) {
                     $starttime = time();
                     while (!feof($fp)) {
@@ -736,7 +742,7 @@ class spider {
                         } else {
                             $header = strtolower($header);
                             if (substr($header, 0, 9) == 'location:') {
-                                $location = trim(substr($header, 9));
+                                $location  = trim(substr($header, 9));
                                 self::$url = $location;
                                 return self::fetch_url($location, $timeout, $post, $headers, $deep + 1);
                             } else if (strpos($header, 'content-encoding:') !== false
@@ -909,14 +915,15 @@ class spider {
             }
             //for debug request header
             //print_r($defheaders);$info = curl_getinfo($ch, CURLINFO_HEADER_OUT );print_r($info);echo is_array($post) ? http_build_query($post) : $post;exit;
-            $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+            $header_size              = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             self::$last_response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            self::$url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-            $header = substr($data, 0, $header_size);
-            $data = substr($data, $header_size);
+            self::$url                = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            $header                   = substr($data, 0, $header_size);
+            $data                     = substr($data, $header_size);
             //extract last response header
-            $header = explode("\r\n\r\n", trim($header));
-            $header = array_pop($header);
+            self::$last_header = self::extract_header($header);
+            $header            = explode("\r\n\r\n", trim($header));
+            $header            = array_pop($header);
             //match charset
             if (!$charset) {
                 preg_match('@Content-Type:\s*([\w\/]+)(;\s+charset\s*=\s*([\w-]+))?@is', $header, $charsetmatch);
@@ -935,13 +942,40 @@ class spider {
             && in_array('http', $stream_wraps)
         ) {
             // 尝试连接
-            $opts = array('http' => array('method' => 'GET', 'timeout' => $timeout));
+            $opts    = array('http' => array('method' => 'GET', 'timeout' => $timeout));
             $context = stream_context_create($opts);
-            $html = file_get_contents($url, false, $context);
+            $html    = file_get_contents($url, false, $context);
             return self::convert_html_charset($html, $charset);
         } else {
             return FALSE;
         }
+    }
+
+    /**
+     * extract last response header
+     *
+     * @param $header
+     * @return array
+     */
+    private static function extract_header($header) {
+        $lines  = explode("\n", $header);
+        $result = array();
+        foreach ($lines as $line) {
+            list($key, $val) = explode(":", $line, 2);
+            $key = trim(strtolower($key));
+            switch ($key) {
+                case 'set-cookie':
+                    if (!isset($result['cookie'])) {
+                        $result['cookie'] = array();
+                    }
+                    $result['cookie'][] = $val;
+                break;
+                default:
+                    $result[$key] = trim($val);
+                break;
+            }
+        }
+        return $result;
     }
 
     /**
@@ -978,14 +1012,14 @@ class spider {
                         $head = strtolower($head);
                         $head = self::reg_replace($head, array(
                             '<script(*)/script>' => '',
-                            '<style(*)/style>' => '',
-                            '<link(*)>' => '',
-                            "\r" => '',
-                            "\n" => '',
-                            "\t" => '',
-                            " " => '',
-                            "'" => ' ',
-                            "\"" => ' ',
+                            '<style(*)/style>'   => '',
+                            '<link(*)>'          => '',
+                            "\r"                 => '',
+                            "\n"                 => '',
+                            "\t"                 => '',
+                            " "                  => '',
+                            "'"                  => ' ',
+                            "\""                 => ' ',
                         ));
                         preg_match_all('/charset\s*?=\s*?([\-\w]+)/', $head, $matches);
                     } else {
@@ -1039,7 +1073,7 @@ class spider {
         }
 
         $multi_handle = curl_multi_init();
-        $conn = $data = array();
+        $conn         = $data = array();
         foreach ($urls as $i => $url) {
             $conn[$i] = curl_init($url);
             curl_setopt($conn[$i], CURLOPT_ENCODING, '');

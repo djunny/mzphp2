@@ -51,7 +51,7 @@ class pdo_mysql_db {
             }
             // 随机拿从库
             $slaves = $this->conf['slaves'];
-            $slave = $slaves[rand(0, $slave_count - 1)];
+            $slave  = $slaves[rand(0, $slave_count - 1)];
             empty($slave['engine']) && $slave['engine'] = '';
             $this->read_link = $this->connect($slave, 'slave');
             return $this->read_link;
@@ -71,19 +71,22 @@ class pdo_mysql_db {
         } else {
             $port = 3306;
         }
+        if ($db_conf['charset']) {
+            $init_sql = 'SET NAMES ' . $db_conf['charset'] . ', sql_mode=""';
+        } else {
+            $init_sql = 'SET sql_mode=""';
+        }
         try {
-            $link = new PDO("mysql:host={$host};port={$port};dbname={$db_conf['name']}", $db_conf['user'], $db_conf['pass']);
+            $link = new PDO("mysql:host={$host};port={$port};dbname={$db_conf['name']}", $db_conf['user'], $db_conf['pass'], array(
+                PDO::ATTR_PERSISTENT         => $db_conf['pconnect'],
+                PDO::MYSQL_ATTR_INIT_COMMAND => $init_sql,
+            ));
             //$link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
         } catch (Exception $e) {
             exit('[pdo_mysql]Cant Connect Pdo_mysql:' . $e->getMessage());
         }
         //$link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 
-        if ($db_conf['charset']) {
-            $link->query('SET NAMES ' . $db_conf['charset'] . ', sql_mode=""');
-        } else {
-            $link->query('SET sql_mode=""');
-        }
         return $link;
     }
 
@@ -118,7 +121,7 @@ class pdo_mysql_db {
      */
     public function exec($sql, $link = NULL) {
         $link = $link ? $link : $this->get_link($sql);
-        $n = $link->exec($sql);
+        $n    = $link->exec($sql);
         return $n;
     }
 
@@ -131,8 +134,8 @@ class pdo_mysql_db {
      */
     function query($sql, $link) {
         if (DEBUG) {
-            $sqlendttime = 0;
-            $mtime = explode(' ', microtime());
+            $sqlendttime  = 0;
+            $mtime        = explode(' ', microtime());
             $sqlstarttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
         }
         $link = $link ? $link : $this->get_link($sql);
@@ -150,16 +153,16 @@ class pdo_mysql_db {
         }
 
         if (DEBUG) {
-            $mtime = explode(' ', microtime());
+            $mtime       = explode(' ', microtime());
             $sqlendttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
-            $sqltime = round(($sqlendttime - $sqlstarttime), 3);
-            $explain = array();
-            $info = array();
+            $sqltime     = round(($sqlendttime - $sqlstarttime), 3);
+            $explain     = array();
+            $info        = array();
             if ($result && $type == 'sele') {
                 $explain_query = $link->query('EXPLAIN ' . $sql);
-                $explain = $this->fetch_array($explain_query);
+                $explain       = $this->fetch_array($explain_query);
             }
-            $sql = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
+            $sql               = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
             $_SERVER['sqls'][] = array('sql' => $sql, 'type' => 'mysql', 'time' => $sqltime, 'info' => $info, 'explain' => $explain);
         }
 
@@ -271,11 +274,11 @@ class pdo_mysql_db {
         } else {
             $field_sql = '*';
         }
-        $start = ($page - 1) * $perpage;
+        $start       = ($page - 1) * $perpage;
         $fetch_first = $perpage == 0 ? true : false;
-        $fetch_all = $perpage == -1 ? true : false;
+        $fetch_all   = $perpage == -1 ? true : false;
         $fetch_count = $perpage == -2 ? true : false;
-        $limit_sql = '';
+        $limit_sql   = '';
         if (!$fetch_first && !$fetch_all && !$fetch_count) {
             $limit_sql = ' LIMIT ' . $start . ',' . $perpage;
         }
@@ -285,7 +288,7 @@ class pdo_mysql_db {
             $order_sql = $this->build_order_sql($order);
         }
 
-        $sql = 'SELECT ' . $field_sql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
+        $sql   = 'SELECT ' . $field_sql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
         $query = $this->query($sql);;
         if ($fetch_first) {
             return $this->fetch_array($query);
@@ -308,7 +311,7 @@ class pdo_mysql_db {
             return 0;
         }
         $method = $replace ? 'REPLACE' : 'INSERT';
-        $sql = $method . ' INTO ' . $table . ' ' . $data_sql;
+        $sql    = $method . ' INTO ' . $table . ' ' . $data_sql;
         $this->query($sql);
         if ($replace) {
             return 0;
@@ -338,7 +341,7 @@ class pdo_mysql_db {
      * @throws Exception
      */
     function update($table, $data, $where) {
-        $data_sql = $this->build_set_sql($data);
+        $data_sql  = $this->build_set_sql($data);
         $where_sql = $this->build_where_sql($where);
         if ($where_sql) {
             $sql = 'UPDATE ' . $table . $data_sql . $where_sql;

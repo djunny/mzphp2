@@ -333,7 +333,7 @@ class template {
         // $s = preg_replace('#<\?=(\$\w+.*?)\?'.'>#', "<"."?php echo isset(\\1) ? \\1 : '';?".">", $s);
         // static 目录前面增加 static_url
         if ($this->conf['static_url']) {
-            $s = preg_replace('#([\'"])(static\w*)/#i', '\\1' . $this->conf['static_url'] . '\\2/', $s);
+            $s = preg_replace('#([\'"])static\/(\w*)/#i', '\\1' . $this->conf['static_url'] . '\\2/', $s);
         }
         // 添加头，用于判断所有子模板改过后模板重新编译
         $s = "<?php !defined('ROOT_PATH') && exit('Access Denied');" .
