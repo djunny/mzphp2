@@ -77,11 +77,13 @@ class pdo_mysql_db {
             $init_sql = 'SET sql_mode=""';
         }
         try {
-            $link = new PDO("mysql:host={$host};port={$port};dbname={$db_conf['name']}", $db_conf['user'], $db_conf['pass'], array(
+            $init_array = array(
                 PDO::ATTR_PERSISTENT         => $db_conf['pconnect'],
-                PDO::MYSQL_ATTR_INIT_COMMAND => $init_sql,
-            ));
+            );
+            $link = new PDO("mysql:host={$host};port={$port};dbname={$db_conf['name']}", $db_conf['user'], $db_conf['pass'], $init_array);
             //$link->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+            // set encoding + sql mode
+            $link->query($init_sql);
         } catch (Exception $e) {
             exit('[pdo_mysql]Cant Connect Pdo_mysql:' . $e->getMessage());
         }
