@@ -46,7 +46,7 @@ class core {
             break;
             case 'C':
                 //处理COOKIE
-                $k = $_SERVER['cookie_pre'] . $k;
+                $k   = $_SERVER['cookie_pre'] . $k;
                 $var = &$_COOKIE;
             break;
             case 'R':
@@ -115,7 +115,7 @@ class core {
             $key = $_SERVER['cookie_pre'] . $key;
             //add server time
             if ($time > 0) {
-                $time = $_SERVER['time'] + $time;
+                $time          = $_SERVER['time'] + $time;
                 $_COOKIE[$key] = $value;
             } else {
                 unset($_COOKIE[$key]);
@@ -228,11 +228,11 @@ class core {
             }
         } elseif (is_string($data)) {
             $string = '"' . addcslashes($data, "\\\"\n\r\t/" . chr(8) . chr(12)) . '"';
-            $json = '';
-            $len = strlen($string);
+            $json   = '';
+            $len    = strlen($string);
             for ($i = 0; $i < $len; $i++) {
                 $char = $string[$i];
-                $c1 = ord($char);
+                $c1   = ord($char);
                 if ($c1 < 128) {
                     $json .= ($c1 > 31) ? $char : sprintf("\\u%04x", $c1);
                     continue;
@@ -435,22 +435,22 @@ class core {
             if (!$init_replace) {
                 if (isset($conf['str_replace'])) {
                     foreach ($conf['str_replace'] as $k => $v) {
-                        $str_search[] = $k;
+                        $str_search[]  = $k;
                         $str_replace[] = $v;
                     }
                 }
                 if (isset($conf['reg_replace'])) {
                     foreach ($conf['reg_replace'] as $k => $v) {
-                        $reg_search[] = $k;
+                        $reg_search[]  = $k;
                         $reg_replace[] = $v;
                     }
                 }
                 $app_dir_regex = preg_quote($conf['app_dir']);
-                $init_replace = 1;
+                $init_replace  = 1;
             }
             if (strpos($s, '?c=') !== false) {
-                $comma = $conf['rewrite_info']['comma'];
-                $reg_search[] = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
+                $comma         = $conf['rewrite_info']['comma'];
+                $reg_search[]  = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
                 $reg_replace[] = 'core::rewrite("' . $conf['app_dir'] . '", "\\2' . $comma . '\\3", "\\4", "' . $comma . '", "' . $conf['rewrite_info']['ext'] . '")';
             }
 
@@ -512,7 +512,7 @@ class core {
      */
     public static function get_paths($path, $fullpath = FALSE) {
         $arr = array();
-        $df = opendir($path);
+        $df  = opendir($path);
         while ($dir = readdir($df)) {
             if ($dir == '.' || $dir == '..' || $dir[0] == '.' || !is_dir($path . $dir)) continue;
             $arr[] = $fullpath ? $path . $dir . '/' : $dir;
@@ -531,7 +531,7 @@ class core {
         self::init($conf);
         $control = str_replace(array('.', '\\', '/'), '', self::R('c'));
         // find control file
-        $control_class = $control . '_control';
+        $control_class  = $control . '_control';
         $control_exists = class_exists($control_class, false);
         if (!$control_exists) {
             foreach ($conf['control_path'] as $control_dir) {
@@ -556,7 +556,7 @@ class core {
             throw new Exception("Invaild URL : {$control} control not exists.");
         }
         $controlclass = "{$control}_control";
-        $newcontrol = new $controlclass($conf);
+        $newcontrol   = new $controlclass($conf);
         // control can run hook before on_cation
         $onaction = "on_" . self::G('a');
         if (method_exists($newcontrol, $onaction)) {
@@ -649,25 +649,25 @@ class core {
                 '-12' => 'Kwajalein',
                 '-11' => 'Pacific/Midway',
                 '-10' => 'Pacific/Honolulu',
-                '-9' => 'America/Anchorage',
-                '-8' => 'America/Los_Angeles',
-                '-7' => 'America/Denver',
-                '-6' => 'America/Tegucigalpa',
-                '-5' => 'America/New_York',
-                '-4' => 'America/Halifax',
-                '-3' => 'America/Sao_Paulo',
-                '-2' => 'Atlantic/South_Georgia',
-                '-1' => 'Atlantic/Azores',
-                '0' => 'Europe/Dublin',
-                '+1' => 'Europe/Belgrade',
-                '+2' => 'Europe/Minsk',
-                '+3' => 'Asia/Tehran',
-                '+4' => 'Asia/Muscat',
-                '+5' => 'Asia/Katmandu',
-                '+6' => 'Asia/Rangoon',
-                '+7' => 'Asia/Krasnoyarsk',
-                '+8' => 'Asia/Shanghai',
-                '+9' => 'Australia/Darwin',
+                '-9'  => 'America/Anchorage',
+                '-8'  => 'America/Los_Angeles',
+                '-7'  => 'America/Denver',
+                '-6'  => 'America/Tegucigalpa',
+                '-5'  => 'America/New_York',
+                '-4'  => 'America/Halifax',
+                '-3'  => 'America/Sao_Paulo',
+                '-2'  => 'Atlantic/South_Georgia',
+                '-1'  => 'Atlantic/Azores',
+                '0'   => 'Europe/Dublin',
+                '+1'  => 'Europe/Belgrade',
+                '+2'  => 'Europe/Minsk',
+                '+3'  => 'Asia/Tehran',
+                '+4'  => 'Asia/Muscat',
+                '+5'  => 'Asia/Katmandu',
+                '+6'  => 'Asia/Rangoon',
+                '+7'  => 'Asia/Krasnoyarsk',
+                '+8'  => 'Asia/Shanghai',
+                '+9'  => 'Australia/Darwin',
                 '+10' => 'Australia/Canberra',
                 '+11' => 'Asia/Magadan',
                 '+12' => 'Pacific/Fiji',
@@ -706,13 +706,13 @@ class core {
      */
     public static function init_supevar(&$conf) {
         // 将更多有用的信息放入 $_SERVER 变量
-        $_SERVER['starttime'] = microtime(1);
-        $starttime = explode(' ', $_SERVER['starttime']);
-        $_SERVER['time'] = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
-        $_SERVER['ip'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-        $_SERVER['sqls'] = array();// debug
-        $_SERVER['app_url'] = $conf['app_url'];
-        $_SERVER['cookie_pre'] = $conf['cookie_pre'];
+        $_SERVER['starttime']     = microtime(1);
+        $starttime                = explode(' ', $_SERVER['starttime']);
+        $_SERVER['time']          = isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : $starttime[1];
+        $_SERVER['ip']            = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        $_SERVER['sqls']          = array();// debug
+        $_SERVER['app_url']       = $conf['app_url'];
+        $_SERVER['cookie_pre']    = $conf['cookie_pre'];
         $_SERVER['cookie_domain'] = $conf['cookie_domain'];
         if (function_exists('memory_get_usage')) {
             $_SERVER['start_memory'] = memory_get_usage();
@@ -720,8 +720,8 @@ class core {
         // ajax 判断
         if (isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With']) {
             $_REQUEST['ajax'] = 1;
-            $_GET['ajax'] = 1;
-            $_POST['ajax'] = 1;
+            $_GET['ajax']     = 1;
+            $_POST['ajax']    = 1;
         }
         // 兼容IIS $_SERVER['REQUEST_URI']
         (!isset($_SERVER['REQUEST_URI']) || (isset($_SERVER['HTTP_X_REWRITE_URL']) && $_SERVER['REQUEST_URI'] != $_SERVER['HTTP_X_REWRITE_URL'])) && self::fix_iis_request();
@@ -785,7 +785,7 @@ class core {
             }
             $url_sp && $get['rewrite'] = str_replace($url_sp, '/', $get['rewrite']);
             $get['rewrite'] = preg_replace('/^\//is', '', $get['rewrite']);
-            $rws = explode('/', $get['rewrite']);
+            $rws            = explode('/', $get['rewrite']);
             if (isset($rws[0])) {
                 $rw_count = count($rws);
                 for ($rw_i = 0; $rw_i < $rw_count; $rw_i = $rw_i + 2) {
@@ -863,7 +863,7 @@ class core {
                 $_SERVER['IP'] = '';
             }
             preg_match("/[\d\.]{7,15}/", $_SERVER['IP'], $ipmatches);
-            $_SERVER['IP'] = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
+            $_SERVER['IP']          = isset($ipmatches[0]) && $ipmatches[0] ? $ipmatches[0] : 'unknown';
             $_SERVER['REMOTE_ADDR'] = &$_SERVER['IP'];
         }
         if ($format) {
@@ -1001,6 +1001,21 @@ class core {
 class C extends core {
 }
 
-;
-
+if (!function_exists('class_alias')) {
+    /**
+     * class alias for EnPHP
+     *
+     * @param $original
+     * @param $alias
+     */
+    function class_alias($original, $alias) {
+        if (class_exists($alias)) {
+            return true;
+        }
+        if (!class_exists($original)) {
+            eval('abstract class ' . $alias . ' extends ' . $original . '{}');
+        }
+        return true;
+    }
+}
 ?>

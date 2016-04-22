@@ -133,7 +133,7 @@ class template {
      * $conf[tpl_prefix] : prefix for compile template filename
      * $conf[tpl][plugins] : plugin setting
      */
-    private function set_conf(&$conf) {
+    public function set_conf(&$conf) {
         $this->conf = &$conf;
         // relative path use in template
         if (!defined('DIR')) {
@@ -209,6 +209,21 @@ class template {
     }
 
     /**
+     * get complie template object file
+     *
+     * @param $filename
+     * @return string
+     */
+    public function get_complie_name(&$filename) {
+        if (strpos($filename, '.') === false) {
+            $filename .= '.htm';
+        }
+        $fix_filename = strtr($filename, array('/' => '#', '\\' => '#'));
+        $obj_file     = $this->conf['tmp_path'] . (isset($this->conf['tpl_prefix']) ? $this->conf['tpl_prefix'] : $this->conf['app_id']) . '_view_' . $fix_filename . '.php';
+        return $obj_file;
+    }
+
+    /**
      * find template in view path & get compile template
      *
      * @param $filename
@@ -216,11 +231,7 @@ class template {
      * @throws Exception
      */
     public function get_compile_tpl($filename) {
-        if (strpos($filename, '.') === false) {
-            $filename .= '.htm';
-        }
-        $fix_filename = strtr($filename, array('/' => '#', '\\' => '#'));
-        $obj_file = $this->conf['tmp_path'] . (isset($this->conf['tpl_prefix']) ? $this->conf['tpl_prefix'] : $this->conf['app_id']) . '_view_' . $fix_filename . '.php';
+        $obj_file = $this->get_complie_name($filename);
         if (!$this->force) return $obj_file;
 
         $exists_file = is_file($obj_file);
@@ -232,7 +243,11 @@ class template {
                 break;
             }
         }
+        // 删除原始模板后，如果编译的模板文件在还存在，则直接返回
         if (empty($file)) {
+            if ($exists_file) {
+                return $obj_file;
+            }
             throw new Exception("template not found: $filename");
         }
 
@@ -371,7 +386,7 @@ class template {
      * @return string
      */
     private function compress_html($html_source) {
-        $chunks = preg_split('#(<pre.*?\/pre>)#ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks               = preg_split('#(<pre.*?\/pre>)#ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
         // compress html : clean new line , clean tab, clean comment
         foreach ($chunks as $index => $c) {
@@ -442,7 +457,7 @@ class template {
         }
         foreach ($this->conf['view_path'] as $path) {
             if (is_file($path . $filename)) {
-                $file = $path . $filename;
+                $file                 = $path . $filename;
                 $this->sub_tpl[$file] = $file;
                 return file_get_contents($file);
                 break;
@@ -458,7 +473,7 @@ class template {
      * @return string
      */
     private function array_index($matches) {
-        $name = $matches[1];
+        $name  = $matches[1];
         $items = $matches[2];
         if (strpos($items, '$') === FALSE) {
             $items = preg_replace("#\[([\$a-zA-Z_][\w\$]*)\]#is", "['\\1']", $items);
@@ -487,12 +502,12 @@ class template {
      */
     private function stripvtag_callback($matchs) {
         $pre = $matchs[1];
-        $s = $matchs[2];
+        $s   = $matchs[2];
         switch ($pre) {
             case 'eval':
-                $s = '<? ' . $s . '?' . '>';
-                $search = '<!--[eval=' . count($this->tag_search) . ']-->';
-                $this->tag_search[] = $search;
+                $s                   = '<? ' . $s . '?' . '>';
+                $search              = '<!--[eval=' . count($this->tag_search) . ']-->';
+                $this->tag_search[]  = $search;
                 $this->tag_replace[] = $this->stripvtag($s);
                 return $search;
             break;
@@ -530,14 +545,14 @@ class template {
             if (stripos($matches[1], ' type="tpl"') !== false) {
                 return $matches[0];
             }
-            $search = '<!--[script=' . count($this->tag_search) . ']-->';
+            $search             = '<!--[script=' . count($this->tag_search) . ']-->';
             $this->tag_search[] = $search;
             // filter script comment
             $matches[0] = preg_replace('#(//[^\'";><]*$|/\*[\s\S]*?\*/)#im', '', $matches[0]);
             // replace variable and constant
             // e.g.
             // {$a} {$a[1]} {$a[desc]} {ROOT}
-            $matches[0] = preg_replace('#{((?:\$[\w\[\]]+)|(?:[A-Z_]+))}#s', '<' . '?php echo $1;?' . '>', $matches[0]);
+            $matches[0]          = preg_replace('#{((?:\$[\w\[\]]+)|(?:[A-Z_]+))}#s', '<' . '?php echo $1;?' . '>', $matches[0]);
             $this->tag_replace[] = $matches[0];
             return $search;
         }
@@ -550,8 +565,8 @@ class template {
      * @return string
      */
     private function funtag_callback($matchs) {
-        $search = '<!--[func=' . count($this->tag_search) . ']-->';
-        $this->tag_search[] = $search;
+        $search              = '<!--[func=' . count($this->tag_search) . ']-->';
+        $this->tag_search[]  = $search;
         $this->tag_replace[] = '<? if(false !== ($_val=' . $matchs[1] . '))echo $_val;?>';
         return $search;
     }
@@ -563,9 +578,9 @@ class template {
      * @return string
      */
     private function blocktag_callback($matchs) {
-        $search = '<!--[block=' . count($this->tag_search) . ']-->';
-        $func = 'block_' . $matchs[1];
-        $this->tag_search[] = $search;
+        $search              = '<!--[block=' . count($this->tag_search) . ']-->';
+        $func                = 'block_' . $matchs[1];
+        $this->tag_search[]  = $search;
         $this->tag_replace[] = '<? if(!function_exists(\'' . substr($func, 0, strpos($func, '(')) . '\')){function ' . $func . '{?>';
         return $search;
     }
@@ -578,20 +593,20 @@ class template {
      */
     private function loop_section($matchs) {
         if (isset($matchs[4])) {
-            $arr = $matchs[1];
-            $k = $matchs[2];
-            $v = $matchs[3];
+            $arr       = $matchs[1];
+            $k         = $matchs[2];
+            $v         = $matchs[3];
             $statement = $matchs[4];
         } else {
-            $arr = $matchs[1];
-            $k = '';
-            $v = $matchs[2];
+            $arr       = $matchs[1];
+            $k         = '';
+            $v         = $matchs[2];
             $statement = $matchs[3];
         }
 
-        $arr = $this->stripvtag($arr);
-        $k = $this->stripvtag($k);
-        $v = $this->stripvtag($v);
+        $arr       = $this->stripvtag($arr);
+        $k         = $this->stripvtag($k);
+        $v         = $this->stripvtag($v);
         $statement = str_replace("\\\"", '"', $statement);
         return $k ? "<? if(!empty($arr)) { foreach($arr as $k=>&$v) {?>$statement<? }}?>" : "<? if(!empty($arr)) { foreach($arr as &$v) {?>$statement<? }} ?>";
     }

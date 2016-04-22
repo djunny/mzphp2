@@ -46,23 +46,33 @@ if (DEBUG > 0) {
         // 最低版本需求判断
         PHP_VERSION < '5.0' && exit('Required PHP version 5.0.* or later.');
         // make runtime file
-        $inc_files = glob(FRAMEWORK_PATH . '*/*.class.php');
-        // 加载除debug目录的文件
+        $inc_files = glob(FRAMEWORK_PATH . '*/base_*.class.php');
+        // 优先加载_base的文件
         foreach ($inc_files as $inc_file) {
-            if (strpos($inc_file, 'debug/') === false && strpos($inc_file, 'plugin/') === false) {
+            $content .= php_strip_whitespace($inc_file);
+        }
+        $inc_files = glob(FRAMEWORK_PATH . '*/*.class.php');
+        // 加载除debug、base_、plugin目录的文件
+        foreach ($inc_files as $inc_file) {
+            if (strpos($inc_file, 'base_') === false && strpos($inc_file, 'debug/') === false && strpos($inc_file, 'plugin/') === false) {
                 $content .= php_strip_whitespace($inc_file);
             }
         }
         // 加载扩展内核的文件
         if (defined('FRAMEWORK_EXTEND_PATH')) {
-
             //扩展目录用 | 隔开
             $dirs = explode('|', FRAMEWORK_EXTEND_PATH);
             foreach ($dirs as $dir) {
                 if ($dir && is_dir($dir)) {
-                    $inc_files = glob($dir . '*.class.php');
+                    $inc_files = glob($dir . 'base_*.class.php');
                     foreach ($inc_files as $inc_file) {
                         $content .= php_strip_whitespace($inc_file);
+                    }
+                    $inc_files = glob($dir . '*.class.php');
+                    foreach ($inc_files as $inc_file) {
+                        if (strpos($inc_file, 'base_') === false) {
+                            $content .= php_strip_whitespace($inc_file);
+                        }
                     }
                 }
             }
@@ -72,7 +82,7 @@ if (DEBUG > 0) {
         unset($content, $inc_files, $inc_file, $dirs, $dir);
         //加载 runtime
         include $runtimefile;
-		//unlink($runtimefile);
+        //unlink($runtimefile);
     }
 }
 
