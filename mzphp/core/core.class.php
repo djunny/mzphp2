@@ -432,6 +432,7 @@ class core {
             static $reg_replace = array();
             static $str_search = array();
             static $str_replace = array();
+            static $app_dir_regex = '';
             if (!$init_replace) {
                 if (isset($conf['str_replace'])) {
                     foreach ($conf['str_replace'] as $k => $v) {
@@ -448,10 +449,10 @@ class core {
                 $app_dir_regex = preg_quote($conf['app_dir']);
                 $init_replace  = 1;
             }
+
             if (strpos($s, '?c=') !== false) {
-                $comma         = $conf['rewrite_info']['comma'];
-                $reg_search[]  = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#ie';
-                $reg_replace[] = 'core::rewrite("' . $conf['app_dir'] . '", "\\2' . $comma . '\\3", "\\4", "' . $comma . '", "' . $conf['rewrite_info']['ext'] . '")';
+                $rewrite_search = '#\<a href=\"(' . $app_dir_regex . ')?(?:index\.php)?\?c=(\w+)-(\w+)([^"]*?)\"#i';
+                $s              = preg_replace_callback($rewrite_search, 'core::rewrite_callback', $s);
             }
 
             if ($str_search) {
@@ -462,6 +463,16 @@ class core {
                 $s = preg_replace($reg_search, $reg_replace, $s);
             }
         }
+    }
+
+    /**
+     * rewrite callback
+     *
+     * @param $matches
+     */
+    public static function rewrite_callback($matches) {
+        $pre = $matches[2] . self::$conf['rewrite_info']['comma'] . $matches[3];
+        return self::rewrite(self::$conf['app_dir'], $pre, $matches[4], self::$conf['rewrite_info']['comma'], self::$conf['rewrite_info']['ext']);
     }
 
     /**

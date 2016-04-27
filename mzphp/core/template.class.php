@@ -29,7 +29,7 @@ class template {
      *
      * @var int
      */
-    private $force = 1;
+    public $force = 5;
     /**
      *
      * @var string
@@ -298,9 +298,13 @@ class template {
             foreach ($this->conf['tpl']['plugins'] as $plugin => $plugin_file) {
                 if (!isset(self::$plugin_loaded[$plugin])) {
                     include $plugin_file;
-                    self::$plugin_loaded[$plugin] = new $plugin($this->conf);
+                    if (class_exists($plugin, 0)) {
+                        self::$plugin_loaded[$plugin] = new $plugin($this->conf);
+                    } else {
+                        self::$plugin_loaded[$plugin] = 0;
+                    }
                 }
-                self::$plugin_loaded[$plugin]->process($s);
+                self::$plugin_loaded[$plugin] && self::$plugin_loaded[$plugin]->process($s);
             }
         }
 
@@ -429,11 +433,11 @@ class template {
      */
     function sub_tpl_check($sub_files, $make_time, $tpl, $obj_file) {
         // 随机种子，如果转到了，重新检测
-        if (mt_rand(1, 5) == 1) {
+        if ($this->force && mt_rand(1, $this->force) == 1) {
             $sub_files = explode('|', $sub_files);
             foreach ($sub_files as $tpl_file) {
                 $sub_make_time = @filemtime($tpl_file);
-                if ($sub_make_time > $make_time) {
+                if ($sub_make_time && $sub_make_time > $make_time) {
                     $this->compile($tpl, $obj_file);
                     break;
                 }
