@@ -390,11 +390,19 @@ class template {
      * @return string
      */
     private function compress_html($html_source) {
-        $chunks               = preg_split('#(<pre.*?\/pre>)#ms', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks               = preg_split('#(<(pre|textarea)[\s\S]*?<\/\2>)#is', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
         // compress html : clean new line , clean tab, clean comment
+        $skip = 0;
         foreach ($chunks as $index => $c) {
-            if (stripos($c, '<pre') !== 0) {
+            if ($skip) {
+                //skip capture like pre and textarea
+                $skip = 0;
+                continue;
+            }
+            if (stripos($c, '<pre') === 0 || stripos($c, '<textarea') === 0) {
+                $skip = 1;
+            } else {
                 while (strpos($c, "\r") !== false) {
                     $c = str_replace("\r", "\n", $c);
                 }

@@ -158,7 +158,7 @@ class misc {
             }
         }
 
-        $hex = str_split(bin2hex($data), $width * 2);
+        $hex   = str_split(bin2hex($data), $width * 2);
         $chars = str_split(strtr($data, $from, $to), $width);
 
         $offset = 0;
@@ -193,7 +193,7 @@ class misc {
                 }
             } elseif (is_dir($file)) {
                 $tmpfile = $file . '/____tmp.tmp';
-                $n = @file_put_contents($tmpfile, 'a');
+                $n       = @file_put_contents($tmpfile, 'a');
                 if ($n > 0) {
                     unlink($tmpfile);
                     return TRUE;
@@ -218,8 +218,8 @@ class misc {
             return array();
         }
         //opendir is performance than scandir
-        $df = opendir($dir);
-        $arr = array();
+        $df         = opendir($dir);
+        $arr        = array();
         $search_ext = !empty($exts) && is_array($exts) ? 1 : 0;
         while (false !== ($file = readdir($df))) {
             if ($file == '.' || $file == '..') {
@@ -264,41 +264,69 @@ class misc {
         return TRUE;
     }
 
+    /**
+     * copy dir
+     *
+     * @param        $source
+     * @param        $dest
+     * @param string $diffDir
+     */
+    function copy($source, $dest) {
+        $dir_handle = opendir($source);
+        // make dir
+        mkdir($dest . '/', 0755, 1);
+
+        $files = array();
+        while ($res = readdir($dir_handle)) {
+            if ($res == '.' || $res == '..') {
+                continue;
+            }
+            $source_file = $source . '/' . $res;
+            if (is_dir($source_file)) {
+                $files += self::copy($source_file, $dest);
+            } else {
+                if (copy($source_file, $dest . '/')) {
+                    $files[] = $source_file;
+                }
+            }
+        }
+        return $files;
+    }
 
     //分页
     public static function pages($num = -1, $perpage, $curpage, $mpurl, $options = array()) {
-        $page = 8;
+        $page      = 8;
         $multipage = '';
         $realpages = 1;
-        $options = array_merge(array(
-            'curr' => '[第 <strong>%d</strong> 页]',
+        $options   = array_merge(array(
+            'curr'  => '[第 <strong>%d</strong> 页]',
             'first' => '首页',
-            'last' => '尾页',
-            'prev' => '上一页',
-            'next' => '下一页',
+            'last'  => '尾页',
+            'prev'  => '上一页',
+            'next'  => '下一页',
             'total' => '共 <strong>%d</strong> 页',
-            'wrap' => '%s',
+            'wrap'  => '%s',
         ), $options);
         if ($num == -1 || $num > $perpage) {
             if ($num > 0) {
-                $offset = 2;
+                $offset    = 2;
                 $realpages = @ceil($num / $perpage);
-                $pages = $realpages;
+                $pages     = $realpages;
                 if ($page > $pages) {
                     $from = 1;
-                    $to = $pages;
+                    $to   = $pages;
                 } else {
                     $from = $curpage - $offset;
-                    $to = $from + $page - 1;
+                    $to   = $from + $page - 1;
                     if ($from < 1) {
-                        $to = $curpage + 1 - $from;
+                        $to   = $curpage + 1 - $from;
                         $from = 1;
                         if ($to - $from < $page) {
                             $to = $page;
                         }
                     } elseif ($to > $pages) {
                         $from = $pages - $page + 1;
-                        $to = $pages;
+                        $to   = $pages;
                     }
                 }
             }

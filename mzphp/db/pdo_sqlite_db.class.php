@@ -105,7 +105,7 @@ class pdo_sqlite_db {
      * @param int $result_type
      * @return mixed
      */
-    function fetch_array(&$query, $result_type = PDO_SQLITE_FETCH_ASSOC/*PDO::FETCH_ASSOC*/) {
+    function fetch_array($query, $result_type = PDO_SQLITE_FETCH_ASSOC/*PDO::FETCH_ASSOC*/) {
         return $query->fetch($result_type);
     }
 
@@ -116,7 +116,7 @@ class pdo_sqlite_db {
      * @param int $result_type
      * @return mixed
      */
-    function fetch_all(&$query, $result_type = PDO_SQLITE_FETCH_ASSOC) {
+    function fetch_all($query, $result_type = PDO_SQLITE_FETCH_ASSOC) {
         return $query->fetchAll($result_type);
     }
 
@@ -126,7 +126,7 @@ class pdo_sqlite_db {
      * @param $query
      * @return mixed
      */
-    function result(&$query) {
+    function result($query) {
         return $query->fetchColumn(0);
     }
 
