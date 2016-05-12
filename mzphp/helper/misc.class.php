@@ -3,6 +3,9 @@ if (!defined('FORM_HASH_KEY')) {
     define('FORM_HASH_KEY', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'mzphp' . ($conf['app_id']));
 }
 
+/**
+ * Class misc
+ */
 class misc {
 
     /**
@@ -169,17 +172,12 @@ class misc {
     }
 
 
-    public static function is_robot() {
-        $robots = array('robot', 'spider', 'slurp');
-        foreach ($robots as $robot) {
-            if (strpos(core::gpc('HTTP_USER_AGENT', 'S'), $robot) !== FALSE) {
-                return TRUE;
-            }
-        }
-        return FALSE;
-    }
-
-
+    /**
+     * is write able
+     *
+     * @param $file
+     * @return bool|void
+     */
     public static function is_writable($file) {
         // 主要是兼容 windows
         try {
@@ -293,10 +291,19 @@ class misc {
         return $files;
     }
 
-    //分页
-    public static function pages($num = -1, $perpage, $curpage, $mpurl, $options = array()) {
+    /**
+     * generate multi page
+     *
+     * @param int   $num        number of record count(set 0, can be show prev and next page)
+     * @param       $perpage    pagesize for prepage
+     * @param       $curpage    currrent page
+     * @param       $url_prefix url prefix like : ?page=%d
+     * @param array $options    to set wording
+     * @return string
+     */
+    public static function pages($num = -1, $perpage, $curpage, $url_prefix, $options = array()) {
         $page      = 8;
-        $multipage = '';
+        $page_html = '';
         $realpages = 1;
         $options   = array_merge(array(
             'curr'  => '[第 <strong>%d</strong> 页]',
@@ -330,47 +337,75 @@ class misc {
                     }
                 }
             }
-            $multipage = '';
+            $page_html = '';
 
             if ($num == 0) {
-                $multipage .= "" . sprintf($options['curr'], $curpage) . " ";
+                $page_html .= "" . sprintf($options['curr'], $curpage) . " ";
             }
             if ($options['first']) {
-                $multipage .= sprintf($options['wrap'], "<a href=\"" . sprintf($mpurl, 1) . "\">" . $options['first'] . "</a>");
+                $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, 1) . "\">" . $options['first'] . "</a>");
             }
             if ($options['prev']) {
                 if ($curpage > 1) {
-                    $multipage .= sprintf($options['wrap'], "<a href=\"" . sprintf($mpurl, $curpage - 1) . "\">" . $options['prev'] . "</a>");
+                    $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, $curpage - 1) . "\">" . $options['prev'] . "</a>");
                 }
             }
             if ($num > 0) {
                 for ($i = $from; $i <= $to; $i++) {
                     if ($i == $curpage) {
-                        $multipage .= sprintf($options['wrap'], "<strong>" . sprintf($options['curr'], $i) . "</strong>");
+                        $page_html .= sprintf($options['wrap'], "<strong>" . sprintf($options['curr'], $i) . "</strong>");
                     } else {
-                        $multipage .= sprintf($options['wrap'], "<a href=\"" . sprintf($mpurl, $i) . "\">" . sprintf(strip_tags($options['curr']), $i) . "</a>");
+                        $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, $i) . "\">" . sprintf(strip_tags($options['curr']), $i) . "</a>");
                     }
                 }
             }
 
             if ($options['next']) {
                 if ($curpage + 1 <= $realpages || $num == 0) {
-                    $multipage .= sprintf($options['wrap'], "<a href=\"" . sprintf($mpurl, $curpage + 1) . "\">" . $options['next'] . "</a>");
+                    $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, $curpage + 1) . "\">" . $options['next'] . "</a>");
                 }
             }
 
-            if ($multipage && $num > 0) {
-                $multipage .= sprintf($options['wrap'], sprintf($options['total'], $realpages));
+            if ($page_html && $num > 0) {
+                $page_html .= sprintf($options['wrap'], sprintf($options['total'], $realpages));
             }
 
             if ($to < $pages || $num > 0) {
                 if ($options['last']) {
-                    $multipage .= sprintf($options['wrap'], "<a href=\"" . sprintf($mpurl, $pages) . "\">" . $options['last'] . "</a>");
+                    $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, $pages) . "\">" . $options['last'] . "</a>");
                 }
             }
         }
-        return $multipage;
+        return $page_html;
     }
+
+    /**
+     * check browser is robot
+     *
+     * @return bool
+     */
+    public static function is_robot() {
+        $user_agent = strtolower(core::S('HTTP_USER_AGENT'));
+        $robots     = array(
+            'googlebot'    => 'google',
+            'baiduspider'  => 'baidu',
+            'sogou spider' => 'sogou',
+            'sosospider'   => 'soso',
+            '360spider'    => '360',
+            'sohu-search'  => 'sohu'
+        );
+        if (!isset($_SERVER['is_robot'])) {
+            foreach ($robots as $robot => $spider) {
+                if (strpos($user_agent, $robot) !== false) {
+                    $_SERVER['is_robot'] = $spider;
+                    return $_SERVER['is_robot'];
+                }
+            }
+            $_SERVER['is_robot'] = false;
+        }
+        return $_SERVER['is_robot'];
+    }
+
 }
 
 ?>

@@ -113,9 +113,9 @@ class template {
      * @param string $charset
      * @return string template render body
      */
-    public function show(&$conf, $file, $makefile = '', $charset = '') {
+    public function show(&$conf, $file, $makefile = '', $charset = '', $compress = 6, $by_return = 0) {
         $this->set_conf($conf);
-        return $this->display($file, $makefile, $charset);
+        return $this->display($file, $makefile, $charset, $compress, $by_return);
     }
 
     /**

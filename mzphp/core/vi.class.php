@@ -20,7 +20,7 @@ class VI {
         static $inited = 0;;
         if (!$inited) {
             self::$instance = new template();
-            $inited = 1;
+            $inited         = 1;
         }
         return self::$instance;
     }
@@ -59,8 +59,8 @@ class VI {
      * @param string $makefile
      * @param string $charset
      */
-    public static function display($control, $template, $makefile = '', $charset = '') {
-        return self::instance()->show($control->conf, $template, $makefile, $charset);
+    public static function display($control, $template, $makefile = '', $charset = '', $gzcompress = 6, $by_return = 0) {
+        return self::instance()->show($control->conf, $template, $makefile, $charset, $gzcompress, $by_return);
     }
 }
 

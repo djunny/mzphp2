@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class base_control
  */
@@ -34,7 +35,7 @@ class base_control {
             $this->$var = core::model($this->conf, $var);
             if (!$this->$var) {
                 throw new Exception('Not Found Model:' . $var);
-            }else {
+            } else {
                 return $this->$var;
             }
         }
@@ -54,9 +55,9 @@ class base_control {
      * @param string $make_file
      * @param string $charset
      */
-    public function show($template = '', $make_file = '', $charset = '') {
+    public function show($template = '', $make_file = '', $charset = '', $compress = 6, $by_return = 0) {
         $template = $template ? $template : core::R('c') . '_' . core::R('a') . '.htm';
-        return VI::display($this, $template, $make_file, $charset);
+        return VI::display($this, $template, $make_file, $charset, $compress, $by_return);
     }
 }
 

@@ -570,7 +570,8 @@ class core {
         $newcontrol   = new $controlclass($conf);
         // control can run hook before on_cation
         $onaction = "on_" . self::G('a');
-        if (method_exists($newcontrol, $onaction)) {
+        // is action exists or magic method exists
+        if (method_exists($newcontrol, $onaction) || method_exists($newcontrol, '__call')) {
             $newcontrol->$onaction();
             //call_user_func(array($newcontrol, $onaction));
             self::debug();
