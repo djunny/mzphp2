@@ -12,6 +12,13 @@ class core {
     public static $conf = array();
 
     /**
+     * global control instance
+     *
+     * @var null
+     */
+    public static $control = null;
+
+    /**
      * POST variable
      *
      * @param        $key
@@ -566,13 +573,13 @@ class core {
             }
             throw new Exception("Invaild URL : {$control} control not exists.");
         }
-        $controlclass = "{$control}_control";
-        $newcontrol   = new $controlclass($conf);
+        $controlclass  = "{$control}_control";
+        self::$control = new $controlclass($conf);
         // control can run hook before on_cation
         $onaction = "on_" . self::G('a');
         // is action exists or magic method exists
-        if (method_exists($newcontrol, $onaction) || method_exists($newcontrol, '__call')) {
-            $newcontrol->$onaction();
+        if (method_exists(self::$control, $onaction) || method_exists(self::$control, '__call')) {
+            self::$control->$onaction();
             //call_user_func(array($newcontrol, $onaction));
             self::debug();
         } else {
