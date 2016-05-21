@@ -187,6 +187,8 @@ class tpl_static {
                 if (is_file($min_file)) {
                     $compress = 0;
                     $js_body  = file_get_contents($min_file);
+                }else{
+                    $js_body = file_get_contents($file);
                 }
             } else {
                 $js_body = file_get_contents($file);
