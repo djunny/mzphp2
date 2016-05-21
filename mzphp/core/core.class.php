@@ -1000,6 +1000,14 @@ class core {
         }
     }
 
+    /**
+     * check is windows
+     *
+     * @return bool
+     */
+    public static function is_windows() {
+        return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
 
     /**
      * exception

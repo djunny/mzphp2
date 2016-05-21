@@ -54,11 +54,11 @@ class tpl_static {
      */
     public function process(&$s) {
         $this->css_file = $this->js_file = $this->sprite_file = $this->exists_file = array();
-        $changed = 0;
+        $changed        = 0;
 
         // static
         if (strpos($s, '<!--{static') !== false) {
-            $s = preg_replace_callback("#<!--{static\s+(\S*?)\s+?([^}]*?)}-->#is", array($this, 'get_compress'), $s);
+            $s       = preg_replace_callback("#<!--{static\s+(\S*?)\s+?([^}]*?)}-->#is", array($this, 'get_compress'), $s);
             $changed = 1;
         }
 
@@ -103,12 +103,12 @@ class tpl_static {
         list($compile, $compress) = explode(' ', $filename[2]);
         $compress = is_numeric($compress) ? $compress : 1;
         $filename = $filename[1];
-        $mask = basename($filename);
+        $mask     = basename($filename);
         // css sprite
         if ($mask == '*') {
-            $dirname = substr($filename, 0, -1);
-            $path = $this->get_template_path($dirname, 0);
-            $file = $this->static_dir . $compile;
+            $dirname   = substr($filename, 0, -1);
+            $path      = $this->get_template_path($dirname, 0);
+            $file      = $this->static_dir . $compile;
             $scss_file = $file . '.scss';
 
             if ($this->conf['env'] == 'online' && $this->check_file_exists($scss_file)) {
@@ -116,10 +116,10 @@ class tpl_static {
             } else {
                 $this->load_lib('sprite');
                 $sprite_conf = array(
-                    'path' => $path,
+                    'path'   => $path,
                     'output' => $file,
                 );
-                $result = sprite::process($sprite_conf);
+                $result      = sprite::process($sprite_conf);
 
                 file_put_contents($scss_file, $result['css']);
                 // to copy img file
@@ -134,7 +134,7 @@ class tpl_static {
         if (empty($file)) {
             return '';
         }
-        $file_url = $this->static_url . $compile;
+        $file_url   = $this->static_url . $compile;
         $return_tag = '';
 
         $is_css = strpos($filename, '.css') !== false ? 1 : 0;
@@ -142,7 +142,7 @@ class tpl_static {
         if (strpos($filename, '.scss') !== false || $is_css) {
             if (!isset($this->css_file[$compile])) {
                 $this->css_file[$compile] = '/*[tplStatic ' . $this->version . ' - ' . $this->expire_key . ']*/' . "\n";
-                $return_tag = '<link rel="stylesheet" href="' . $file_url . '?' . $this->expire_key . '" />';
+                $return_tag               = '<link rel="stylesheet" href="' . $file_url . '?' . $this->expire_key . '" />';
             }
 
             // skip make in online
@@ -172,7 +172,7 @@ class tpl_static {
         } else if (strpos($filename, '.js') !== false) {
             if (!isset($this->js_file[$compile])) {
                 $this->js_file[$compile] = '/*[tplStatic ' . $this->version . ' - ' . $this->expire_key . ']*/' . "\n";
-                $return_tag = '<script src="' . $file_url . '?' . $this->expire_key . '"></' . 'script>';
+                $return_tag              = '<script src="' . $file_url . '?' . $this->expire_key . '"></' . 'script>';
             }
 
             // skip make in online
@@ -181,7 +181,16 @@ class tpl_static {
                 return $return_tag;
             }
             // add ; fix js concat bug
-            $js_body = file_get_contents($file);
+            // add : .min.js file detect
+            if (strpos($file, '.min.') === false) {
+                $min_file = substr($file, 0, -3) . '.min.js';
+                if (is_file($min_file)) {
+                    $compress = 0;
+                    $js_body  = file_get_contents($min_file);
+                }
+            } else {
+                $js_body = file_get_contents($file);
+            }
             if ($compress == 1) {
                 $this->load_lib('js');
                 $js_body = jsMin::minify($js_body);

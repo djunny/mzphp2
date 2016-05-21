@@ -47,10 +47,10 @@ class DB {
         if (is_null(self::$instance)) {
             //find db engine
             foreach (self::$db_conf as $type => $conf) {
-                $db_enigne = $type . '_db';
-                self::$db_type = $type;
+                $db_enigne          = $type . '_db';
+                self::$db_type      = $type;
                 self::$db_table_pre = isset($conf['tablepre']) ? $conf['tablepre'] : '';
-                self::$instance = new $db_enigne($conf);
+                self::$instance     = new $db_enigne($conf);
                 break;
             }
         }
@@ -199,6 +199,10 @@ class DB {
      */
     public static function delete($table, $where) {
         return self::instance()->delete(self::table($table), $where);
+    }
+
+    public static function affected_rows() {
+        return self::instance()->affected_rows();
     }
 
     /**
