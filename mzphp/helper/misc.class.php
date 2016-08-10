@@ -339,7 +339,7 @@ class misc {
             }
             $page_html = '';
 
-            if ($num == 0) {
+            if ($num == 0 && $options['curr']) {
                 $page_html .= "" . sprintf($options['curr'], $curpage) . " ";
             }
             if ($options['first']) {
@@ -350,7 +350,7 @@ class misc {
                     $page_html .= sprintf($options['wrap'], "<a href=\"" . sprintf($url_prefix, $curpage - 1) . "\">" . $options['prev'] . "</a>");
                 }
             }
-            if ($num > 0) {
+            if ($num > 0 && $options['curr']) {
                 for ($i = $from; $i <= $to; $i++) {
                     if ($i == $curpage) {
                         $page_html .= sprintf($options['wrap'], "<strong>" . sprintf($options['curr'], $i) . "</strong>");
@@ -366,7 +366,7 @@ class misc {
                 }
             }
 
-            if ($page_html && $num > 0) {
+            if ($page_html && $num > 0 && $options['total']) {
                 $page_html .= sprintf($options['wrap'], sprintf($options['total'], $realpages));
             }
 

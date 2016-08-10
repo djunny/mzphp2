@@ -8,10 +8,11 @@ class pdo_sqlite_db {
     var $querynum = 0;
     var $link;
     var $charset;
-    var $init_db = 0;
+    var $init_db  = 0;
 
     /**
      * __construct
+     *
      * @param $db_conf
      */
     function __construct(&$db_conf) {
@@ -25,6 +26,7 @@ class pdo_sqlite_db {
      * connect db
      *
      * @param $db_conf
+     *
      * @return PDO|void
      */
     function connect(&$db_conf) {
@@ -47,6 +49,7 @@ class pdo_sqlite_db {
      *
      * @param      $sql
      * @param null $link
+     *
      * @return mixed
      */
     public function exec($sql, $link = NULL) {
@@ -59,13 +62,14 @@ class pdo_sqlite_db {
      * query table
      *
      * @param $sql
+     *
      * @return mixed
      * @throws Exception
      */
     function query($sql) {
         if (DEBUG) {
             $sqlstarttime = $sqlendttime = 0;
-            $mtime = explode(' ', microtime());
+            $mtime        = explode(' ', microtime());
             $sqlstarttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
         }
         $link = &$this->link;
@@ -78,11 +82,11 @@ class pdo_sqlite_db {
         }
 
         if (DEBUG) {
-            $mtime = explode(' ', microtime());
+            $mtime       = explode(' ', microtime());
             $sqlendttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
-            $sqltime = round(($sqlendttime - $sqlstarttime), 3);
-            $explain = array();
-            $info = array();
+            $sqltime     = round(($sqlendttime - $sqlstarttime), 3);
+            $explain     = array();
+            $info        = array();
             if ($result && $type == 'sele') {
                 $explain = $this->fetch_array($link->query('EXPLAIN QUERY PLAN ' . $sql));
             }
@@ -103,6 +107,7 @@ class pdo_sqlite_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return mixed
      */
     function fetch_array($query, $result_type = PDO_SQLITE_FETCH_ASSOC/*PDO::FETCH_ASSOC*/) {
@@ -114,6 +119,7 @@ class pdo_sqlite_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return mixed
      */
     function fetch_all($query, $result_type = PDO_SQLITE_FETCH_ASSOC) {
@@ -124,6 +130,7 @@ class pdo_sqlite_db {
      * get first column
      *
      * @param $query
+     *
      * @return mixed
      */
     function result($query) {
@@ -179,6 +186,7 @@ class pdo_sqlite_db {
      * @param int   $perpage
      * @param int   $page
      * @param array $fields
+     *
      * @return mixed
      * @throws Exception
      */
@@ -192,11 +200,11 @@ class pdo_sqlite_db {
         } else {
             $field_sql = '*';
         }
-        $start = ($page - 1) * $perpage;
+        $start       = ($page - 1) * $perpage;
         $fetch_first = $perpage == 0 ? true : false;
-        $fetch_all = $perpage == -1 ? true : false;
+        $fetch_all   = $perpage == -1 ? true : false;
         $fetch_count = $perpage == -2 ? true : false;
-        $limit_sql = '';
+        $limit_sql   = '';
         if (!$fetch_first && !$fetch_all && !$fetch_count) {
             $limit_sql = ' LIMIT ' . $start . ',' . $perpage;
         }
@@ -206,7 +214,7 @@ class pdo_sqlite_db {
             $order_sql = $this->build_order_sql($order);
         }
 
-        $sql = 'SELECT ' . $field_sql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
+        $sql   = 'SELECT ' . $field_sql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
         $query = $this->query($sql);;
         if ($fetch_first) {
             return $this->fetch_array($query);
@@ -221,6 +229,7 @@ class pdo_sqlite_db {
      * @param $table
      * @param $data
      * @param $return_id
+     *
      * @return int
      * @throws Exception
      */
@@ -230,8 +239,8 @@ class pdo_sqlite_db {
             return 0;
         }
         $sql = 'INSERT INTO ' . $table . ' ' . $data_sql;
-        $this->query($sql);
-        return $return_id ? $this->insert_id() : 0;
+        $res = $this->query($sql);
+        return $return_id ? $this->insert_id() : $res;
     }
 
 
@@ -241,11 +250,12 @@ class pdo_sqlite_db {
      * @param $table
      * @param $data
      * @param $where
+     *
      * @return int
      * @throws Exception
      */
     function update($table, $data, $where) {
-        $data_sql = $this->build_set_sql($data);
+        $data_sql  = $this->build_set_sql($data);
         $where_sql = $this->build_where_sql($where);
         if ($where_sql) {
             $sql = 'UPDATE ' . $table . $data_sql . $where_sql;
@@ -260,6 +270,7 @@ class pdo_sqlite_db {
      *
      * @param $table
      * @param $where
+     *
      * @return int
      * @throws Exception
      */
@@ -277,6 +288,7 @@ class pdo_sqlite_db {
      * build order sql
      *
      * @param $order
+     *
      * @return string
      */
     function build_order_sql($order) {
@@ -297,6 +309,7 @@ class pdo_sqlite_db {
      * build where sql
      *
      * @param $where
+     *
      * @return string
      */
     function build_where_sql($where) {
@@ -312,10 +325,10 @@ class pdo_sqlite_db {
                         case '<':
                         case '=':
                             $where_sql .= ' AND ' . $key . $this->fix_where_sql($value) . '';
-                        break;
+                            break;
                         default:
                             $where_sql .= ' AND ' . $key . ' = \'' . addslashes($value) . '\'';
-                        break;
+                            break;
                     }
                 } elseif ($key) {
                     if (strpos($key, '=') !== false) {
@@ -333,6 +346,7 @@ class pdo_sqlite_db {
      * fix where sql
      *
      * @param $value
+     *
      * @return mixed
      */
     function fix_where_sql($value) {
@@ -344,6 +358,7 @@ class pdo_sqlite_db {
      * sql quote
      *
      * @param $sql
+     *
      * @return mixed
      */
     function sql_quot($sql) {
@@ -355,6 +370,7 @@ class pdo_sqlite_db {
      * build update set sql
      *
      * @param $data
+     *
      * @return string
      */
     function build_set_sql($data) {
@@ -373,6 +389,7 @@ class pdo_sqlite_db {
      * build insert sql
      *
      * @param $data
+     *
      * @return string
      */
     function build_insert_sql($data) {

@@ -43,7 +43,7 @@ class mysql_db {
             }
             // 随机拿从库
             $slaves = $this->conf['slaves'];
-            $slave = $slaves[rand(0, $slave_count - 1)];
+            $slave  = $slaves[rand(0, $slave_count - 1)];
             empty($slave['engine']) && $slave['engine'] = '';
             $this->read_link = $this->connect($slave, 'slave');
             return $this->read_link;
@@ -90,6 +90,7 @@ class mysql_db {
      *
      * @param $dbname
      * @param $link
+     *
      * @return bool
      */
     function select_db($dbname, $link) {
@@ -101,6 +102,7 @@ class mysql_db {
      * get master or slave link  by sql
      *
      * @param $sql
+     *
      * @return resource
      */
     function get_link($sql) {
@@ -111,6 +113,7 @@ class mysql_db {
      * check is slave
      *
      * @param $sql
+     *
      * @return bool
      */
     function is_slave($sql) {
@@ -124,6 +127,7 @@ class mysql_db {
      *
      * @param      $sql
      * @param null $link
+     *
      * @return mixed
      */
     function exec($sql) {
@@ -135,35 +139,36 @@ class mysql_db {
      * query sql
      *
      * @param $sql
+     *
      * @return mixed
      * @throws Exception
      */
     function query($sql, $type = '', $link = false) {
         if (DEBUG) {
-            $sqlendttime = 0;
-            $mtime = explode(' ', microtime());
+            $sqlendttime  = 0;
+            $mtime        = explode(' ', microtime());
             $sqlstarttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
         }
         static $unbuffered_exists = NULL;
         if ($type == 'UNBUFFERED' && $unbuffered_exists == NULL) {
             $unbuffered_exists = function_exists('mysql_unbuffered_query') ? 1 : 0;
         }
-        $func = ($type == 'UNBUFFERED' && $unbuffered_exists) ? 'mysql_unbuffered_query' : 'mysql_query';
-        $link = $link ? $link : $this->get_link($sql);
+        $func  = ($type == 'UNBUFFERED' && $unbuffered_exists) ? 'mysql_unbuffered_query' : 'mysql_query';
+        $link  = $link ? $link : $this->get_link($sql);
         $query = $func($sql, $link);
         if ($query === false) {
             throw new Exception('MySQL Query Error, error=' . $this->errno($link) . ':' . $this->error($link) . "\r\n" . (DEBUG ? $sql : ''));
         }
         if (DEBUG) {
-            $mtime = explode(' ', microtime());
+            $mtime       = explode(' ', microtime());
             $sqlendttime = number_format(($mtime[1] + $mtime[0] - $_SERVER['starttime']), 6) * 1000;
-            $sqltime = round(($sqlendttime - $sqlstarttime), 3);
-            $explain = array();
-            $info = mysql_info();
+            $sqltime     = round(($sqlendttime - $sqlstarttime), 3);
+            $explain     = array();
+            $info        = mysql_info();
             if ($query && preg_match("/^(select )/i", $sql)) {
                 $explain = mysql_fetch_assoc(mysql_query('EXPLAIN ' . $sql, $link));
             }
-            $sql = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
+            $sql               = ($this->is_slave($sql) ? '[slave]' : '[master]') . $sql;
             $_SERVER['sqls'][] = array('sql' => $sql, 'type' => 'mysql', 'time' => $sqltime, 'info' => $info, 'explain' => $explain);
         }
         $this->queries++;
@@ -175,6 +180,7 @@ class mysql_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return array
      */
     function fetch_array($query, $result_type = MYSQL_ASSOC) {
@@ -186,6 +192,7 @@ class mysql_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return mixed
      */
     function fetch_all($query) {
@@ -227,6 +234,7 @@ class mysql_db {
      * fetch first column
      *
      * @param $query
+     *
      * @return mixed
      */
     function result($query, $row = 0) {
@@ -238,6 +246,7 @@ class mysql_db {
      * free result
      *
      * @param $query
+     *
      * @return bool
      */
     function free_result($query) {
@@ -288,6 +297,7 @@ class mysql_db {
      *                     count of all: perpage = -2
      * @param int $page    if perpage large than 0 for select page
      *                     (page - 1) * perpage
+     *
      * @return mixed
      */
     function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array()) {
@@ -298,11 +308,11 @@ class mysql_db {
         } else {
             $selectsql = $fields;
         }
-        $start = ($page - 1) * $perpage;
+        $start       = ($page - 1) * $perpage;
         $fetch_first = $perpage == 0 ? true : false;
-        $fetch_all = $perpage == -1 ? true : false;
+        $fetch_all   = $perpage == -1 ? true : false;
         $fetch_count = $perpage == -2 ? true : false;
-        $limit_sql = '';
+        $limit_sql   = '';
         if (!$fetch_first && !$fetch_all && !$fetch_count) {
             $limit_sql = ' LIMIT ' . $start . ',' . $perpage;
         }
@@ -312,7 +322,7 @@ class mysql_db {
             $order_sql = $this->build_order_sql($order);
         }
 
-        $sql = 'SELECT ' . $selectsql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
+        $sql   = 'SELECT ' . $selectsql . ' FROM ' . $table . $where_sql . $order_sql . $limit_sql;
         $query = $this->query($sql);;
         if ($fetch_first) {
             return $this->fetch_array($query);
@@ -327,6 +337,7 @@ class mysql_db {
      * @param $table
      * @param $data
      * @param $return_id
+     *
      * @return mixed
      */
     function insert($table, $data, $return_id, $replace = false) {
@@ -335,12 +346,12 @@ class mysql_db {
             return 0;
         }
         $method = $replace ? 'REPLACE' : 'INSERT';
-        $sql = $method . ' INTO ' . $table . ' ' . $data_sql;
-        $this->query($sql);
+        $sql    = $method . ' INTO ' . $table . ' ' . $data_sql;
+        $res    = $this->query($sql);
         if ($replace) {
-            return 0;
+            return $res;
         } else {
-            return $return_id ? $this->insert_id() : 0;
+            return $return_id ? $this->insert_id() : $res;
         }
     }
 
@@ -349,6 +360,7 @@ class mysql_db {
      *
      * @param $table
      * @param $data
+     *
      * @return mixed
      */
     function replace($table, $data) {
@@ -361,11 +373,12 @@ class mysql_db {
      * @param $table
      * @param $data
      * @param $where
+     *
      * @return int|mixed
      * @throws Exception
      */
     function update($table, $data, $where) {
-        $data_sql = $this->build_set_sql($data);
+        $data_sql  = $this->build_set_sql($data);
         $where_sql = $this->build_where_sql($where);
         if ($where_sql) {
             $sql = 'UPDATE ' . $table . $data_sql . $where_sql;
@@ -381,6 +394,7 @@ class mysql_db {
      *
      * @param $table
      * @param $where
+     *
      * @return int|mixed
      * @throws Exception
      */
@@ -398,6 +412,7 @@ class mysql_db {
      * build order sql
      *
      * @param $order
+     *
      * @return string
      */
     function build_order_sql($order) {
@@ -418,6 +433,7 @@ class mysql_db {
      * build where sql
      *
      * @param $where
+     *
      * @return string
      */
     function build_where_sql($where) {
@@ -433,10 +449,10 @@ class mysql_db {
                         case '<':
                         case '=':
                             $where_sql .= ' AND ' . $key . $this->fix_where_sql($value) . '';
-                        break;
+                            break;
                         default:
                             $where_sql .= ' AND ' . $key . ' = \'' . addslashes($value) . '\'';
-                        break;
+                            break;
                     }
                 } elseif ($key) {
                     if (strpos($key, '=') !== false) {
@@ -454,6 +470,7 @@ class mysql_db {
      * fix where sql
      *
      * @param $value
+     *
      * @return mixed
      */
     function fix_where_sql($value) {
@@ -465,6 +482,7 @@ class mysql_db {
      * sql quot
      *
      * @param $sql
+     *
      * @return mixed
      */
     function sql_quot($sql) {
@@ -476,6 +494,7 @@ class mysql_db {
      * build set sql
      *
      * @param $data
+     *
      * @return string
      */
     function build_set_sql($data) {

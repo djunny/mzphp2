@@ -4,8 +4,8 @@ class tpl_static {
     /**
      * @var array
      */
-    static $load_class = array();
-    private $version = "1.0";
+    static  $load_class = array();
+    private $version    = "1.0";
     /**
      * @var
      */
@@ -34,6 +34,10 @@ class tpl_static {
      * @var bool|string
      */
     private $expire_key = '';
+    /**
+     * @var array
+     */
+    private $cache_generate_files = array();
 
     /**
      * @param $conf
@@ -71,6 +75,7 @@ class tpl_static {
                     if ($body) {
                         file_put_contents($this->static_dir . $filename, $body);
                     }
+                    $this->cache_generate_files[$filename] = 1;
                 }
             }
             // make js file
@@ -79,6 +84,7 @@ class tpl_static {
                     if ($body) {
                         file_put_contents($this->static_dir . $filename, $body);
                     }
+                    $this->cache_generate_files[$filename] = 1;
                 }
             }
             // copy sprite file
@@ -94,6 +100,7 @@ class tpl_static {
 
     /**
      * @param $filename
+     *
      * @return string
      */
     private function get_compress($filename) {
@@ -111,7 +118,7 @@ class tpl_static {
             $file      = $this->static_dir . $compile;
             $scss_file = $file . '.scss';
 
-            if ($this->conf['env'] == 'online' && $this->check_file_exists($scss_file)) {
+            if (($this->conf['env'] == 'online' && $this->check_file_exists($scss_file)) || isset($this->cache_generate_files[$scss_file])) {
 
             } else {
                 $this->load_lib('sprite');
@@ -126,6 +133,7 @@ class tpl_static {
                 if ($result['img']) {
                     $this->sprite_file += $result['img'];
                 }
+                $this->cache_generate_files[$scss_file] = 1;
             }
         } else {
             // css + js
@@ -146,7 +154,7 @@ class tpl_static {
             }
 
             // skip make in online
-            if ($this->conf['env'] == 'online' && $this->check_file_exists($compile)) {
+            if (($this->conf['env'] == 'online' && $this->check_file_exists($compile)) || isset($this->cache_generate_files[$compile])) {
                 $this->css_file[$compile] = 0;
                 return $return_tag;
             }
@@ -176,7 +184,7 @@ class tpl_static {
             }
 
             // skip make in online
-            if ($this->conf['env'] == 'online' && $this->check_file_exists($compile)) {
+            if (($this->conf['env'] == 'online' && $this->check_file_exists($compile)) || isset($this->cache_generate_files[$compile])) {
                 $this->js_file[$compile] = 0;
                 return $return_tag;
             }
@@ -187,7 +195,7 @@ class tpl_static {
                 if (is_file($min_file)) {
                     $compress = 0;
                     $js_body  = file_get_contents($min_file);
-                }else{
+                } else {
                     $js_body = file_get_contents($file);
                 }
             } else {
@@ -207,6 +215,7 @@ class tpl_static {
      *
      * @param     $filename
      * @param int $check_file
+     *
      * @return string
      */
     private function get_template_path($filename, $check_file = 1) {
@@ -226,6 +235,7 @@ class tpl_static {
      * check file exists
      *
      * @param $file
+     *
      * @return mixed
      */
     private function check_file_exists($file) {

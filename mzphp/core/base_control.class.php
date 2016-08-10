@@ -17,10 +17,13 @@ class base_control {
      */
     function __construct(&$conf) {
         $this->conf = &$conf;
+        // bind control for global
+        core::$control = $this;
     }
 
     /**
      * @param $var
+     *
      * @return template
      * @throws Exception
      */
@@ -44,6 +47,7 @@ class base_control {
     /**
      * @param $method
      * @param $args
+     *
      * @throws Exception
      */
     public function __call($method, $args) {

@@ -27,6 +27,7 @@ class pdo_mysql_db {
      * get link
      *
      * @param $var
+     *
      * @return PDO|void
      */
     public function __get($var) {
@@ -62,6 +63,7 @@ class pdo_mysql_db {
      * connect db
      *
      * @param $db_conf
+     *
      * @return PDO|void
      */
     function connect(&$db_conf, $server) {
@@ -96,6 +98,7 @@ class pdo_mysql_db {
      * get master or slave link  by sql
      *
      * @param $sql
+     *
      * @return resource
      */
     function get_link($sql) {
@@ -106,6 +109,7 @@ class pdo_mysql_db {
      * check is slave
      *
      * @param $sql
+     *
      * @return bool
      */
     function is_slave($sql) {
@@ -119,6 +123,7 @@ class pdo_mysql_db {
      *
      * @param      $sql
      * @param null $link
+     *
      * @return mixed
      */
     public function exec($sql, $link = NULL) {
@@ -131,6 +136,7 @@ class pdo_mysql_db {
      * query sql
      *
      * @param $sql
+     *
      * @return mixed
      * @throws Exception
      */
@@ -177,6 +183,7 @@ class pdo_mysql_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return mixed
      */
     function fetch_array($query, $result_type = PDO_MYSQL_FETCH_ASSOC/*PDO::FETCH_ASSOC*/) {
@@ -188,6 +195,7 @@ class pdo_mysql_db {
      *
      * @param     $query
      * @param int $result_type
+     *
      * @return mixed
      */
     function fetch_all($query, $result_type = PDO_MYSQL_FETCH_ASSOC) {
@@ -198,6 +206,7 @@ class pdo_mysql_db {
      * fetch first column
      *
      * @param $query
+     *
      * @return mixed
      */
     function result($query) {
@@ -263,6 +272,7 @@ class pdo_mysql_db {
      *                     count of all: perpage = -2
      * @param int $page    if perpage large than 0 for select page
      *                     (page - 1) * perpage
+     *
      * @return mixed
      */
     function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array()) {
@@ -304,6 +314,7 @@ class pdo_mysql_db {
      * @param $table
      * @param $data
      * @param $return_id
+     *
      * @return mixed
      */
     function insert($table, $data, $return_id, $replace = false) {
@@ -313,11 +324,11 @@ class pdo_mysql_db {
         }
         $method = $replace ? 'REPLACE' : 'INSERT';
         $sql    = $method . ' INTO ' . $table . ' ' . $data_sql;
-        $this->query($sql);
+        $res    = $this->query($sql);
         if ($replace) {
-            return 0;
+            return $res;
         } else {
-            return $return_id ? $this->insert_id() : 0;
+            return $return_id ? $this->insert_id() : $res;
         }
     }
 
@@ -326,6 +337,7 @@ class pdo_mysql_db {
      *
      * @param $table
      * @param $data
+     *
      * @return mixed
      */
     function replace($table, $data) {
@@ -338,6 +350,7 @@ class pdo_mysql_db {
      * @param $table
      * @param $data
      * @param $where
+     *
      * @return int|mixed
      * @throws Exception
      */
@@ -357,6 +370,7 @@ class pdo_mysql_db {
      *
      * @param $table
      * @param $where
+     *
      * @return int|mixed
      * @throws Exception
      */
@@ -374,6 +388,7 @@ class pdo_mysql_db {
      * build order sql
      *
      * @param $order
+     *
      * @return string
      */
     function build_order_sql($order) {
@@ -394,6 +409,7 @@ class pdo_mysql_db {
      * build where sql
      *
      * @param $where
+     *
      * @return string
      */
     function build_where_sql($where) {
@@ -409,10 +425,10 @@ class pdo_mysql_db {
                         case '<':
                         case '=':
                             $where_sql .= ' AND ' . $key . $this->fix_where_sql($value) . '';
-                        break;
+                            break;
                         default:
                             $where_sql .= ' AND ' . $key . ' = \'' . addslashes($value) . '\'';
-                        break;
+                            break;
                     }
                 } elseif ($key) {
                     if (strpos($key, '=') !== false) {
@@ -430,6 +446,7 @@ class pdo_mysql_db {
      * fix where sql
      *
      * @param $value
+     *
      * @return mixed
      */
     function fix_where_sql($value) {
@@ -441,6 +458,7 @@ class pdo_mysql_db {
      * sql quot
      *
      * @param $sql
+     *
      * @return mixed
      */
     function sql_quot($sql) {
@@ -452,6 +470,7 @@ class pdo_mysql_db {
      * build set sql
      *
      * @param $data
+     *
      * @return string
      */
     function build_set_sql($data) {
