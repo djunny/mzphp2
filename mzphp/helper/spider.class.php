@@ -21,6 +21,7 @@ class spider {
      * remove all html tag
      *
      * @param $html
+     *
      * @return mixed
      */
     public static function no_html($html) {
@@ -31,6 +32,7 @@ class spider {
      * convert html to text
      *
      * @param $html
+     *
      * @return mixed|string
      */
     public static function html2txt($html) {
@@ -65,6 +67,7 @@ class spider {
      *
      * @param        $text
      * @param string $tags
+     *
      * @return mixed
      */
     public static function strip_tags($text, $tags = '') {
@@ -119,6 +122,7 @@ class spider {
      * @param        $html
      * @param string $start
      * @param string $end
+     *
      * @return string
      */
     public static function cut_str($html, $start = '', $end = '') {
@@ -143,6 +147,7 @@ class spider {
      * @param            $html
      * @param            $pattern
      * @param bool|false $returnfull
+     *
      * @return string
      */
     public static function mask_match($html, $pattern, $returnfull = false) {
@@ -199,6 +204,7 @@ class spider {
      *
      * @param $html
      * @param $patterns
+     *
      * @return mixed
      */
     public static function reg_replace($html, $patterns) {
@@ -258,6 +264,7 @@ class spider {
      * @param       $html
      * @param       $patterns
      * @param array $option
+     *
      * @return array
      * @throws Exception
      */
@@ -409,6 +416,7 @@ class spider {
      *
      * @param $html
      * @param $pattern_info
+     *
      * @return mixed|string
      */
     private static function match_pre_process($html, &$pattern_info) {
@@ -448,6 +456,7 @@ class spider {
      * @param $pattern
      * @param $dom
      * @param $option
+     *
      * @return mixed|string
      */
     public static function str_match($str, $pattern, &$dom, $option) {
@@ -473,6 +482,7 @@ class spider {
      * @param $pattern
      * @param $dom
      * @param $option
+     *
      * @return mixed
      */
     public static function dom_match($html, $pattern, &$dom, $option) {
@@ -489,6 +499,7 @@ class spider {
      * @param     $html
      * @param     $reg
      * @param int $return_index
+     *
      * @return array
      */
     public static function reg_match($html, $reg, $return_index = -1) {
@@ -529,6 +540,7 @@ class spider {
      *
      * @param $base_url
      * @param $src_url
+     *
      * @return string
      */
     public static function abs_url($base_url, $src_url) {
@@ -591,6 +603,7 @@ class spider {
      * @param array $headers
      * @param int   $timeout
      * @param int   $deep
+     *
      * @return bool|string
      * @throws Exception
      */
@@ -606,6 +619,7 @@ class spider {
      * @param array $headers
      * @param int   $timeout
      * @param int   $deep
+     *
      * @return bool|string
      * @throws Exception
      */
@@ -621,6 +635,7 @@ class spider {
      * @param array  $headers
      * @param int    $timeout
      * @param int    $deep
+     *
      * @return bool|string
      * @throws Exception
      */
@@ -670,6 +685,7 @@ class spider {
         if ($headers['charset']) {
             $charset = $headers['charset'];
         }
+
         unset($headers['curl'], $headers['charset']);
         // merge headers
         if (is_array($headers) && $headers) {
@@ -955,6 +971,7 @@ class spider {
      * extract last response header
      *
      * @param $header
+     *
      * @return array
      */
     private static function extract_header($header) {
@@ -969,10 +986,10 @@ class spider {
                         $result['cookie'] = array();
                     }
                     $result['cookie'][] = $val;
-                break;
+                    break;
                 default:
                     $result[$key] = trim($val);
-                break;
+                    break;
             }
         }
         return $result;
@@ -982,6 +999,7 @@ class spider {
      * gzdecode
      *
      * @param $data
+     *
      * @return string
      */
     private static function gzdecode($data) {
@@ -994,10 +1012,13 @@ class spider {
      * @param        $html
      * @param        $charset
      * @param string $tocharset
+     *
      * @return string
      */
     private static function convert_html_charset($html, $charset, $tocharset = 'utf-8') {
-
+        if ($charset == 'bin') {
+            return $html;
+        }
         //取html中的charset
         $detect_charset = '';
         //html file
@@ -1060,6 +1081,7 @@ class spider {
      * multi thread fetch url(only support curl)
      *
      * @param $urls
+     *
      * @return array
      * @throws Exception
      */

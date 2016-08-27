@@ -111,6 +111,7 @@ class template {
      * @param        $file
      * @param string $makefile
      * @param string $charset
+     *
      * @return string template render body
      */
     public function show(&$conf, $file, $makefile = '', $charset = '', $compress = 6, $by_return = 0) {
@@ -154,6 +155,7 @@ class template {
      * @param string     $charset
      * @param int        $compress
      * @param bool|false $by_return
+     *
      * @return string
      * @throws Exception
      */
@@ -212,13 +214,14 @@ class template {
      * get complie template object file
      *
      * @param $filename
+     *
      * @return string
      */
     public function get_complie_name(&$filename) {
         if (strpos($filename, '.') === false) {
             $filename .= '.htm';
         }
-        $fix_filename = strtr($filename, array('/' => '#', '\\' => '#'));
+        $fix_filename = strtr($filename, array('/' => '#', '\\' => '#', ':' => '#'));
         $obj_file     = $this->conf['tmp_path'] . (isset($this->conf['tpl_prefix']) ? $this->conf['tpl_prefix'] : $this->conf['app_id']) . '_view_' . $fix_filename . '.php';
         return $obj_file;
     }
@@ -227,6 +230,7 @@ class template {
      * find template in view path & get compile template
      *
      * @param $filename
+     *
      * @return string
      * @throws Exception
      */
@@ -237,10 +241,14 @@ class template {
         $exists_file = is_file($obj_file);
         // 搜索目录
         $file = '';
-        foreach ($this->conf['view_path'] as $path) {
-            if (is_file($path . $filename)) {
-                $file = $path . $filename;
-                break;
+        if (is_file($filename)) {
+            $file = $filename;
+        } else {
+            foreach ($this->conf['view_path'] as $path) {
+                if (is_file($path . $filename)) {
+                    $file = $path . $filename;
+                    break;
+                }
             }
         }
         // 删除原始模板后，如果编译的模板文件在还存在，则直接返回
@@ -274,6 +282,7 @@ class template {
      *
      * @param $view_file
      * @param $obj_file
+     *
      * @return bool
      */
     public function compile($view_file, $obj_file) {
@@ -291,7 +300,7 @@ class template {
             // template , include file 减少 io
             $s = preg_replace_callback("#<!--{template\s+([^}]*?)}-->#i", array($this, 'get_tpl'), $s);
         }
-
+        log::info('loadTemplatePluginStart');
         // 加载插件开始执行，load plugin to complie
         if (!empty($this->conf['tpl']['plugins'])) {
             //$this->conf['tpl']['plugins'] = array('class' => 'class_real_path');
@@ -307,6 +316,7 @@ class template {
                 self::$plugin_loaded[$plugin] && self::$plugin_loaded[$plugin]->process($s);
             }
         }
+        log::info('loadTemplatePluginEnd');
 
         // 替换区块元素，compile block from template
         $this->compile_block($s);
@@ -387,6 +397,7 @@ class template {
      * compress html
      *
      * @param $html_source
+     *
      * @return string
      */
     private function compress_html($html_source) {
@@ -457,6 +468,7 @@ class template {
      * search view path to find tpl path
      *
      * @param $filename
+     *
      * @return string
      */
     public function get_tpl($filename) {
@@ -482,6 +494,7 @@ class template {
      * fix array index
      *
      * @param $matches
+     *
      * @return string
      */
     private function array_index($matches) {
@@ -500,6 +513,7 @@ class template {
      *
      * @param $name
      * @param $items
+     *
      * @return string
      */
     private function array_keyexists($name, $items) {
@@ -510,6 +524,7 @@ class template {
      * strip tag
      *
      * @param $matchs
+     *
      * @return mixed|string
      */
     private function stripvtag_callback($matchs) {
@@ -522,13 +537,13 @@ class template {
                 $this->tag_search[]  = $search;
                 $this->tag_replace[] = $this->stripvtag($s);
                 return $search;
-            break;
+                break;
             case 'elseif':
                 $s = '<? } elseif(' . $s . ') { ?>';
-            break;
+                break;
             case 'if':
                 $s = '<? if(' . $s . ') { ?>';
-            break;
+                break;
         }
         return $this->stripvtag($s);
     }
@@ -536,6 +551,7 @@ class template {
     /**
      * @param            $s
      * @param bool|FALSE $instring
+     *
      * @return mixed
      */
     private function stripvtag($s, $instring = FALSE) {
@@ -547,6 +563,7 @@ class template {
 
     /**
      * @param $matches
+     *
      * @return string
      */
     private function striptag_callback($matches) {
@@ -574,6 +591,7 @@ class template {
      * function tag callback
      *
      * @param $matchs
+     *
      * @return string
      */
     private function funtag_callback($matchs) {
@@ -587,6 +605,7 @@ class template {
      * block tag callback
      *
      * @param $matchs
+     *
      * @return string
      */
     private function blocktag_callback($matchs) {
@@ -601,6 +620,7 @@ class template {
      * for loop
      *
      * @param $matchs
+     *
      * @return string
      */
     private function loop_section($matchs) {
