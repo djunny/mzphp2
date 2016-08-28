@@ -596,7 +596,7 @@ class core {
      */
     public static function init(&$conf) {
         self::init_conf_by_domain($conf);
-        self::$conf = $conf;
+        self::$conf = &$conf;
         // init
         self::init_timezone($conf);
         self::init_supevar($conf);
