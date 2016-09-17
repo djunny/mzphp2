@@ -61,6 +61,7 @@ class DB {
      * add prefix for table
      *
      * @param $table
+     *
      * @return string
      */
     public static function table($table) {
@@ -73,6 +74,7 @@ class DB {
      *
      * @param     $sql
      * @param int $fetch
+     *
      * @return mixed
      */
     public static function query($sql, $fetch = 0) {
@@ -88,6 +90,7 @@ class DB {
      * fetch row
      *
      * @param $query
+     *
      * @return mixed
      */
     public static function fetch($query) {
@@ -98,19 +101,22 @@ class DB {
      * fetch all rows
      *
      * @param $query
+     * @param $index return index field
+     *
      * @return mixed
      */
-    public static function fetch_all($query) {
+    public static function fetch_all($query, $index = '') {
         if (is_string($query)) {
             $query = self::query($query);
         }
-        return self::instance()->fetch_all($query);
+        return self::instance()->fetch_all($query, $index);
     }
 
     /**
      * alias for fetch
      *
      * @param $query
+     *
      * @return mixed
      */
     public static function fetch_array($query) {
@@ -120,25 +126,27 @@ class DB {
     /**
      * select table
      *
-     * @param     $table   forexample:
-     *                     article
-     *                     article:id,title
-     *                     article:*
-     * @param     $where   forexample:
-     *                     'a>1'
-     *                     array('a'=>1)
-     * @param     $order   forexample:
-     *                     ' id DESC'
-     *                     array(' id DESC', ' name ASC')
-     * @param int $perpage limit for perpage show number,
-     *                     first of row: perpage = 0
-     *                     fetch all: perpage = -1
-     *                     count of all: perpage = -2
-     * @param int $page    if perpage large than 0 for select page
-     *                     (page - 1) * perpage
+     * @param        $table   forexample:
+     *                        article
+     *                        article:id,title
+     *                        article:*
+     * @param        $where   forexample:
+     *                        'a>1'
+     *                        array('a'=>1)
+     * @param        $order   forexample:
+     *                        ' id DESC'
+     *                        array(' id DESC', ' name ASC')
+     * @param int    $perpage limit for perpage show number,
+     *                        first of row: perpage = 0
+     *                        fetch all: perpage = -1
+     *                        count of all: perpage = -2
+     * @param int    $page    if perpage large than 0 for select page
+     *                        (page - 1) * perpage
+     * @param string $index   return index field e.g id
+     *
      * @return mixed
      */
-    public static function select($table, $where, $order = array(), $perpage = -1, $page = 1) {
+    public static function select($table, $where, $order = array(), $perpage = -1, $page = 1, $index = '') {
         if (strpos($table, ':') === false) {
             $fields = '*';
         } else {
@@ -147,7 +155,7 @@ class DB {
         if ($perpage == -2) {
             $fields = 'count(*) AS C';
         }
-        $result = self::instance()->select(self::table($table), $where, $order, $perpage, $page, $fields);
+        $result = self::instance()->select(self::table($table), $where, $order, $perpage, $page, $fields, $index);
         if ($perpage == -2) {
             return $result[0]['C'];
         } else {
@@ -161,6 +169,7 @@ class DB {
      * @param $table
      * @param $data
      * @param $return_id
+     *
      * @return mixed
      */
     public static function insert($table, $data, $return_id = 0) {
@@ -172,6 +181,7 @@ class DB {
      *
      * @param $table
      * @param $data
+     *
      * @return mixed
      */
     public static function replace($table, $data) {
@@ -184,6 +194,7 @@ class DB {
      * @param $table
      * @param $data
      * @param $where
+     *
      * @return mixed
      */
     public static function update($table, $data, $where) {
@@ -195,6 +206,7 @@ class DB {
      *
      * @param $table
      * @param $where
+     *
      * @return mixed
      */
     public static function delete($table, $where) {
@@ -214,6 +226,7 @@ class DB {
      *                            or T()->delete($primary_id)
      *                            or T()->update(array(), $primary_id)
      *                            your must set $primary_key
+     *
      * @return mixed
      */
     public static function T($table, $primary_key = 'id') {

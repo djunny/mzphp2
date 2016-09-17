@@ -62,7 +62,7 @@ class tpl_static {
 
         // static
         if (strpos($s, '<!--{static') !== false) {
-            $s       = preg_replace_callback("#<!--{static\s+(\S*?)\s+?([^}]*?)}-->#is", array($this, 'get_compress'), $s);
+            $s       = preg_replace_callback("#<!--{static\s+(\S*?)\s+?([^}]*?)}-->\s*#is", array($this, 'get_compress'), $s);
             $changed = 1;
         }
 

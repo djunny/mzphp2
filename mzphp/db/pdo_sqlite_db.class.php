@@ -117,13 +117,21 @@ class pdo_sqlite_db {
     /**
      * fetch all records
      *
-     * @param     $query
-     * @param int $result_type
+     * @param string $query
+     * @param string $index
      *
      * @return mixed
      */
-    function fetch_all($query, $result_type = PDO_SQLITE_FETCH_ASSOC) {
-        return $query->fetchAll($result_type);
+    function fetch_all($query, $index = '') {
+        $list = array();
+        while ($val = $query->fetch(PDO_MYSQL_FETCH_ASSOC)) {
+            if ($index) {
+                $list[$val[$index]] = $val;
+            } else {
+                $list[] = $val;
+            }
+        }
+        return $list;
     }
 
     /**
@@ -180,17 +188,18 @@ class pdo_sqlite_db {
     /**
      * select table
      *
-     * @param       $table
-     * @param       $where
-     * @param array $order
-     * @param int   $perpage
-     * @param int   $page
-     * @param array $fields
+     * @param        $table
+     * @param        $where
+     * @param array  $order
+     * @param int    $perpage
+     * @param int    $page
+     * @param array  $fields
+     * @param string $index
      *
      * @return mixed
      * @throws Exception
      */
-    function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array()) {
+    function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array(), $index = '') {
         $where_sql = $this->build_where_sql($where);
         $field_sql = '*';
         if (is_array($fields)) {
@@ -219,7 +228,7 @@ class pdo_sqlite_db {
         if ($fetch_first) {
             return $this->fetch_array($query);
         } else {
-            return $this->fetch_all($query);
+            return $this->fetch_all($query, $index);
         }
     }
 

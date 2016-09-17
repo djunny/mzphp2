@@ -15,7 +15,7 @@ class base_model {
      * @param $primary_key primary key
      */
     function __construct($table, $primary_key) {
-        $this->table = $table;
+        $this->table       = $table;
         $this->primary_key = $primary_key;
     }
 
@@ -24,6 +24,7 @@ class base_model {
      *
      * @param $data
      * @param $id
+     *
      * @return mixed
      */
     public function update($data, $id) {
@@ -39,6 +40,7 @@ class base_model {
      *
      * @param     $data
      * @param int $return_id
+     *
      * @return mixed
      */
     public function insert($data, $return_id = 0) {
@@ -49,6 +51,7 @@ class base_model {
      * replace $data
      *
      * @param $data
+     *
      * @return mixed
      */
     public function replace($data) {
@@ -58,29 +61,32 @@ class base_model {
     /**
      * db select method
      *
-     * @param     $where
-     * @param int $order
-     * @param int $perpage
-     * @param int $page
+     * @param        $where
+     * @param int    $order
+     * @param int    $perpage
+     * @param int    $page
+     * @param string $index
+     *
      * @return mixed
      */
-    public function select($where, $order = 0, $perpage = -1, $page = 1) {
-        return DB::select($this->table, $where, $order, $perpage, $page);
+    public function select($where, $order = 0, $perpage = -1, $page = 1, $index = '') {
+        return DB::select($this->table, $where, $order, $perpage, $page, $index);
     }
 
     /**
      * get recode
      *
      * @param $id id or id array
+     *
      * @return array array or single record
      */
     public function get($id) {
-        $where = array($this->primary_key => $id);
+        $where   = array($this->primary_key => $id);
         $perpage = 0;
         if (is_array($id)) {
             if (isset($id[0])) {
-                $id = array_map('addslashes', $id);
-                $where = $this->primary_key . ' IN (\'' . implode("','", $id) . '\')';
+                $id      = array_map('addslashes', $id);
+                $where   = $this->primary_key . ' IN (\'' . implode("','", $id) . '\')';
                 $perpage = -1;
             } else {
                 $where = $id;
@@ -93,6 +99,7 @@ class base_model {
      * delete record by id or id array
      *
      * @param $id
+     *
      * @return int|mixed
      */
     public function delete($id) {

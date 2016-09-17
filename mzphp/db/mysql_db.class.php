@@ -190,15 +190,19 @@ class mysql_db {
     /**
      * fetch all records
      *
-     * @param     $query
-     * @param int $result_type
+     * @param string $query
+     * @param string $index
      *
      * @return mixed
      */
-    function fetch_all($query) {
+    function fetch_all($query, $index = '') {
         $list = array();
         while ($val = $this->fetch_array($query)) {
-            $list[] = $val;
+            if ($index) {
+                $list[$val[$index]] = $val;
+            } else {
+                $list[] = $val;
+            }
         }
         return $list;
     }
@@ -297,10 +301,11 @@ class mysql_db {
      *                     count of all: perpage = -2
      * @param int $page    if perpage large than 0 for select page
      *                     (page - 1) * perpage
+     * @param     string   index set return list index field
      *
      * @return mixed
      */
-    function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array()) {
+    function select($table, $where, $order = array(), $perpage = -1, $page = 1, $fields = array(), $index = '') {
         $where_sql = $this->build_where_sql($where);
         $selectsql = '*';
         if (is_array($fields)) {
@@ -327,7 +332,7 @@ class mysql_db {
         if ($fetch_first) {
             return $this->fetch_array($query);
         } else {
-            return $this->fetch_all($query);
+            return $this->fetch_all($query, $index);
         }
     }
 
