@@ -194,7 +194,11 @@ class template {
             // CACHE:namespace:memcache_key:time
             if (substr($makefile, 0, 6) == 'CACHE:') {
                 list(, , $key, $time) = explode(':', $makefile);
-                CACHE::set($key, $save_body, $time);
+                $cache_data = array(
+                    'body' => $save_body,
+                    'time' => $time,
+                );
+                CACHE::set($key, $cache_data, $time);
             } else {
                 $dir = dirname($makefile);
                 !is_dir($dir) && mkdir($dir, 0755, 1);
