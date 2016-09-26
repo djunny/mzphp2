@@ -154,12 +154,12 @@ class template {
      * @param string     $makefile
      * @param string     $charset
      * @param int        $compress
-     * @param bool|false $by_return
+     * @param int        $by_return
      *
      * @return string
      * @throws Exception
      */
-    public function display($file, $makefile = '', $charset = '', $compress = 6, $by_return = false) {
+    public function display($file, $makefile = '', $charset = '', $compress = 6, $by_return = 0) {
         extract($this->vars, EXTR_SKIP);
         $_SERVER['warning_info'] = ob_get_contents();
         if ($_SERVER['warning_info']) {
@@ -182,13 +182,19 @@ class template {
             $body = mb_convert_encoding($body, $charset, 'utf-8');
         }
 
-        $body = (DEBUG || $this->conf['html_no_compress']) ? $body : $this->compress_html($body);
+        // compress html
+        if (!DEBUG && $this->conf['html_no_compress']) {
+            $this->compress_html($body);
+        }
+        // make file
         if ($makefile) {
+            // is compress
             if ($compress) {
                 $save_body = gzencode($body, $compress);
             } else {
                 $save_body = $body;
             }
+            // check store in CACHE or write file
             // cache current content 600s in memcache use 'url_key'
             // CACHE:memcache:url_key:600
             // CACHE:namespace:memcache_key:time
@@ -200,6 +206,7 @@ class template {
                 );
                 CACHE::set($key, $cache_data, $time);
             } else {
+                // make dir & write file
                 $dir = dirname($makefile);
                 !is_dir($dir) && mkdir($dir, 0755, 1);
                 file_put_contents($makefile, $save_body);
@@ -208,7 +215,12 @@ class template {
         // old ob_start
         core::ob_start(isset($this->conf['gzip']) && $this->conf['gzip'] ? $this->conf['gzip'] : false);
 
+        // by return
         if ($by_return) {
+            // echo return before return
+            if ($by_return == 2) {
+                echo $body;
+            }
             return $body;
         }
         echo $body;
@@ -404,10 +416,17 @@ class template {
      *
      * @return string
      */
-    private function compress_html($html_source) {
-        $chunks               = preg_split('#(<(pre|textarea)[\s\S]*?<\/\2>)#is', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
+    private function compress_html(&$html_source) {
+        // keep tag
+        $keep_tag = array('pre', 'textarea', 'script', 'style');
+        // replace comment first
+        if (strpos($html_source, '<!--') !== false) {
+            $html_source = preg_replace('#<!--[\s\S]*?-->#is', '', $html_source);
+        }
+        // split by keep tag
+        $chunks               = preg_split('#(<(' . implode('|', $keep_tag) . ')[\s\S]*?<\/\2>)#is', $html_source, -1, PREG_SPLIT_DELIM_CAPTURE);
         $compress_html_source = '';
-        // compress html : clean new line , clean tab, clean comment
+        // compress html
         $skip = 0;
         foreach ($chunks as $index => $c) {
             if ($skip) {
@@ -415,9 +434,22 @@ class template {
                 $skip = 0;
                 continue;
             }
-            if (stripos($c, '<pre') === 0 || stripos($c, '<textarea') === 0) {
-                $skip = 1;
-            } else {
+            $skip = 0;
+            foreach ($keep_tag as $tag) {
+                if (stripos($c, '<' . $tag) !== false) {
+                    $skip = 1;
+                    break;
+                }
+            }
+            if (stripos($c, '<script') !== false) {
+                // remove extra whitespace
+                $c = preg_replace('#\\n[\\t ]+#is', "\n", $c);
+                $c = preg_replace('#[\\t ]{2,}#is', ' ', $c);
+                // remove block comment
+                $c = preg_replace('#\/\*[\s\S]*?\*\/#is', '', $c);
+            } elseif (stripos($c, '<style') !== false) {
+                $this->css_compress($c);
+            } else if (!$skip) {
                 while (strpos($c, "\r") !== false) {
                     $c = str_replace("\r", "\n", $c);
                 }
@@ -427,23 +459,36 @@ class template {
                 // remove inter-tag newline
                 $c = preg_replace('#>\\n<(/?\w)#is', '><$1', $c);
                 // remove extra whitespace
-                $c = preg_replace('#\\n[\\t ]+#is', "\n", $c);
+                $c = preg_replace('#\\n[\\t ]+#is', "", $c);
                 $c = preg_replace('#[\\t ]{2,}#', ' ', $c);
                 // remove CSS & JS comments
                 if (strpos($c, '/*') !== false) {
                     $c = preg_replace('#/\*[\s\S]*?\*/#i', '', $c);
                 }
+                while (strpos($c, "\n\n") !== false) {
+                    $c = str_replace("\n\n", "\n", $c);
+                }
             }
-            if (strpos($c, '<!--') !== false) {
-                $c = preg_replace('#\s*<!--[\s\S]*?-->\s*#is', '', $c);
-            }
-            while (strpos($c, "\n\n") !== false) {
-                $c = str_replace("\n\n", "\n", $c);
-            }
-            //short tag
+            // store compress result
             $compress_html_source .= trim($c);
         }
-        return $compress_html_source;
+        $html_source = $compress_html_source;
+    }
+
+    /**
+     * css compress
+     *
+     * @param $css_body
+     */
+    function css_compress(&$css_body) {
+        // Remove comments
+        $css_body = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css_body);
+        // Remove whitespace
+        $css_body = preg_replace('/\s*([{}|:;,])\s+/', '$1', $css_body);
+        // Remove trailing whitespace at the start
+        $css_body = preg_replace('/\s\s+(.*)/', '$1', $css_body);
+        // Remove unnecesairy ;'s
+        $css_body = str_replace(';}', '}', $css_body);
     }
 
     /**
